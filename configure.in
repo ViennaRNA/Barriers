@@ -14,9 +14,17 @@ AC_SUBST(ISODATE)
 
 AC_CANONICAL_HOST
 
+dnl configure options
+AM_WITH_DMALLOC
+AC_ARG_WITH(hash-bits,
+[  --with-hash-bits=ARG    use hashtable with 2^ARG entries (<32, default 24)],
+AC_DEFINE_UNQUOTED(HASHBITS,$withval))
+
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
+
+AC_C_INLINE
 
 dnl Checks for libraries.
 
