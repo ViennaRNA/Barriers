@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-04-19 18:55:44 studla> */
+/* Last changed Time-stamp: <2002-06-24 18:06:40 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -12,12 +12,13 @@
 #include "utils.h"
 #include "hash_util.h"
 #include "barrier_types.h"
+#include "compress.h"
 #include "treeplot.h"
 #include "simple_set.h"
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.15 2002/04/19 17:30:06 studla Exp $";
+"$Id: barriers.c,v 1.16 2002/09/06 10:03:39 mtw Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -130,7 +131,7 @@ void set_barrier_options(barrier_options opt) {
       int alphabetsize=0;
       int numconv, i;
       char *ALPHA;
-      ALPHA = (char *) space(sizeof(opt.GRAPH));
+      ALPHA = (char *) space(strlen(opt.GRAPH)*sizeof(char));
       numconv = sscanf(opt.GRAPH,"Q%d,%s",&alphabetsize,ALPHA);
       switch(numconv) {
       case 2 :
@@ -148,8 +149,15 @@ void set_barrier_options(barrier_options opt) {
       }
       String_set_alpha(ALPHA);
       move_it = String_move_it;
-      pack_my_structure = strdup;
-      unpack_my_structure = strdup;
+      if(alphabetsize < 7){
+	ini_pack_em(opt);
+	pack_my_structure = pack_em;
+	unpack_my_structure = unpack_em;
+      }
+      else {
+	pack_my_structure = strdup;
+	unpack_my_structure = strdup;
+      }
       if(verbose)
 	fprintf(stderr, "Graph is Q%d with Alphabet '%s'\n",
 		alphabetsize,ALPHA);
@@ -804,6 +812,7 @@ static void backtrack_path_rec (int l1, int l2, const char *tag)
     {int t; t=l1; l1=l2; l2=t;}
   }
   child  = l2; father = l1;
+  fprintf(stderr,"f:>%d< c:>%d<\n", father, child);
   maxsaddle = child;
   /* find saddle connecting l1 and l2 */
   while (lmin[child].father != father) { 
@@ -819,6 +828,7 @@ static void backtrack_path_rec (int l1, int l2, const char *tag)
       maxsaddle = child;
       if (swap) left= -left;
     }
+    fprintf(stderr,"f:>%d< c:>%d<\n", father, child);
   }
   h.structure = lmin[maxsaddle].saddle;
   path[np].hp = lookup_hash(&h); 
