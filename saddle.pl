@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <1999-07-29 20:40:44 ivo>
+# Last changed Time-stamp: <1999-07-30 12:53:10 ivo>
 
 use RNA;
 use Getopt::Long;
@@ -8,14 +8,17 @@ use strict;
 
  Getopt::Long::config('no_ignore_case');
 
-use vars '$max', '$opt_4', '$opt_d', '$opt_d2', '$ParamFile', '$opt_v';
+use vars '$max', '$max_en', '$opt_4', '$opt_d', '$opt_d2', '$ParamFile',
+    '$opt_v';
 $max = 20;
+$max_en = 99999.;
 
 &usage() unless GetOptions("T=f" => \$RNA::temperature,
                            "4", "d", "d2",
                            "logML" => \$RNA::logML,
                            "P=s" => \$ParamFile,
                            "max=i"=> \$max,
+			   "E=f" => \$max_en,
                            "v");
 
 $RNA::tetra_loop = 0 if ($opt_4);
@@ -54,14 +57,15 @@ while (<>) {
 	unless (length($struc2)==$length);
 
     my ($saddleE, $saddle) =
-      RNA::barrier::find_saddle($string, $struc1, $struc2, $max);
-
+      RNA::barrier::find_saddle($string, $struc1, $struc2, $max, $max_en);
+    $saddle = "not found" if (!defined($saddle));
     printf "$saddle (%6.2f)\n", $saddleE;
 }
 
 sub usage {
-    die "$0 [-T] [-4] [-d[2]] [-logML] [-P file] [-max m]\n" .
-	"-max m \tlimit number of paths at each depth to at most m\n" .
-	    "\tstandard options for RNA energy parameters\n";
+    die "$0 [-T] [-4] [-d[2]] [-logML] [-P file] [-max m] [-E maxE]\n",
+    "-max m \tlimit number of paths at each depth to at most m\n",
+    "-E max \tsearch for saddle points with energy < maxE\n" .
+	"\tstandard options for RNA energy parameters\n";
 }
 # End of file
