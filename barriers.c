@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-04-08 00:52:46 ivo> */
+/* Last changed Time-stamp: <2001-04-09 15:08:54 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "treeplot.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.2 2001/04/09 08:02:00 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.3 2001/04/09 13:21:21 ivo Exp $";
 #ifdef __GNUC__BLAH
 #define XLL unsigned long long
 #define MAXIMUM 18446744073709551615ULL
@@ -192,20 +192,17 @@ loc_min *barriers(barrier_options opt) {
 }
 
 int *make_truemin(loc_min *Lmin) {
-  int *truemin;
-  int nlmin;
+  int *truemin, nlmin, i,ii;
   nlmin = Lmin[0].fathers_pool;
   truemin = (int *) space((nlmin+1)*sizeof(int));
   /* truemin[0] = nlmin; */
-  {
-    int i,ii;
-    for (ii=i=1; (i<=max_print)&&(ii<=n_lmin); ii++) {
-      if (!lmin[ii].father) lmin[ii].E_saddle = energy + 0.000001;
-      if (lmin[ii].E_saddle - lmin[ii].energy > minh) {
-	truemin[ii]=i++;
-      }
-    }
+
+  for (ii=i=1; (i<=max_print)&&(ii<=n_lmin); ii++) {
+    if (!lmin[ii].father) lmin[ii].E_saddle = energy + 0.000001;
+    if (lmin[ii].E_saddle - lmin[ii].energy > minh) 
+      truemin[ii]=i++;
   }
+  truemin[0] = i-1;
   return truemin;
 }
 
@@ -430,13 +427,6 @@ void print_results(loc_min *Lmin, int *truemin)
     }
 }
 
-typedef struct {
-  int   set1;
-  int   set2;
-  float distance;
-  float distance2;
-} Union;
-
 void ps_tree(loc_min *Lmin, int *truemin)
 {
   nodeT *nodes;
@@ -445,8 +435,8 @@ void ps_tree(loc_min *Lmin, int *truemin)
   
   nlmin = Lmin[0].fathers_pool;
   
-  if (max_print>nlmin) max_print=nlmin;
-  
+  if (max_print>truemin[0]) max_print=truemin[0];
+
   nodes = (nodeT *) space(sizeof(nodeT)*(max_print+1));
   for (i=0,ii=1; i<max_print && ii<=nlmin; ii++)
     {

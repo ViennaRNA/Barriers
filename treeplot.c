@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-04-08 14:49:28 ivo> */
+/* Last changed Time-stamp: <2001-04-09 15:16:27 ivo> */
 /* treeplot.c */
 /* modified version from ViennaRNA-package */
 
@@ -9,7 +9,7 @@
 #include "system.h"
 #include "utils.h"
 
-static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.2 2001/04/09 08:02:00 ivo Exp $";
+static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.3 2001/04/09 13:21:21 ivo Exp $";
 
 typedef struct node {
   float height;         /* height (energy, time, whatever) of this leaf   */
@@ -70,9 +70,14 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "treedict begin\n"
 	  "  /cmtx matrix currentmatrix def\n"
 	  "  /STR 128 string def\n"
+	  "  /NumH 1 def\n"
 	  "%% - => -\n"
-	  "  /Labeloffset {\n"
-	  "     /Lo [\n"
+	  "  /Init {\n"
+	  "    /LX [\n"
+	  "      LEAF {0 get} forall\n"
+	  "    ] def\n\n"
+	  "    /Helvetica findfont fsize scalefont setfont\n"
+	  "    /Lo [\n"
 	  "      (X) stringwidth pop %% width\n"
 	  "      newpath 0 0 moveto\n"
 	  "      (X) true charpath\n"
@@ -80,15 +85,32 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "      pop exch pop exch sub neg 2 div %% height\n"
 	  "     ] def\n"
 	  "  } def\n"
+	  "%% - => -\n"
+	  "  /SetBarFont {\n"
+	  "    matrix currentmatrix cmtx setmatrix\n"
+	  "    /Helvetica findfont fbsize scalefont setfont\n"
+	  "    setmatrix\n"
+	  "  } bind def\n"
 	  "%% str => -\n"
 	  "  /Rotshow {\n"
 	  "    gsave\n"
-	  "     cmtx setmatrix 90 rotate\n"
-	  "     dup stringwidth pop \n"
-	  "     Lo aload pop\n"
-	  "     3 1 roll add neg exch\n"
+	  "      cmtx setmatrix -90 rotate\n"
+	  "      Lo aload pop\n"
 	  "      rmoveto show\n"
 	  "    grestore\n"
+	  "  } def\n"
+	  "%% dy => - \n"
+	  "  /Rlineto {\n"
+	  "    dup abs MinHeight ge { %% draw height at middle of line\n"
+	  "      dup gsave\n"
+	  "	dup 2 div 0 exch rmoveto\n"
+	  "	cmtx setmatrix -90 rotate\n"
+	  "	abs STR cvs dup stringwidth pop 2 div neg\n"
+	  "	//NumH rmoveto\n"
+	  "	show\n"
+	  "      grestore\n"
+	  "    } if\n"
+	  "    0 exch rlineto\n"
 	  "  } def\n"
 	  "%% - => -\n"
 	  "  /Drawlabels {\n"
@@ -102,14 +124,14 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "  /Connectlmins {\n"
 	  "    newpath\n"
 	  "    SADDEL {\n"
-	  "      aload pop  %% => child father height\n"
-	  "      LEAF 4 -1 roll get aload pop %% => f h cx cy\n"
-	  "      1 index exch moveto          %% => f h cx\n"
-	  "      2 copy exch lineto           %% => f h cx\n"
-	  "      LEAF 3 index get aload pop   %% => f h cx fx fy\n"
-	  "      1 index dup 5 index lineto   %% => f h cx fx fy fx\n"
-	  "      exch lineto\n"
-	  "      add 2 div exch [ 3 1 roll]   %% => father [nx h]\n"
+	  "      aload [ exch aload pop  %% => c f h [ c f h\n"
+	  "      LX 4 -1 roll get LX 4 -1 roll get add 2 div exch ] "
+	  "%% =>  c f h [nx h]\n"
+	  "      exch dup LEAF 6 -1 roll get aload pop %% => f [nx h] h h cx cy\n"
+	  "      dup 3 1 roll moveto             %% => f [] h h cy\n"
+	  "      sub Rlineto                     %% => f [] h\n"
+	  "      LEAF 3 index get aload pop exch %% => f [] h fy fx\n"
+	  "      2 index lineto sub neg Rlineto  %% => f [] h fy\n"
 	  "      LEAF 3 1 roll put\n"
 	  "    } forall\n"
 	  "    gsave\n"
@@ -139,8 +161,8 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
   /* print internal node coordinates */
   fprintf(out, "%% internal nodes (saddle) coordinates, sorted by height\n"
 	  "  /SADDEL [");
-  for (i=0; i<n-1; i++) {
-    k=sindex[i];
+  for (i=0; i<n; i++) {
+    k=sindex[i]; if (k==nodes[k].father) continue;
     if (i%4 == 0)  fprintf(out, "\n   ");
     fprintf(out, "[%3d %3d %7.3f] ",k,nodes[k].father, nodes[k].saddle_height);
   }
@@ -149,18 +171,19 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	       "end\n");
   fprintf(out, "%%%%EndProlog\n"
 	  "treedict begin\n"
-	  "  /fsize 8 def\n"
-	  "  /Helvetica findfont\n"
-	  "  fsize scalefont setfont\n"
-	  "  Labeloffset\n"
-	  "  %d %d fsize add translate\n", bbox[2], bbox[1]);
-  fprintf(out, "  %d %d sub LEAF length div %% x-scale\n", bbox[0], bbox[2]);
-  fprintf(out, "  %d %d fsize add sub\n", bbox[3]-1, bbox[1]);
+	  "  /fsize 10 def\n"
+	  "  /fbsize 7 def\n"
+	  "  Init\n"
+	  "  %d %d fsize 1.5 mul add translate\n", bbox[2]-1, bbox[1]);
+  fprintf(out, "  %d %d sub LEAF length div %% x-scale\n", bbox[0], bbox[2]-1);
+  fprintf(out, "  %d %d fsize dup add add sub\n", bbox[3]-1, bbox[1]);
   fprintf(out, "  SADDEL dup length 1 sub get 2 get %% max_height\n"
-	  "LEAF 0 get 1 get sub %% energy interval\n"
+	  "  LEAF 0 get 1 get sub %% energy interval\n"
+	  "  dup 20 div /MinHeight exch def\n"
 	  "  div scale\n"
 	  "  .5 LEAF 0 get 1 get neg translate\n"
 	  "  Drawlabels\n"
+	  "  SetBarFont\n"
 	  "  Connectlmins\n"
 	  "  showpage\n"
 	  "end\n"
