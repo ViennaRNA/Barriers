@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-12 17:57:52 ivo> */
+/* Last changed Time-stamp: <2001-04-08 00:52:46 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -13,9 +13,10 @@
 #include "utils.h"
 #include "hash_util.h"
 #include "barrier_types.h"
+#include "treeplot.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.1 2001/04/05 08:00:57 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.2 2001/04/09 08:02:00 ivo Exp $";
 #ifdef __GNUC__BLAH
 #define XLL unsigned long long
 #define MAXIMUM 18446744073709551615ULL
@@ -436,42 +437,37 @@ typedef struct {
   float distance2;
 } Union;
 
-extern void  PSplot_phylogeny(Union *cluster, char *filename, char *type);
-
 void ps_tree(loc_min *Lmin, int *truemin)
 {
-  Union *cluster;
+  nodeT *nodes;
   int i,ii;
   int nlmin;
-  int *sindex;
   
   nlmin = Lmin[0].fathers_pool;
-
-  sindex = make_sorted_index(truemin);
   
-  if(max_print>nlmin) max_print=nlmin;
+  if (max_print>nlmin) max_print=nlmin;
   
-  cluster = (Union *) space(sizeof(Union)*(max_print+1));
-  for (i=ii=1; i<max_print; i++)
+  nodes = (nodeT *) space(sizeof(nodeT)*(max_print+1));
+  for (i=0,ii=1; i<max_print && ii<=nlmin; ii++)
     {
-      register int s1, s2;
+      register int s1, f;
       double E_saddle;
-      s1 = sindex[i]; 
-      E_saddle = Lmin[s1].E_saddle;
-      s2 = Lmin[s1].father; 
-      if (s2==0) {
+      if ((s1=truemin[ii])==0) continue;
+      if (s1>max_print) 
+	nrerror("inconsistency in ps_tree, aborting");
+      E_saddle = Lmin[ii].E_saddle;
+      f = Lmin[ii].father; 
+      if (f==0) {
 	E_saddle = Lmin[0].E_saddle; /* maximum energy */
-	s2=1;                        /* join with mfe  */
+	f=1;                         /* join with mfe  */
       }
-      cluster[ii].set1 = truemin[s2];
-      cluster[ii].set2 = truemin[s1];
-      cluster[ii].distance  = E_saddle-Lmin[s2].energy;
-      cluster[ii++].distance2 = E_saddle-Lmin[s1].energy;
-      Lmin[s2].energy = E_saddle;
+      nodes[s1-1].father = truemin[f]-1;
+      nodes[s1-1].height = Lmin[ii].energy;
+      nodes[s1-1].saddle_height = E_saddle;
+      i++;
     }
-  cluster[0].set1 = max_print;
-  PSplot_phylogeny(cluster, "tree.ps", "N");
-  free(cluster);
+  PS_tree_plot(nodes, max_print, "tree.ps");
+  free(nodes);
 }
 
 /*=========================*/
