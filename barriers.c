@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-06 19:23:12 ivo> */
+/* Last changed Time-stamp: <2001-07-11 12:19:25 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "simple_set.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.11 2001/07/09 08:59:12 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.12 2001/07/11 11:15:23 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -405,7 +405,7 @@ void check_neighbors(void)
   { 
     int i_lmin;
     i_lmin = (is_min) ? n_lmin : basins->data[0].basin;
-    
+    set_kill(basins);
     /* store configuration "Structure" in hash table */
     hp = (hash_entry *) space(sizeof(hash_entry));
     hp->structure = pform;
@@ -424,9 +424,11 @@ void check_neighbors(void)
 
 static void merge_basins() {
   int c, i, t;
-  for (i=t=1; i<=n_comp; i++) 
+  for (i=t=1; i<=n_comp; i++) {
     if (truecomp[i]==i) 
       comp[t++]=comp[i];
+    else set_kill(comp[i].basins);
+  }
   n_comp = t-1;
   qsort(comp+1, n_comp, sizeof(struct comp), comp_comps);
   for (c=1; c<=n_comp; c++) { /* foreach connected component */
@@ -481,6 +483,7 @@ static void merge_basins() {
       lmin[father].my_pool += pool + comp[c].size;
       lmin[father].Z += Z + comp[c].size * exp((mfe-energy)/kT);
     }
+    set_kill(comp[c].basins);
   }
 }
 

@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2001-05-25 20:13:12 ihofacke> */
+/* Last changed Time-stamp: <2001-07-11 10:08:18 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +17,7 @@
 #endif
 
 /*
-static char rcsid[] = "$Id: utils.c,v 1.2 2001/05/25 18:16:43 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.3 2001/07/11 11:15:23 ivo Exp $";
 */
 
 #define PRIVATE  static
@@ -56,8 +56,9 @@ PUBLIC void *space(size_t size)
 
 /*------------------------------------------------------------------------*/
 
-void *xrealloc (void *p, size_t size)
-{
+#ifndef WITH_DMALLOC
+/* dmalloc.h #define's xrealloc */
+void *xrealloc (void *p, size_t size) {
   if (p == 0)
     return space(size);
   p = (void *) realloc(p, size);
@@ -73,7 +74,7 @@ void *xrealloc (void *p, size_t size)
   }
   return p;
 }
-
+#endif
 /*------------------------------------------------------------------------*/
 
 PUBLIC void nrerror(const char message[])       /* output message upon error */

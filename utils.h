@@ -1,5 +1,5 @@
 /* Header file for utils.c */
-
+#include "config.h"
 #ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
 #define space(S) calloc(1,(S))
