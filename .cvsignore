@@ -7,3 +7,4 @@ barriers barriers.lsm barriers.spec tree.ps
 stamp-*
 autom*
 aclocal.m4
+INSTALL
