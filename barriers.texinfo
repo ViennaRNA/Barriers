@@ -1,0 +1,229 @@
+\input texinfo @c -*-texinfo-*-
+@c This file uses the @command command introduced in Texinfo 4.0.
+@c %**start of header
+@setfilename barriers.info
+@settitle Compute local minima and energy barriers of landscape
+@finalout
+@setchapternewpage odd
+@c %**end of header
+
+@set VERSION 0.9.0
+
+@ifinfo
+This file documents the @command{barriers} command which computes local
+minima and energy barriers of landscape
+
+Copyright (C) 2001 Ivo Hofacker, Christoph Flamm, Peter Stadler
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Foundation.
+@end ifinfo
+
+@titlepage
+@title barriers
+@subtitle Compute local minima and energy barriers of landscape
+@subtitle for barriers Version @value{VERSION}
+@author by Ivo Hofacker, Christoph Flamm, Peter Stadler
+
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2001 Ivo Hofacker, Christoph Flamm, Peter Stadler
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Foundation.
+@end titlepage
+
+@c All the nodes can be updated using the EMACS command
+@c texinfo-every-node-update, which is normally bound to C-c C-u C-e.
+@node Top, Instructions, (dir), (dir)
+
+@ifinfo
+This file documents the @command{barriers} command to Compute local minima and energy barriers of landscape.
+@end ifinfo
+
+@c All the menus can be updated with the EMACS command
+@c texinfo-all-menus-update, which is normally bound to C-c C-u C-a.
+@menu
+* Copying::                     How you can copy and share @command{barriers}.
+* Overview::                    Preliminary information.
+* Sample::                      Sample output from @command{barriers}.
+* Invoking barriers::           How to run @command{barriers}.
+* Problems::                    Reporting bugs.
+* Concept Index::               Index of concepts.
+@end menu
+
+@node Copying, Overview, Top
+@include gpl.texinfo
+
+@node Overview, Sample, Copying, Top
+@chapter Overview
+@cindex greetings
+@cindex overview
+
+The @command{barriers} program reads an energy sorted list of conformations
+of a landscape, and computes local minima and energy barriers of the
+landscape. For RNA secondary structures, suitable input is produced by
+@command{RNAsubopt}. For each local minimum found it prints to stdout, the
+conformation of the minimum, its energy, the number of the "parent"-minimum
+it merges with, and the height of the energy barrier. Additional
+information on each minimum, such as saddle point conformation and basin
+sizes can be included via options.  A PostScript drawing of the resulting
+tree is written to "tree.ps" in the current directory.
+
+@command{barriers} was written by Ivo L. Hofacker, Christoph Flamm, and
+Peter F. Stadler.
+
+@node Sample, Invoking barriers, Overview, Top
+@chapter Sample Output
+@cindex sample
+
+The following example calculates all 6 local minima in the energy landscape
+of the small RNA sequence @t{GGCGUCGCCUGACG} (with the help of
+@command{RNAsubopt} from the Vienna RNA Package
+@url{http://www.tbi.univie.ac.at/~ivo/RNA/}).  
+
+This is the output of the command
+@samp{echo GGCGUCGCCUGACG | RNAsubopt -e 7 -s | barriers}:
+
+@example
+   1 ..((((....))))  -2.70    0   7.00
+   2 (((...))).....  -2.20    1   4.00
+   3 ..............   0.00    1   1.70
+   4 .....((.....))   2.00    1   0.50
+   5 ((......))....   2.40    1   1.10
+   6 (.((.....)).).   2.60    1   0.90
+@end example
+In this example the 2nd local minimum has an energy of -2.2 kcal/mol and
+converts into the global optimum via an energy barrier of 4 kcal/mol.
+
+This is the output of the command @samp{barriers --help}:
+
+@example
+Usage: barriers [OPTION...] [FILE...]
+Compute local minima and energy barriers of landscape
+
+  -q, --quiet, --silent      Inhibit usual output
+  -v, --verbose              Print more information
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+  -V, --version              Print program version
+  -G <Graph>        define graph type.
+  --bsize           log the basin sizes
+  --max <digit>     compute only the lowest <digit> local minima
+  --minh <de>       print only minima with barrier > de
+  --saddle          log the saddle point structures
+  -M Move-Set       select move-set
+  -P <l1>=<l2>      backtrack path between lmins l2 and l1 (l1 < l2)
+
+  FILE  must have RNAsubopt output-format sorted by energy
+
+  Graph Types and Move Sets are:
+    RNA             RNA secondary structures
+    RNA-noLP        canonical RNA structures
+        [no]Shift       with/out shift moves [default with]
+    Q2              Spin Glass
+                        point mutation [no other options]
+    Qa              a-letter Hamming (not yet)
+    T               Phylogenetic Trees
+        NNI             NNI moves [no other options yet]
+    P               Permutations
+        T               Transpositions [default]
+        C               Canonical Transpositions
+        R               Reversals
+@end example
+
+@node Invoking barriers, Problems, Sample, Top
+@chapter Invoking @command{barriers}
+@cindex invoking
+@cindex version
+@cindex options
+@cindex usage
+@cindex help
+@cindex getting help
+
+The format for running the @command{barriers} program is:
+
+@example
+barriers @var{option} @dots{}
+@end example
+
+@code{barriers} supports the following options:
+
+@c Formatting copied from the Texinfo 4.0 manual.
+@table @code
+@item --quiet
+@itemx --silent
+@itemx -q
+Inhibit usual output.
+
+@item --verbose
+@itemx -v
+Print more information.
+
+@item --help
+@itemx -?
+Print an informative help message describing the options and then exit
+successfully.
+
+@item --usage
+Briefly list the options.
+
+@item --version
+@itemx -V
+Print the version number of @command{barriers} on the standard output
+and then exit successfully.
+@end table
+
+@node Problems, Concept Index, Invoking barriers, Top
+@chapter Reporting Bugs
+@cindex bugs
+@cindex problems
+
+If you find a bug in @command{barriers}, please send electronic mail to
+@email{ivo@@tbi.univie.ac.at}.  Include the version number, which you can find by
+running @w{@samp{barriers --version}}.  Also include in your message the
+output that the program produced and the output you expected.@refill
+
+If you have other questions, comments or suggestions about
+@command{barriers}, contact the author via electronic mail to
+@email{ivo@@tbi.univie.ac.at}.  The author will try to help you out, although he
+may not have time to fix your problems.
+
+@node Concept Index,  , Problems, Top
+@unnumbered Concept Index
+
+@cindex tail recursion
+@printindex cp
+
+@shortcontents
+@contents
+@bye
