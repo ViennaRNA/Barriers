@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-05 17:49:34 ivo> */
+/* Last changed Time-stamp: <2001-07-06 19:23:12 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "simple_set.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.10 2001/07/05 16:02:36 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.11 2001/07/09 08:59:12 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -55,7 +55,7 @@ static void Sorry(char *GRAPH);
 static int  read_data(FILE *FP, double *energy,char *strucb, int len);
 
 static void merge_components(int c1, int c2);
-static int comp_comps(void *A, void *B);
+static int comp_comps(const void *A, const void *B);
 
 /* public functiones */
 int      *make_truemin(loc_min *Lmin);
@@ -183,8 +183,10 @@ static void Sorry(char *GRAPH) {
   exit(-2);
 }
 
+static FILE *mergefile=NULL;
+static int read=0;
 loc_min *barriers(barrier_options opt) {
-  int length, read =0;
+  int length;
   double new_en=0;
 
   set_barrier_options(opt);
@@ -198,6 +200,10 @@ loc_min *barriers(barrier_options opt) {
   truecomp = (int *) space((max_comp+1) * sizeof(int));
   
   ini_stapel(length);
+  if (opt.ssize) {
+    mergefile = fopen("saddles.txt", "w");
+    if (!mergefile) fprintf(stderr, "can't open saddle file\n");
+  }
   
   while (read_data(opt.INFILE, &new_en,form,length)) {
     if (read==0) mfe=energy=new_en;
@@ -205,6 +211,7 @@ loc_min *barriers(barrier_options opt) {
       nrerror("unsorted list!\n");
     if (new_en>energy) {
       merge_basins();
+      /* fprintf(stderr, "%d %d\n", read, lmin[1].my_pool); */
       n_comp=0;
     }
     energy = new_en;
@@ -216,7 +223,7 @@ loc_min *barriers(barrier_options opt) {
       break;  /* we've found all we want to know */
   }
   merge_basins();
-  
+  if (mergefile) fclose(mergefile);
   if(!shut_up) fprintf(stderr,
 		       "read %d structures, to find %d saddles\n",
 		       read, n_saddle);
@@ -290,7 +297,7 @@ static int compare(const void *a, const void *b) {
 void check_neighbors(void)
 {
   char *p, *pp, *pform;
-  int basin, obasin;
+  int basin, obasin=-1;
   hash_entry *hp, h, *down=NULL;
   Set *basins; basinT b;
     
@@ -298,7 +305,7 @@ void check_neighbors(void)
   int   gradmin=0;          /* for Gradient Basins */
   int is_min=1;
   int ccomp=0;              /* which connected component */
-  basins = new_set(10); obasin = -1; 
+  basins = new_set(10);
   minenergia = 100000000.0; /* for Gradient Basins */
   
   /* foreach neighbor structure of configuration "Structure" */
@@ -317,14 +324,21 @@ void check_neighbors(void)
 	gradmin = hp->GradientBasin;
 	down = hp;
       }
+      if ( hp->energy == minenergia )
+	if (down->basin > basin) {
+	  gradmin = hp->GradientBasin;
+	  down = hp;
+	}
+	
       if ( fabs(hp->energy - energy)<=1e-6*fabs(energy)) {
-	int tc=0, tcc=0;
-	while (tc != truecomp[hp->ccomp]) tc = truecomp[hp->ccomp];
+	int tc; tc = hp->ccomp;
+	while (tc != truecomp[tc]) tc = truecomp[tc];
 	if (ccomp==0)
 	  ccomp = tc;
 	else {
-	  while (tcc != truecomp[ccomp]) tcc = truecomp[ccomp];
-	  if (tcc != tc) merge_components(tc, tcc);
+	  while (ccomp != truecomp[ccomp]) ccomp = truecomp[ccomp];
+	  if (ccomp != tc) merge_components(tc, ccomp);
+	  ccomp = truecomp[ccomp];
 	}
       }
       /* the basin of attraction of this local minimum may have been */
@@ -356,6 +370,7 @@ void check_neighbors(void)
     }
     comp[n_comp].basins = set;
     comp[n_comp].saddle = pform;
+    comp[n_comp].size = 0;
     truecomp[n_comp] = ccomp = n_comp;
   }
   
@@ -377,14 +392,14 @@ void check_neighbors(void)
     lmin[n_lmin].structure = pform;
     lmin[n_lmin].energy = energy;
     lmin[n_lmin].my_GradPool = 0;
-    lmin[n_lmin].Z = 0;
+    lmin[n_lmin].my_pool = 1;
+    lmin[n_lmin].Z = exp((mfe-energy)/kT);
     lmin[n_lmin].Zg = 0;
 
-    b.basin = n_lmin; b.hp = NULL;
+    b.basin = n_lmin; b.hp=NULL;
     set_add(basins, &b);
   }
-
-  comp[ccomp].size++;
+  else comp[ccomp].size++;
   set_merge(comp[ccomp].basins, basins);
 
   { 
@@ -399,8 +414,7 @@ void check_neighbors(void)
     hp->GradientBasin = gradmin;    /* for Gradient Basins */
     hp->down = down;
     hp->ccomp = ccomp;
-    /* lmin[i_lmin].my_pool++; */
-    /* lmin[i_lmin].Z += exp(-(energy-mfe)/kT); */
+    hp->n = read;
     lmin[gradmin].my_GradPool++;
     lmin[gradmin].Zg += exp(-(energy-mfe)/kT);
     if (write_hash(hp))
@@ -409,7 +423,11 @@ void check_neighbors(void)
 }
 
 static void merge_basins() {
-  int c;
+  int c, i, t;
+  for (i=t=1; i<=n_comp; i++) 
+    if (truecomp[i]==i) 
+      comp[t++]=comp[i];
+  n_comp = t-1;
   qsort(comp+1, n_comp, sizeof(struct comp), comp_comps);
   for (c=1; c<=n_comp; c++) { /* foreach connected component */
     /* merge all lmins connected by this component */
@@ -417,16 +435,29 @@ static void merge_basins() {
     int i, father, pool=0;
     double Z=0;
     basinT *basins;
-    
+
+    if (mergefile && (comp[c].basins->num_elem>1)) {
+      const char format[2][16] = {"%13.5f %4d %s", "%6.2f %4d %s"};
+      char *saddle;
+      saddle = unpack_my_structure(comp[c].saddle);
+      fprintf(mergefile, format[IS_RNA], energy, comp[c].size, saddle);
+      free(saddle);
+      for (i=0; i < comp[c].basins->num_elem; i++)
+	fprintf(mergefile, " %2d", comp[c].basins->data[i].basin);
+      fprintf(mergefile, "\n");
+    }
+
     basins = comp[c].basins->data;
     father = basins[0].basin;
+    while (lmin[father].father) father=lmin[father].father;
 
     for (i = 1; i < comp[c].basins->num_elem; i++) {
-      int ii;
+      int ii, l, r;
       ii = basins[i].basin;
       while (lmin[ii].father) ii=lmin[ii].father;
-      if (ii<father) {int tmp; tmp=ii; ii=father; father=tmp;}
       if (ii!=father) {
+	if (ii<father) {int tmp; tmp=ii; ii=father; father=tmp; l=0; r=i;}
+	else {l=i; r=0;}
 	/* going to merge ii with father  */
 	if ((!max_print) || (ii<=max_print+false_lmin)) { 
 	  /* found the saddle for a basin we're gonna print */
@@ -437,18 +468,18 @@ static void merge_basins() {
 	lmin[ii].father = father;
 	lmin[ii].saddle = comp[c].saddle;
 	lmin[ii].E_saddle = energy;
-	lmin[ii].left =  basins[i].hp;
-	lmin[ii].right = basins[0].hp;
+	lmin[ii].left =  basins[l].hp;
+	lmin[ii].right = basins[r].hp;
 	if (bsize) {
-	  lmin[ii].fathers_pool = lmin[basins[0].basin].my_pool;
+	  lmin[ii].fathers_pool = lmin[father].my_pool;
 	  pool += lmin[ii].my_pool;
 	  Z += lmin[ii].Z; 
 	}
       }
-      if (bsize) {
-	lmin[basins[0].basin].my_pool += pool;
-	lmin[basins[0].basin].Z += Z;
-      }
+    }
+    if (bsize) {
+      lmin[father].my_pool += pool + comp[c].size;
+      lmin[father].Z += Z + comp[c].size * exp((mfe-energy)/kT);
     }
   }
 }
@@ -629,21 +660,21 @@ static void backtrack_path_rec (int l1, int l2, const char *tag)
       if (swap) left= -left;
     }
   }
-  h.structure = pack_my_structure(lmin[maxsaddle].saddle);
-  path[np].hp = lookup_hash(&h); free(h.structure);
+  h.structure = lmin[maxsaddle].saddle;
+  path[np].hp = lookup_hash(&h); 
   strcpy(path[np].key,tag); strcat(path[np].key, "M");
   np++;
 
   if (left>0) {
     /* branch to l2 */
-    walk_limb (lmin[maxsaddle].left, l2, -dir, tag);
-    /* reconstruct right branch (to father) */
+    if (lmin[maxsaddle].left) /* else saddle==l2 and we're done */
+      walk_limb (lmin[maxsaddle].left, l2, -dir, tag);
+    /* branch to l1 (to father) */
     walk_limb (lmin[maxsaddle].right, l1, dir, tag);
   } else {
-    /* branch to l2 */
     walk_limb (lmin[maxsaddle].right, l2, -dir, tag);
-    /* reconstruct right branch (to father) */
-    walk_limb (lmin[maxsaddle].left, l1, dir, tag);
+    if (lmin[maxsaddle].left)
+      walk_limb (lmin[maxsaddle].left, l1, dir, tag);
   }    
 }
 
@@ -684,16 +715,37 @@ static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag)
   }
 }
 
+void print_path(FILE *PATH, path_entry *path, int *tm) {
+  int i;
+  for (i=0; path[i].hp; i++) {
+    char c[6] = {0,0,0,0}, *struc; 
+    if (path[i].hp->down==NULL) {
+      sprintf(c, "L%04d", tm[path[i].hp->basin]);
+    } else 
+      if (path[i].key[strlen(path[i].key)-1] == 'M')
+	c[0] = 'S';
+      else c[0] = 'I';
+    struc = unpack_my_structure(path[i].hp->structure);
+    fprintf(PATH, "%s (%6.2f) %-5s\n", struc,  path[i].hp->energy, c);
+    free(struc);
+  }
+}
 
 static void merge_components(int c1, int c2) {
-  int cc;
-  if (comp[c1].size<comp[c2].size) {cc=c1; c1=c2; c2=cc;}
+  if (comp[c1].size<comp[c2].size) {int cc; cc=c1; c1=c2; c2=cc;}
   comp[c1].size += comp[c2].size;
   truecomp[c2]=c1;
   set_merge(comp[c1].basins, comp[c2].basins);
 }
 
-static int comp_comps(void *A, void *B) {
-  return ((struct comp *) A)->basins->data[0].basin -
-         ((struct comp *) B)->basins->data[0].basin;
+static int comp_comps(const void *A, const void *B) {
+  struct comp *a, *b;
+  int r, i=0;
+  a = (struct comp *)A;
+  b = (struct comp *)B;
+  for (i=0; i<a->basins->num_elem && i<b->basins->num_elem; i++) {
+    r = a->basins->data[i].basin - b->basins->data[i].basin;
+    if (r!=0) return r;
+  }
+  return (i==a->basins->num_elem)? -1:1;
 }

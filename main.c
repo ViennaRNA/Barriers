@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-04 20:15:50 ivo> */
+/* Last changed Time-stamp: <2001-07-06 17:36:19 ivo> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.5 2001/07/05 16:02:36 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.6 2001/07/09 08:59:12 ivo Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -32,6 +32,7 @@ static struct option const long_options[] =
   {"max", required_argument, 0, 0},
   {"minh", required_argument, 0, 0},
   {"bsize", no_argument, &opt.bsize, 1},
+  {"ssize", no_argument, &opt.ssize, 1},
   {"saddle", no_argument, &opt.print_saddles, 1},
   {NULL, 0, NULL, 0}
 };
@@ -99,18 +100,7 @@ int main (int argc, char *argv[]) {
 
     PATH = fopen (tmp, "w");
     if (PATH == NULL) nrerror("couldn't open path file");
-    for (i=0; path[i].hp; i++) {
-      char c[6] = {0,0,0,0}; 
-      if (path[i].hp->down==NULL) {
-	sprintf(c, "L%04d", tm[path[i].hp->basin]);
-      } else 
-	if (path[i].key[strlen(path[i].key)-1] == 'M')
-	  c[0] = 'S';
-	else c[0] = 'I';
-      
-      fprintf(PATH, "%s (%6.2f) %-5s\n", path[i].hp->structure,
-	      path[i].hp->energy, c);
-    }
+    print_path(PATH, path, tm);
     /* fprintf(stderr, "%llu %llu\n", 0, MAXIMUM);   */
     fclose (PATH);
     fprintf (stderr, "wrote file %s\n", tmp);
@@ -203,6 +193,7 @@ static void usage(int status) {
 	 "-V, --version              output version information and exit\n"
 	 "-G <Graph>        define graph type.\n"
 	 "--bsize           log the basin sizes\n"
+	 "--ssize           print out the saddle component sizes\n"
 	 "--max <digit>     compute only the lowest <digit> local minima\n"
 	 "--minh <de>       print only minima with barrier > de\n" 
 	 "--saddle          log the saddle point structures\n"

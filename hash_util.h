@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-04 16:19:37 ivo> */
+/* Last changed Time-stamp: <2001-07-06 19:22:17 ivo> */
 /* hash_util.h */
 
 #ifndef _hash_util_h
@@ -16,6 +16,7 @@ typedef struct _hash_entry {
   int basin;
   int GradientBasin;  /* for Gradient Basins */
   int ccomp;
+  int n;
   struct _hash_entry *down;
 } hash_entry;
 

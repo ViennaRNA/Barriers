@@ -18,6 +18,7 @@ typedef struct {
 typedef struct {
   int print_saddles;
   int bsize;
+  int ssize;
   int shut_up;
   int max_print;
   double minh;
