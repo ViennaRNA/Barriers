@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "stapel.h"
 
-static char UNUSED rcsid[] = "$Id: moves.c,v 1.3 2001/05/24 17:20:52 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: moves.c,v 1.4 2001/05/25 15:27:22 ivo Exp $";
 
 void SPIN_move_it(char *string) {
   /* generate 1-point error mutants */
@@ -154,12 +154,13 @@ char *pack_spin(const char *spin) {
   l = (spin_len+6)/7;
   packed = (char *) space(l*sizeof(char)+1);
   for (i=j=0; i<spin_len; j++) {
-    packed[j]=128;
     for (k=0; (k<7)&&(i<spin_len); k++, i++) {
       if (spin[i]=='+') packed[j] |= mask[k];
       else if (spin[i]!= '-') fprintf(stderr,"Junk in spin %s\n", spin);
     }
+    packed[j]++;
   }
+#if 0
   {
     char *s;
     s=unpack_spin(packed);
@@ -167,6 +168,7 @@ char *pack_spin(const char *spin) {
       fprintf(stderr, "Error in pack_spin %s %s %s\n", spin, s, packed);
     free(s);
   }
+#endif
   return packed;
 }
 
@@ -178,7 +180,7 @@ char *unpack_spin(const unsigned char *packed) {
   spin = space((7*l+1)*sizeof(char));
   for (i=j=0; j<l; j++) {
     int p;
-    p = packed[j];
+    p = packed[j]-1;
     for (k=0; k<7; k++) 
       spin[i++] = (p & mask[k]) ? '+' : '-';
   }
