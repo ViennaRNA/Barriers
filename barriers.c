@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-06-24 18:06:40 mtw> */
+/* Last changed Time-stamp: <2002-09-11 13:12:18 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <limits.h>
+#include <float.h>
 #include "ringlist.h"
 #include "stapel.h"
 #include "utils.h"
@@ -18,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.16 2002/09/06 10:03:39 mtw Exp $";
+"$Id: barriers.c,v 1.17 2002/09/24 10:26:20 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -60,6 +61,7 @@ static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag);
 static void backtrack_path_rec (int l1, int l2, const char *tag);
 static int *make_sorted_index(int *truemin);
 static void Sorry(char *GRAPH);
+static void print_hash_entry(hash_entry *h);
 static int  read_data(barrier_options opt, double *energy,char *strucb,
 		      int len, int *POV);
 
@@ -375,12 +377,12 @@ void check_neighbors(void)
   Set *basins; basinT b;
   int hasneighbor;
     
-  float minenergia;         /* for Gradient Basins */
-  int   gradmin=0;          /* for Gradient Basins */
+  float minenergia =  100000000.0;  /* energy of lowest neighbor */
+  int   min_n = 1000000000;         /* index of lowest neighbor  */ 
+  int   gradmin=0;                  /* for Gradient Basins */
   int is_min=1;
-  int ccomp=0;              /* which connected component */
+  int ccomp=0;                /* which connected component */
   basins = new_set(10);
-  minenergia = 100000000.0; /* for Gradient Basins */
   
   /* foreach neighbor structure of configuration "Structure" */
   while ((p = pop())) {
@@ -405,19 +407,22 @@ void check_neighbors(void)
       /* because we've seen this structure before, it already */
       /* belongs to the basin of attraction of a local minimum */
       basin = hp->basin;
-      if ( hp->energy < energy) is_min=0;
-      if ( hp->energy < minenergia ) { /* for Gradient Basins */
+      if ( hp->energy < energy) is_min=0;  /* should we use hp->n here? */
+      if ( hp->n < min_n ) {         /* find lowest energy neighbor */
 	minenergia = hp->energy;
+	min_n = hp->n;
 	gradmin = hp->GradientBasin;
 	down = hp;
       }
-      if ( hp->energy == minenergia )
-	if (down->basin > basin) {
-	  gradmin = hp->GradientBasin;
-	  down = hp;
-	}
-	
-      if ( fabs(hp->energy - energy)<=1e-6*fabs(energy)) {
+/*       if ( hp->energy == minenergia ) */
+/* 	if (down->basin > basin) { */
+/* 	  gradmin = hp->GradientBasin; */
+/* 	  down = hp; */
+/* 	} */
+
+      /* careful: if input has higher precision than FLT_EPSILON
+	 bad things will happen */
+      if ( fabs(hp->energy - energy)<=FLT_EPSILON*fabs(energy)) {
 	int tc; tc = hp->ccomp;
 	while (tc != truecomp[tc]) tc = truecomp[tc];
 	if (ccomp==0)
@@ -510,6 +515,7 @@ void check_neighbors(void)
     lmin[gradmin].Zg += exp(-(energy-mfe)/kT);
     if (write_hash(hp))
       nrerror("duplicate structure");
+    /* print_hash_entry(hp); */
   }
 
   if((is_min)&&(POV_size)) lmin[n_lmin].POV = hp->POV;
@@ -812,7 +818,7 @@ static void backtrack_path_rec (int l1, int l2, const char *tag)
     {int t; t=l1; l1=l2; l2=t;}
   }
   child  = l2; father = l1;
-  fprintf(stderr,"f:>%d< c:>%d<\n", father, child);
+  /* fprintf(stderr,"f:>%d< c:>%d<\n", father, child); */
   maxsaddle = child;
   /* find saddle connecting l1 and l2 */
   while (lmin[child].father != father) { 
@@ -828,7 +834,7 @@ static void backtrack_path_rec (int l1, int l2, const char *tag)
       maxsaddle = child;
       if (swap) left= -left;
     }
-    fprintf(stderr,"f:>%d< c:>%d<\n", father, child);
+    /* fprintf(stderr,"f:>%d< c:>%d<\n", father, child); */
   }
   h.structure = lmin[maxsaddle].saddle;
   path[np].hp = lookup_hash(&h); 
@@ -919,3 +925,11 @@ static int comp_comps(const void *A, const void *B) {
   }
   return (i==a->basins->num_elem)? -1:1;
 }
+
+static void print_hash_entry(hash_entry *h) {
+  int down=0;
+  if (h->down) down=h->down->n;
+  fprintf(stderr, "%2d %s %6.2f %2d %2d %2d %2d\n", h->n, h->structure, 
+         h->energy, h->basin, h->GradientBasin, h->ccomp, down);
+}
+

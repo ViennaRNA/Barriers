@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-05 16:51:16 ivo> */
+/* Last changed Time-stamp: <2002-09-09 15:56:32 ivo> */
 
 /* implement set as sorted array */
 #include <stdlib.h>
@@ -12,7 +12,11 @@
 static int comp_basinT(const void *a, const void *b) {
   int A, B;
   A = ((basinT *)a)->basin; B = ((basinT *)b)->basin;
-  return (A - B);
+  if (A!=B) return (A - B);
+  if (((basinT *)a)->hp==NULL) return -1; 
+  if (((basinT *)a)->hp==NULL) return  1;
+  /* else use energy or index in file */
+  return ((basinT *)a)->hp->n - ((basinT *)b)->hp->n;
 }
 
 Set *new_set(int elems) {
