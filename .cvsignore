@@ -1,4 +1,4 @@
-config.log config.h config.cache config.status stamp-h 
+config.log config.h config.cache config.status stamp-h configure config.h.in
 Makefile
 Makefile.in
 barriers barriers.lsm barriers.spec tree.ps
