@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <1999-07-29 20:47:27 ivo>
+# Last changed Time-stamp: <1999-07-30 00:08:33 ivo>
 
 use RNA;
 use Getopt::Long;
@@ -50,7 +50,7 @@ while (<>) {
     $unknown{$nn} = '' if (($F[2]==0)&&($nn>1));  # father = 0
 }
 
-foreach my $nn (keys %unknown) {
+foreach my $nn (sort {$a <=> $b} keys %unknown) {
     my ($struc, $en, $father, $sE, @rest) = @{$lmin[$nn]};
     
     $sE = 9999.;  # will contain saddle energy
@@ -63,10 +63,13 @@ foreach my $nn (keys %unknown) {
 	  RNA::barrier::find_saddle($sequence, $struc, $struc2, $max, $sE);
 	if (defined($saddle)) { # found something
 	    my $ff = $l;
-	    while ($f!=0) {     # find the father's father ....
+	    while (($f!=0)&&($saddleE>$lmin[$ff]->[3])) {
+                # find the father's father ....
 		$ff = $f;
 		$f = $lmin[$f]->[2];
-		if ($sE<$lmin[$ff]->[3]) { # $ff has incorrect saddle!
+		if (($sE<($lmin[$ff]->[3]))&&
+		    ($father<$ff)) { # $ff has incorrect saddle!
+		    print STDERR "$nn $l $sE $lmin[$ff]->[3] $f $ff $saddleE\n";
 		    warn "inconsitent energies" if (!exists($unknown{$ff}));
 #		    print "$ff $lmin[$ff]->[3] $father $sE\n";
 		    $lmin[$ff]->[3] = $sE;
