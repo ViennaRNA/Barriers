@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-07-22 19:38:35 ivo> */
+/* Last changed Time-stamp: <2003-08-23 19:12:54 ivo> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.11 2003/07/22 17:41:23 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.12 2003/08/25 11:31:53 ivo Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -227,13 +227,13 @@ static void usage(int status) {
 	 "-h, --help                 display this help and exit\n"
 	 "-V, --version              output version information and exit\n"
 	 "-G <Graph>        define graph type.\n"
+	 "-M Move-Set       select move-set\n"
 	 "--bsize           log the basin sizes\n"
 	 "--ssize           print out the saddle component sizes\n"
 	 "--max <digit>     compute only the lowest <digit> local minima\n"
 	 "--minh <de>       print only minima with barrier > de\n" 
 	 "--saddle          log the saddle point structures\n"
 	 "--rates           compute rates between macro states (basins)\n"
-	 "-M Move-Set       select move-set\n"
 	 "-P <l1>=<l2>      backtrack path between lmins l2 and l1 (l1 < l2)\n"
          "--poset <n>       input is a poset from n objective functions\n"
 	 );

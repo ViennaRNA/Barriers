@@ -39,10 +39,7 @@ BuildRoot: /var/tmp/%{name}-%{version}
 Summary: Compute local minima and energy barriers of landscape
 
 %description
-Compute local minima and energy barriers of landscape
-@configure_input@
-Please edit barriers.spec.in to add several more lines of description
-here if appropriate, and to delete these instructions.
+Compute local minima and energy barriers of a landscape
 
 %prep
 %setup -q

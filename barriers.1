@@ -13,7 +13,7 @@
 .\" along with this program; see the file COPYING.  If not, write to
 .\" the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 .\"
-.TH BARRIERS 1 "March 8, 2001"
+.TH BARRIERS 1 "August 23, 2003"
 .\" Please update the above date whenever this man page is modified.
 .\"
 .\" Some roff macros, for reference:
@@ -78,14 +78,20 @@ Set the type of configuration space, where \fIgraph\fP can be one of:
 .nf
 RNA		RNA secondary structures (default)
 RNA-noLP	canonical RNA structures (i.e. without isolated pairs)
-Q2		Spin glass (strings of +-)
+Q2		Spin glass (strings of "+-")
+Q\fIa\fP	\fIa\fP-letter hamming graph (e.g. Q3 strings of "ABC"). 
 T		Phylogenetic Trees in bracket notation, e.g.
 		((1)(((2)(3))(5))(4))
 P		Permutations (as comma separated list), e.g.
 		5,1,4,2,3
 .br	
 .fi
-may also be set by the input file using the fourth word on first line.
+The type of landscape may also be set by the input file using the
+fourth word on first line. E.g.:
+.br
+AUCGUGAGCUGUGUAGCUUAGCUAGCUAGC -610 100 :: RNA-noLP
+.br
+for an landscape of canonical RNA structures
 .TP
 .B \-M move-set
 Set the moveset for generating neighbors of a configuration. For RNA possible
@@ -95,9 +101,8 @@ transpositions, and \fIR\fP for reversal moves. Spin Glass always uses
 point mutations (single spin flip), Trees use NNI (Nearest Neighbour
 Interchange). 
 
-.\" .SH "SEE ALSO"
-.\" .BR foo (1), 
-.\" .BR bar (1).
+.SH "SEE ALSO"
+.BR RNAsubopt (1), 
 .SH AUTHOR
 Ivo Hofacker, Christoph Flamm, Peter Stadler. Send comments to
 <ivo@tbi.univie.ac.at>.
