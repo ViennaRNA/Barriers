@@ -1,9 +1,10 @@
-/* Last changed Time-stamp: <2001-05-25 16:42:50 ihofacke> */
+/* Last changed Time-stamp: <2001-06-16 20:06:20 ivo> */
 /* hash_util.c */
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 #include "config.h"
 #include "utils.h"
 #include "hash_util.h"
@@ -11,7 +12,7 @@
 #define   PRIVATE   static
 #define   PUBLIC
 
-static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.3 2001/05/25 18:16:43 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.4 2001/06/18 10:04:38 ivo Exp $";
 
 /* modify hash_f(), hash_comp() and the typedef of hash_entry in hash_utils.h
    to suit your application */
@@ -58,7 +59,7 @@ PRIVATE unsigned old_hash_f(void *x)
 { 
   register char *s;
   register int i;
-  register hash;
+  register int hash;
 
   s = ((hash_entry *)x)->structure;
   for (i=0,    hash = 0;

@@ -1,5 +1,7 @@
 /* trees.c */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "tree_types.h"
 #include "utils.h"
 
@@ -123,7 +125,7 @@ Tree *MakeAllNplus1Trees(Tree *TT)
 
 Tree *MakeRandomTree(int n)
 {
-  int i,j,l,N;
+  int j,l,N;
   int tmpv;
   Tree *T,*TT;
   
@@ -131,8 +133,8 @@ Tree *MakeRandomTree(int n)
 
   T = Make3Tree();
 
-  for (N=3;N<n; N++) {
-    (void) urn();
+  for (N=3; N<n; N++) {
+    (void) urn(); /* what's this ??? */
     j = int_urn(1,2*N-3);  /* insert at edge j */
     
     /* copy tree */
@@ -184,7 +186,7 @@ Tree *MakeRandomTree(int n)
 
 Tree **MakeTreesUpTo(int N)
 {
-  int i,j,k;
+  int i;
   Tree **T;
 
   if (N<3) return NULL;
@@ -229,7 +231,7 @@ void FreeTree(Tree *T,int n)
 
 void FreeAllTreesUpTo(int N, Tree **T)
 {
-  int i,j,n;
+  int i,n;
   for (i=3;i<=N;i++) {
     n = Numtree(i);
     FreeTree(T[i],n);
@@ -241,7 +243,7 @@ Tree *NNI_Move(Tree TT, int edge, int which)
 {
   int v1,v2,e1,e2,etmp;
   Tree *T;
-  int tmpv,N,i,j,k,l;
+  int N,l;
 
   if (DEBUG) printf("In NNI Move\n");
   if (DEBUG) PrintTree(TT);
@@ -313,7 +315,7 @@ Tree *NNI_Move(Tree TT, int edge, int which)
 
 Tree *Make_all_NNI(Tree TT)
 {
-  int i,j,k,l,n;
+  int k,l,n;
   Tree *NL;
   Tree *TempTree;
   n = TT.size;
@@ -345,7 +347,7 @@ Tree *Make_all_NNI(Tree TT)
 
 Tree *MakeRandomNNI(Tree TT)
 {
-  int i,j,k,l,n;
+  int i,k,l,n;
   Tree *NL;
 
   n = TT.size;
@@ -357,7 +359,7 @@ Tree *MakeRandomNNI(Tree TT)
     l++;
     if( (TT.E[l].v1<0) && (TT.E[l].v2<0) ) i++ ;
   }
-  i=0; if (urn()>0,5) i=1;
+  i= (urn()>0.5)?1:0;
 
   NL = NNI_Move(TT,l,i);
   
@@ -368,8 +370,8 @@ Tree *MakeRandomNNI(Tree TT)
 
 char *Tree2string(Tree t)
 {
-  int i,j,k,n,digi,len;
-  int e1,e2,v1,v2;
+  int k,n,len;
+  int e1,v1;
   char *s;
   char *s1;
 
@@ -442,7 +444,7 @@ char *subtrees(Tree T, int edge, int vertex, int *smallest_leaf)
 
 int number_of_leaves(char *st)
 {
-  int i,j,k,l;
+  int i,k,l;
   char last;
   l = strlen(st);
 
@@ -461,7 +463,7 @@ int number_of_leaves(char *st)
 /* --------------------------------------------------------- */
 
 Tree *string2Tree(char *s) {
-  int i,j,k,l,n,len,e1,e2;
+  int i,j,k,n,len,e1,e2;
   Tree *T;
   char *s1,*s2;
 

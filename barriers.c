@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-06-11 13:43:17 studla> */
+/* Last changed Time-stamp: <2001-06-16 19:46:50 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "treeplot.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.8 2001/06/11 12:27:54 studla Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.9 2001/06/18 10:04:38 ivo Exp $";
 #ifdef __GNUC__BLAH
 #define XLL unsigned long long
 #define MAXIMUM 18446744073709551615ULL
@@ -384,7 +384,7 @@ void check_neighbors(void)
     down = NULL;
     /* need to allocate more space for the lmin-list */
     if (n_lmin > max_lmin) {
-      fprintf(stderr, "increasing lmin array\n");
+      fprintf(stderr, "increasing lmin array to %d\n",max_lmin*2);
       lmin = (loc_min *) xrealloc(lmin, (max_lmin*2+1)*sizeof(loc_min));
       memset(lmin + max_lmin +1, 0, max_lmin);
       max_lmin *= 2;
@@ -549,7 +549,7 @@ static int path_cmp(const void *a, const void *b) {
 
 /*=======*/
 path_entry *backtrack_path(int l1, int l2, loc_min *LM, int *truemin) {
-  int n_lmin, i, ll1, ll2;
+  int n_lmin, i, ll1=0, ll2=0;
   char *tag;
   lmin = LM;
   n_lmin = lmin[0].fathers_pool;
