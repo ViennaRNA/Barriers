@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-06-08 18:37:06 studla> */
+/* Last changed Time-stamp: <2001-06-11 14:07:28 studla> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.3 2001/06/08 16:42:27 studla Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.4 2001/06/11 12:27:54 studla Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -224,6 +224,7 @@ static void usage(int status) {
 	 "      T               Transpositions [default]\n"
 	 "      C               Canonical Transpositions\n"
 	 "      R               Reversals\n"
+	 "  X               Exchange Moves on balances +/- strings\n"
 	 );
   
   exit (status);

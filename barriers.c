@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-06-08 18:14:16 studla> */
+/* Last changed Time-stamp: <2001-06-11 13:43:17 studla> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "treeplot.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.7 2001/06/08 16:42:27 studla Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.8 2001/06/11 12:27:54 studla Exp $";
 #ifdef __GNUC__BLAH
 #define XLL unsigned long long
 #define MAXIMUM 18446744073709551615ULL
@@ -160,6 +160,11 @@ void set_barrier_options(barrier_options opt) {
     if (verbose) 
       fprintf(stderr, "Graph is Trees with NNI moves\n");
     break;   
+  case 'X' : /* Johnson graph J(n,n/2) = balanced +/- with exchange moves */
+    move_it = EXCH_move_it;
+    pack_my_structure = pack_spin;
+    unpack_my_structure = unpack_spin;    
+    break;
   default :
     Sorry(opt.GRAPH);
   }

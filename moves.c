@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "stapel.h"
 
-static char UNUSED rcsid[] = "$Id: moves.c,v 1.5 2001/06/08 16:42:27 studla Exp $";
+static char UNUSED rcsid[] = "$Id: moves.c,v 1.6 2001/06/11 12:27:54 studla Exp $";
 
 static char *ALPHABET;
 static int  ALPHASIZE;
@@ -217,4 +217,24 @@ char *unpack_spin(const unsigned char *packed) {
   }
   spin[spin_len]='\0';
   return spin;
+}
+
+void EXCH_move_it(char *string)
+{
+   int i,j,length;
+   char *s;
+   length = strlen(string);
+   s = (char *) space((length+1)*sizeof(char));
+
+   for (i=0;i<length;i++) {
+     for(j=0;j<length;j++) {
+       if((string[i]=='+')&&(string[j]=='-')) {
+         strcpy(s,string);
+         s[i]='-';
+         s[j]='+';
+         push(s);
+       }
+     }
+   }
+   free(s);
 }
