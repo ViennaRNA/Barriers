@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-04-09 15:16:27 ivo> */
+/* Last changed Time-stamp: <2001-05-19 19:57:21 ihofacke> */
 /* treeplot.c */
 /* modified version from ViennaRNA-package */
 
@@ -9,7 +9,7 @@
 #include "system.h"
 #include "utils.h"
 
-static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.3 2001/04/09 13:21:21 ivo Exp $";
+static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.4 2001/05/23 18:16:19 ivo Exp $";
 
 typedef struct node {
   float height;         /* height (energy, time, whatever) of this leaf   */
@@ -84,6 +84,37 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "      flattenpath pathbbox\n"
 	  "      pop exch pop exch sub neg 2 div %% height\n"
 	  "     ] def\n"
+	  "  } def\n"
+	  "%% - => -\n"
+	  "  /DrawScale {\n"
+	  "  gsave \n"
+	  "    maxy miny sub 30 div dup maxy add /maxy exch def miny sub /miny def\n"
+	  "    maxy miny sub log 0.9 sub floor 10 exch exp /tick exch def\n"
+	  "    newpath\n"
+	  "    LEAF length 0.5 sub 0 translate 0 miny moveto 0 maxy miny sub rlineto\n"
+	  "    miny tick div ceiling tick mul dup 0 exch moveto \n"
+	  "    maxy exch sub tick div cvi 1 add dup { %% draw minor ticks\n"
+	  "      0.15 0 rlineto\n"
+	  "      -0.15 tick rmoveto\n"
+	  "    } repeat\n"
+	  "    %% calculate major tick spacing (10, 5, or 2 minor ticks)\n"
+	  "    dup 69 gt { pop 10\n"
+	  "    } {\n"
+	  "      32 gt { 5 }\n"
+	  "      {2} ifelse\n"
+	  "    } ifelse\n"
+	  "    tick mul /mtick exch def\n"
+	  "    miny mtick div ceiling mtick mul dup 0 exch moveto\n"
+	  "    maxy exch sub mtick div cvi 1 add {\n"
+	  "      0.3 0 rlineto \n"
+	  "      gsave currentpoint 10 mul round 10 div cmtx setmatrix\n"
+	  "      STR cvs dup stringwidth pop\n"
+	  "      Lo aload pop 3 1 roll add neg exch rmoveto show pop\n"
+	  "      grestore\n"
+	  "      -0.3 mtick rmoveto\n"
+	  "    } repeat\n"
+	  "    cmtx setmatrix stroke    \n"
+	  "  grestore\n"
 	  "  } def\n"
 	  "%% - => -\n"
 	  "  /SetBarFont {\n"
@@ -177,12 +208,13 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "  %d %d fsize 1.5 mul add translate\n", bbox[2]-1, bbox[1]);
   fprintf(out, "  %d %d sub LEAF length div %% x-scale\n", bbox[0], bbox[2]-1);
   fprintf(out, "  %d %d fsize dup add add sub\n", bbox[3]-1, bbox[1]);
-  fprintf(out, "  SADDEL dup length 1 sub get 2 get %% max_height\n"
-	  "  LEAF 0 get 1 get sub %% energy interval\n"
-	  "  dup 20 div /MinHeight exch def\n"
+  fprintf(out, "  SADDEL dup length 1 sub get 2 get /maxy exch def %% max height\n"
+	  "  LEAF 0 get 1 get /miny exch def %% min height\n"
+	  "  maxy miny sub dup 20 div /MinHeight exch def\n"
 	  "  div scale\n"
 	  "  .5 LEAF 0 get 1 get neg translate\n"
 	  "  Drawlabels\n"
+	  "  DrawScale\n"
 	  "  SetBarFont\n"
 	  "  Connectlmins\n"
 	  "  showpage\n"
