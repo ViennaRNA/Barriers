@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2001-07-11 10:08:18 ivo> */
+/* Last changed Time-stamp: <2002-05-08 11:13:06 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +17,7 @@
 #endif
 
 /*
-static char rcsid[] = "$Id: utils.c,v 1.3 2001/07/11 11:15:23 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.4 2002/05/16 15:17:04 ivo Exp $";
 */
 
 #define PRIVATE  static
@@ -186,38 +186,68 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
 
 /*-----------------------------------------------------------------*/
 
-/* quick and dirty hack. A real compression should go here */
-
 PUBLIC char *pack_structure(const char *struc) {
-  
-  int i,l;
+  /* 5:1 compression using base 3 encoding */
+  int i,j,l,pi;
   unsigned char *packed;
-
-  l = strlen(struc);
-  packed = (unsigned char *) space((l+1)*sizeof(unsigned char));
-
-  for(i=0;i<l;i++) packed[i]=struc[i]; 
-  packed[l]='\0';  
-
+  
+  l = (int) strlen(struc);
+  packed = (unsigned char *) space(((l+4)/5+1)*sizeof(unsigned char));
+  
+  j=i=pi=0; 
+  while (i<l) {
+    register int p;
+    for (p=pi=0; pi<5; pi++) {
+      p *= 3;
+      switch (struc[i]) {
+      case '(':
+      case '\0':
+        break;
+      case '.':
+        p++;
+        break;
+      case ')':
+        p += 2;
+        break;
+      default: nrerror("pack_structure: illegal charcter in structure");
+      }
+      if (i<l) i++;
+    }
+    packed[j++] = (unsigned char) (p+1); /* never use 0, so we can use
+                                            strcmp()  etc. */
+  }
+  packed[j] = '\0';      /* for str*() functions */
   return (char *) packed;
 }
 
 PUBLIC char *unpack_structure(const char *packed) {
-  
-  int i,l;
+  /* 5:1 compression using base 3 encoding */
+  int i,j,l;
   char *struc;
   unsigned const char *pp;
- 
-  l = strlen(packed);
-  pp = (unsigned char *) packed;
-  struc = (char *) space((l+1)*sizeof(char));   /* up to 4 byte extra */
+  char code[3] = {'(', '.', ')'};
 
-  for(i=0;i<l;i++) struc[i] = pp[i]; 
-  struc[l]='\0';   
+  l = (int) strlen(packed);
+  pp = (const unsigned char *) packed;
+  struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
 
+  for (i=j=0; i<l; i++) {
+    register int p, c, k;
+    
+    p = (int) pp[i] - 1;
+    for (k=4; k>=0; k--) {
+      c = p % 3;
+      p /= 3;
+      struc[j+k] = code[c];
+    }
+    j += 5;
+  }
+  struc[j--] = '\0';
+  while (struc[j] == '(') /* strip trailing ( */
+    struc[j--] = '\0';
+  
   return struc;
 }
-
 				   
 /*---------------------------------------------------------------------------*/ 
 
