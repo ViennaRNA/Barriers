@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-05-23 19:27:45 ihofacke> */
+/* Last changed Time-stamp: <2001-06-01 16:27:32 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "treeplot.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.5 2001/05/23 18:16:57 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.6 2001/06/01 14:29:00 ivo Exp $";
 #ifdef __GNUC__BLAH
 #define XLL unsigned long long
 #define MAXIMUM 18446744073709551615ULL
@@ -397,34 +397,34 @@ void print_results(loc_min *Lmin, int *truemin)
       
   n_lmin = Lmin[0].fathers_pool;
 
-  /* printf("     %s\n", farbe); */
-  for (i = 1; i <= n_lmin; i++)
-    {
-      if ((ii = truemin[i])==0) continue;
+  for (i = 1; i <= n_lmin; i++) {
+    int f;
+    if ((ii = truemin[i])==0) continue;
 
-      struc = unpack_my_structure(Lmin[i].structure);
-      printf(format, ii, struc, Lmin[i].energy,
-	     truemin[Lmin[i].father], Lmin[i].E_saddle - Lmin[i].energy);
-      free(struc);
-      
-      if (print_saddles) { 
-	if (Lmin[i].saddle)  {
-	  struc = unpack_my_structure(Lmin[i].saddle);
-	  printf(" %s", struc);
-	  free(struc);
-	}
-        else {
-	  printf(" ");
-	  for (j=0;j<strlen(struc);j++) { printf("~"); }
-	}
-	 
+    struc = unpack_my_structure(Lmin[i].structure);
+    f = Lmin[i].father; if (f>0) f = truemin[f];
+    printf(format, ii, struc, Lmin[i].energy, f,
+	   Lmin[i].E_saddle - Lmin[i].energy);
+    free(struc);
+    
+    if (print_saddles) { 
+      if (Lmin[i].saddle)  {
+	struc = unpack_my_structure(Lmin[i].saddle);
+	printf(" %s", struc);
+	free(struc);
       }
-      if (bsize) 
-	printf (" %12ld %8ld %7.3f %8ld %7.3f",
-		Lmin[i].my_pool, Lmin[i].fathers_pool, mfe -kT*log(lmin[i].Z),
-		Lmin[i].my_GradPool, mfe -kT*log(lmin[i].Zg));
-      printf("\n");
+      else {
+	printf(" ");
+	for (j=0;j<strlen(struc);j++) { printf("~"); }
+      }
+      
     }
+    if (bsize) 
+      printf (" %12ld %8ld %7.3f %8ld %7.3f",
+	      Lmin[i].my_pool, Lmin[i].fathers_pool, mfe -kT*log(lmin[i].Z),
+	      Lmin[i].my_GradPool, mfe -kT*log(lmin[i].Zg));
+    printf("\n");
+  }
 }
 
 void ps_tree(loc_min *Lmin, int *truemin)
