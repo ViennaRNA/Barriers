@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-10-03 12:30:43 ivo> */
+/* Last changed Time-stamp: <2003-11-28 13:22:18 mtw> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.16 2003/10/03 10:35:51 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.17 2003/11/28 12:28:26 mtw Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -49,7 +49,7 @@ int main (int argc, char *argv[]) {
   loc_min *LM;
   int *tm;
   int i;
-  char signal[100]="", what[100]="";
+  char signal[100]="", what[100]="", stuff[100]="";
 
   /* Parse command line */
   program_name = argv[0];
@@ -78,7 +78,11 @@ int main (int argc, char *argv[]) {
     exit(123);
   }
   opt.seq = (char *) space(strlen(line) + 1);
-  sscanf(line,"%s %d %99s %99s", opt.seq, &tmp, signal, what);
+  sscanf(line,"%s %d %99s %99s %99s", opt.seq, &tmp, signal, what, stuff);
+  if(strcmp(stuff, "\0")!=0 && strncmp(what, "Q", 1)==0){ /* lattice proteins*/ 
+    memset(opt.seq, 0, strlen(line)+1);
+    strcpy(opt.seq, stuff);
+  }
 
   if ((!opt.poset)&&(strcmp(signal,"::")!=0)) {
     int r, dim;
@@ -109,10 +113,7 @@ int main (int argc, char *argv[]) {
   if (opt.INFILE != stdin) fclose(opt.INFILE);
   tm = make_truemin(LM);
 
-  if (strncmp(opt.GRAPH,"RNA",3)==0)
-    print_results(LM,tm,opt.seq);
-  else
-    print_results(LM,tm,NULL);
+  print_results(LM,tm,opt.seq);
   fflush(stdout);
 
   if (!opt.want_quiet) ps_tree(LM,tm,0);

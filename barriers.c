@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-09-24 10:24:44 ivo> */
+/* Last changed Time-stamp: <2003-11-28 13:17:49 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.25 2003/09/26 13:43:43 ivo Exp $";
+"$Id: barriers.c,v 1.26 2003/11/28 12:28:26 mtw Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -347,12 +347,14 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
       exit (111);
     }
   }
-  else {
-    if(l != len) {
-      fprintf(stderr,"read_data():\n%s\n unequal length !!\n", strucb);
-      exit (112);
-    }
-  }
+  /*  else { */
+  /*     if(l != len) { */
+  /*       fprintf(stderr,"read_data():\n%s\n unequal length !!\n", strucb); */
+  /*       exit (112); */
+  /*     } */
+  /*   } */
+  /* removed because in the lattice protein case, the sequence is one */
+  /* character longer than the actual SAWs */
   
   if(opt.poset) {
     int i,x;
@@ -648,7 +650,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
   
   n_lmin = Lmin[0].fathers_pool;
 
-  if (IS_RNA) printf("     %s\n", farbe);
+  printf("     %s\n", farbe);
   for (i = 1; i <= n_lmin; i++) {
     int f;
     if ((ii = truemin[i])==0) continue;
