@@ -73,7 +73,6 @@ This file documents the @command{barriers} command to Compute local minima and e
 @c All the menus can be updated with the EMACS command
 @c texinfo-all-menus-update, which is normally bound to C-c C-u C-a.
 @menu
-* Copying::                     How you can copy and share @command{barriers}.
 * Overview::                    Preliminary information.
 * Sample::                      Sample output from @command{barriers}.
 * Invoking barriers::           How to run @command{barriers}.
@@ -209,14 +208,15 @@ and then exit successfully.
 @cindex problems
 
 If you find a bug in @command{barriers}, please send electronic mail to
-@email{ivo@@tbi.univie.ac.at}.  Include the version number, which you can find by
-running @w{@samp{barriers --version}}.  Also include in your message the
-output that the program produced and the output you expected.@refill
+@email{ivo@@tbi.univie.ac.at}.  Include the version number, which you
+can find by running @w{@samp{barriers --version}}.  Also include in your
+message the output that the program produced and the output you
+expected.@refill 
 
 If you have other questions, comments or suggestions about
 @command{barriers}, contact the author via electronic mail to
-@email{ivo@@tbi.univie.ac.at}.  The author will try to help you out, although he
-may not have time to fix your problems.
+@email{ivo@@tbi.univie.ac.at}.  The author will try to help you out, 
+although he may not have time to fix your problems.
 
 @node Concept Index,  , Problems, Top
 @unnumbered Concept Index
