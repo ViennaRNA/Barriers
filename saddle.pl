@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <1999-07-30 12:53:10 ivo>
+# Last changed Time-stamp: <1999-08-01 20:44:57 ivo>
 
 use RNA;
 use Getopt::Long;
@@ -59,7 +59,14 @@ while (<>) {
     my ($saddleE, $saddle) =
       RNA::barrier::find_saddle($string, $struc1, $struc2, $max, $max_en);
     $saddle = "not found" if (!defined($saddle));
-    printf "$saddle (%6.2f)\n", $saddleE;
+    if (($opt_v)&&($#RNA::barrier::path>-1)) {
+	foreach my $s (@RNA::barrier::path) {
+	    printf "$s (%6.2f)\n", RNA::energy_of_struct($string, $s);
+	}
+	print "\n";
+    } else {
+	printf "$saddle (%6.2f)\n", $saddleE;
+    }
 }
 
 sub usage {
