@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-11 12:19:25 ivo> */
+/* Last changed Time-stamp: <2002-01-15 21:11:46 studla> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "simple_set.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.12 2001/07/11 11:15:23 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.13 2002/01/16 20:39:08 studla Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -105,11 +105,17 @@ void set_barrier_options(barrier_options opt) {
     break;
   case 'Q' :    /* Haming graphs */
     if (strcmp(opt.GRAPH,"Q2")==0) {   /* binary +- alphabet */
-      move_it = SPIN_move_it;
+      if(strcmp(opt.MOVESET,"c")==0) {
+	move_it = SPIN_complement_move_it;
+	if (verbose)
+	  fprintf(stderr, "Graph is Q2 with complementation moves\n");
+      }
+      else {  
+	move_it = SPIN_move_it;
+	if (verbose) fprintf(stderr, "Graph is Q2\n");
+      }
       pack_my_structure = pack_spin;
       unpack_my_structure = unpack_spin;
-      if (verbose) 
-	fprintf(stderr, "Graph is Q2\n");
     }
     else {
       int alphabetsize=0;

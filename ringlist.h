@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-06-11 14:09:40 studla> */
+/* Last changed Time-stamp: <2002-01-15 21:04:57 studla> */
 /* ringlist.h */
 
 #ifndef _ringlist_h
@@ -8,7 +8,9 @@ extern void RNA_init(char *sequence, int shift, int nolp);
 extern void RNA_move_it(char *struc);
 extern void RNA_free_rl(void);
 
-extern void SPIN_move_it(char *struc);
+extern void SPIN_move_it(char *sting);
+extern void SPIN_complement_move_it(char *string);
+
 extern void String_move_it(char *string);
 extern void String_set_alpha(char *alpha);
 

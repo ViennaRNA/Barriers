@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-05-19 19:57:21 ihofacke> */
+/* Last changed Time-stamp: <2002-01-16 21:32:25 studla> */
 /* treeplot.c */
 /* modified version from ViennaRNA-package */
 
@@ -9,7 +9,7 @@
 #include "system.h"
 #include "utils.h"
 
-static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.4 2001/05/23 18:16:19 ivo Exp $";
+static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.5 2002/01/16 20:39:08 studla Exp $";
 
 typedef struct node {
   float height;         /* height (energy, time, whatever) of this leaf   */
@@ -208,8 +208,11 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "  %d %d fsize 1.5 mul add translate\n", bbox[2]-1, bbox[1]);
   fprintf(out, "  %d %d sub LEAF length div %% x-scale\n", bbox[0], bbox[2]-1);
   fprintf(out, "  %d %d fsize dup add add sub\n", bbox[3]-1, bbox[1]);
-  fprintf(out, "  SADDEL dup length 1 sub get 2 get /maxy exch def %% max height\n"
-	  "  LEAF 0 get 1 get /miny exch def %% min height\n"
+  fprintf(out,
+	  "  SADDEL dup length 1 sub get 2 get /maxy exch def %% max height\n"
+	  "  9999999 LEAF { aload pop exch pop min } forall\n"
+	  "  /miny exch def %% min height\n"
+	  /* "  LEAF 0 get 1 get /miny exch def %% min height\n" */
 	  "  maxy miny sub dup 20 div /MinHeight exch def\n"
 	  "  div scale\n"
 	  "  .5 LEAF 0 get 1 get neg translate\n"

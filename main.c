@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-06 17:36:19 ivo> */
+/* Last changed Time-stamp: <2002-01-15 20:56:42 studla> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.6 2001/07/09 08:59:12 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.7 2002/01/16 20:39:08 studla Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -206,7 +206,8 @@ static void usage(int status) {
 	 "  RNA-noLP        canonical RNA structures\n"
 	 "      [no]Shift       with/out shift moves [default with]\n"
 	 "  Q2              Spin Glass\n"
-	 "                      point mutation [no other options]\n"
+	 "      p               point mutation (default)\n"
+	 "      c               flip 2nd half\n" 
 	 "  Qa,ALPHA        a-letter Hamming graph.  \n"
 	 "                      Specification of the ALPHAbet is optional\n"
 	 "                      Default is 'ABC...'\n"

@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "stapel.h"
 
-static char UNUSED rcsid[] = "$Id: moves.c,v 1.6 2001/06/11 12:27:54 studla Exp $";
+static char UNUSED rcsid[] = "$Id: moves.c,v 1.7 2002/01/16 20:39:08 studla Exp $";
 
 static char *ALPHABET;
 static int  ALPHASIZE;
@@ -47,6 +47,19 @@ void SPIN_move_it(char *string) {
 
    for (i=0;i<length;i++) { 
      strcpy(s,string);
+     if( s[i]=='+') s[i]='-'; else s[i]='+';
+     push(s);
+   }
+   free(s);
+}
+
+void SPIN_complement_move_it(char *string) {
+  /* complement string after position k for all k */
+   int i,length;
+   char *s;
+   length = strlen(string);
+   s=strdup(string);
+   for (i=length-1;i>=0;i--) { 
      if( s[i]=='+') s[i]='-'; else s[i]='+';
      push(s);
    }
