@@ -3,7 +3,7 @@ barriers_SOURCES=main.c hash_util.c barriers.c stapel.c \
         ringlist.c moves.c trees.c treeplot.c utils.c \
 	barriers.1 system.h aclocal.m4 getopt.c getopt1.c getopt.h \
 	barrier_types.h barriers.h hash.h hash_util.h pair_mat.h \
-	ringlist.h stapel.h tree_types.h trees.h utils.h
+	ringlist.h stapel.h tree_types.h trees.h utils.h treeplot.h
 
 #  uncomment the following if barriers requires the math library
 barriers_LDADD=-lm
