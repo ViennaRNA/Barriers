@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-09-22 22:33:38 ivo> */
+/* Last changed Time-stamp: <2003-09-24 10:24:44 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.24 2003/09/23 15:13:08 ivo Exp $";
+"$Id: barriers.c,v 1.25 2003/09/26 13:43:43 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -233,7 +233,7 @@ loc_min *barriers(barrier_options opt) {
 
   
   length = (int) strlen(opt.seq);
-  max_lmin = 1023;
+  max_lmin = 16383;
   lmin = (loc_min *) space((max_lmin + 1) * sizeof(loc_min));
   n_lmin = 0;
   

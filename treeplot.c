@@ -6,10 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "system.h"
 #include "utils.h"
 
-static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.8 2002/12/18 16:59:46 xtof Exp $";
+static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.9 2003/09/26 13:43:43 ivo Exp $";
 
 typedef struct node {
   float height;         /* height (energy, time, whatever) of this leaf   */
