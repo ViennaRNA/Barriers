@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-07-24 16:26:37 ivo> */
+/* Last changed Time-stamp: <2003-07-25 11:34:23 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.21 2003/07/24 14:32:31 ivo Exp $";
+"$Id: barriers.c,v 1.22 2003/09/19 13:00:37 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -92,7 +92,7 @@ static int max_comp=1024, n_comp;
 static int do_rates=0;
 
 #define HASHSIZE (((unsigned) 1<<HASHBITS)-1)
-static hash_entry hpool[HASHSIZE+1];
+static hash_entry *hpool;
 
 /* ----------------------------------------------------------- */
 
@@ -228,6 +228,7 @@ loc_min *barriers(barrier_options opt) {
   int length;
   double new_en=0;
 
+  hpool = (hash_entry *) space((HASHSIZE+1)*sizeof(hash_entry));
   set_barrier_options(opt);
 
   
@@ -960,6 +961,7 @@ void print_rates(int n, char *fname) {
     free(rate[i]);
   }
   free(rate);
+  fclose(OUT);
 }
 
 void compute_rates(int *truemin) {

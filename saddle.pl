@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2001-01-25 10:07:25 ivo>
+# Last changed Time-stamp: <2003-09-02 11:50:19 ivo>
 
+use FindBin qw($Bin);
 use RNA;
 use Getopt::Long;
 use strict;
@@ -30,7 +31,7 @@ $RNA::dangles = 3 if ($opt_d3);
 
 # importing barrier.pl will call RNA::update_fold_params()
 # this should really be  use RNA::barrier;
-use lib '/home/linse/ivo/RNA/barriers';
+use lib "$Bin";
 use barrier;
  
  RNA::read_parameter_file($ParamFile) if (defined($ParamFile));

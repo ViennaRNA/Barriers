@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2003-09-02 10:07:48 ivo>
+# Last changed Time-stamp: <2003-09-02 11:50:57 ivo>
 
 # analyse folding landscape of the growing molecule: 
 
@@ -11,9 +11,9 @@
 # Usage: bar_map.pl  1.bar 2.bar 3.bar ... n.bar
 
 use FindBin qw($Bin);
-#use lib ("$Bin", '/home/hofacker/ViennaRNA/Perl/blib/lib', '/home/hofacker/ViennaRNA/Perl/blib/arch');
+use lib "$Bin";
 use RNA;
-use RNA::barrier;
+use barrier;
 use Getopt::Long;
 use strict;
 use warnings;

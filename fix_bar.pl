@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <2001-01-25 08:57:55 ivo>
+# Last changed Time-stamp: <2003-09-02 11:54:38 ivo>
 
+use FindBin qw($Bin);
 use RNA;
 use Getopt::Long;
 use strict;
@@ -21,13 +22,10 @@ $max = 20;
 $RNA::tetra_loop = 0 if ($opt_4);
 $RNA::dangles = 0 if ($opt_d);
 $RNA::dangles = 2 if ($opt_d2);
-use lib '/home/linse/ivo/RNA/barriers';
-require 'barrier.pl';
+use lib "$Bin";
+use barrier;
+#require 'barrier.pl';
     
-print "Input sequence and two structures\n" .
-    "....,....1....,....2....,....3....,....4" .
-    "....,....5....,....6....,....7....,....8\n"
-    if ((-t STDIN) && (-t STDOUT) && ($#ARGV<0));
 
 $, = ' ';
 
