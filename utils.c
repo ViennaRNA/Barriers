@@ -4,16 +4,20 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2001-03-08 16:48:23 ivo> */
+/* Last changed Time-stamp: <2001-05-25 20:13:12 ihofacke> */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
 #include <string.h>
+#include "config.h"
+#ifdef WITH_DMALLOC
+#include "dmalloc.h"
+#endif
 
 /*
-static char rcsid[] = "$Id: utils.c,v 1.1 2001/04/05 08:00:57 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.2 2001/05/25 18:16:43 ivo Exp $";
 */
 
 #define PRIVATE  static

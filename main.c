@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-09 13:28:51 ivo> */
+/* Last changed Time-stamp: <2001-05-25 20:11:13 ihofacke> */
 /* main.c */
 
 #include <stdio.h>
@@ -8,14 +8,14 @@
 #include <sys/types.h>
 #include <math.h>
 #include <getopt.h>
-#include "system.h"
+#include "config.h"
 #include "barrier_types.h"
 #include "utils.h"
 #include "barriers.h"
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.1 2001/04/05 08:00:57 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.2 2001/05/25 18:16:43 ivo Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -119,7 +119,9 @@ int main (int argc, char *argv[]) {
   free(opt.seq);
   free(LM);
   free(tm);
-  kill_hash();
+#if WITH_DMALLOC
+  kill_hash(); /* freeing the hash takes unacceptably long */
+#endif
   exit(0);
 }
 

@@ -1,10 +1,10 @@
 /* Header file for utils.c */
 
-#ifdef DMALLOC
+#ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
 #define space(S) calloc(1,(S))
 #define xrealloc(p,n) realloc((p),(n))
-#include "/net/pele/disk3/Users/ivo/include/dmalloc.h"
+#include "dmalloc.h"
 #else
 extern void  *space(size_t size);             /* allocate space safely */
 extern void  *xrealloc(void *p, size_t n);    /* re-allocate safely */
