@@ -1,5 +1,5 @@
 # -*-Perl-*-
-# Last changed Time-stamp: <2000-03-20 12:15:02 ivo>
+# Last changed Time-stamp: <2003-08-03 18:43:19 ivo>
 # calculate (an upper limit) to the energy barrier separating
 # two secondary structures. Call as
 #
@@ -20,8 +20,10 @@ use strict;
 use RNA;
 use Benchmark;
 
-my ($string, %shash, %sshash, $max_keep, $opt_v);
 use vars '@path';
+my ($string, %shash, %sshash, $max_keep, $opt_v);
+my %pair = ('AU', 5, 'GC', 1, 'CG', 2, 'GU', 3, 'UG', 4, 'UA', 6);
+
 #$opt_v = 1;
 BEGIN {
  RNA::update_fold_params();
@@ -34,8 +36,9 @@ sub try_moves {
    my ($maxE, $struc, $ocost, $listp) = @_;
    my @list = @{$listp};
 #  using RNA::make_loop_index() is only 15% faster
-#   my @loop = loop_index($struc);
-   my @loop = @{RNA::ptr2array(RNA::make_loop_index($struc),0,length $struc)};
+   my @loop = loop_index($struc);
+#  my tmp = RNA::cdata(RNA::make_loop_index($struc),length($struc)*4);
+#  my @loop = unpack("i*", tmp);
    my $moves=0;
    my $index=-1;
    foreach (@list) {
@@ -111,7 +114,7 @@ sub make_pair_table {
    # indices start at 0 in this version!
    my($i,$j,$hx, @olist);
    my($structure) = pop(@_);
-   
+
    $hx=$i=0;
    my ($c,@table);
    foreach $c (split(//,$structure)) {
@@ -134,7 +137,6 @@ sub make_pair_table {
 sub check_struct {
    use integer;
    # check if structure is legal, for debugging only
-   my %pair = ('AU', 5, 'GC', 1, 'CG', 2, 'GU', 3, 'UG', 4, 'UA', 6);
    my($structure) = pop(@_);
    my($i,$j,$hx, @olist);
    
@@ -261,4 +263,48 @@ sub find_saddle {
    print "cache hits: $cache of $mm\n" if $opt_v;
    return ($saddleE, $saddle);
 }
+
+sub get_neighbors {
+   use integer;
+   my ($seq, $struc) = @_;
+#  using RNA::make_loop_index() is only 15% faster
+   my @loop = loop_index($struc);
+   my @ptable = make_pair_table($struc);
+#  my tmp = RNA::cdata(RNA::make_loop_index($struc),length($struc)*4);
+#  my @loop = unpack("i*", tmp);
+   my @moves;
+   # invert loop_index
+   my @posl;
+   for my $p (0..length($struc)-1) {
+     next unless substr($struc, $p, 1) eq '.';
+     my $l = $loop[$p];
+     if (!defined($posl[$l])) {
+       $posl[$l] = [$p];
+     } else {
+       push @{$posl[$l]}, $p;
+     }
+   }
+   # find insert moves
+   foreach my $pl (@posl) {
+     foreach my $i (@{$pl}) {
+       foreach my $j (@{$pl}) {
+	 next unless $j>$i+3;
+	 next unless $pair{substr($seq,$i,1) . substr($seq,$j,1)};
+	 my $new = $struc;
+	 substr($new, $i, 1) = '(';
+	 substr($new, $j, 1) = ')';
+	 push @moves, $new;
+       }
+     }
+   }
+   for my $p (0..length($struc)-1) {
+     next unless substr($struc,$p,1) eq '(';
+     my $new = $struc;
+     substr($new, $p, 1) = '.';
+     substr($new, $ptable[$p], 1) = '.';
+     push @moves, $new;
+   }
+   return @moves;
+}
+
 1;
