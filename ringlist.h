@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-04-18 22:08:09 studla> */
+/* Last changed Time-stamp: <2004-04-21 12:53:47 mtw> */
 /* ringlist.h */
 
 #ifndef _ringlist_h
@@ -12,7 +12,10 @@ extern void SPIN_move_it(char *sting);
 extern void SPIN_complement_move_it(char *string);
 
 extern void String_move_it(char *string);
+extern void String_move_it_crankshaft(char *string);
 extern void String_set_alpha(char *alpha);
+extern void initialize_crankshaft(void);
+extern void Q_mem_cleanup(void);
 
 extern void NNI_move_it(char *struc);
 

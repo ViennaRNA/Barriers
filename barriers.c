@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-01-30 15:48:26 ivo> */
+/* Last changed Time-stamp: <2004-04-21 13:06:05 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.27 2004/01/30 14:57:13 ivo Exp $";
+"$Id: barriers.c,v 1.28 2004/05/03 14:58:50 mtw Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -161,7 +161,19 @@ void set_barrier_options(barrier_options opt) {
 	break;
       }
       String_set_alpha(ALPHA);
-      move_it = String_move_it;
+      if(strcmp(opt.MOVESET,"c")==0){
+	initialize_crankshaft();
+	move_it = String_move_it_crankshaft;
+	if(verbose)
+	  fprintf(stderr, "Graph is Q%d with Alphabet '%s' with crankshaft moves\n",
+		  alphabetsize,ALPHA);
+      }
+      else{
+	move_it = String_move_it;
+	if(verbose)
+	  fprintf(stderr, "Graph is Q%d with Alphabet '%s'\n",
+		  alphabetsize,ALPHA);
+      }
       if(alphabetsize < 7){
 	ini_pack_em(opt);
 	pack_my_structure = pack_em;
@@ -171,9 +183,6 @@ void set_barrier_options(barrier_options opt) {
 	pack_my_structure = strdup;
 	unpack_my_structure = strdup;
       }
-      if(verbose)
-	fprintf(stderr, "Graph is Q%d with Alphabet '%s'\n",
-		alphabetsize,ALPHA);
     } 
     break;
   case 'P' :    /* Permutations */
@@ -271,6 +280,15 @@ loc_min *barriers(barrier_options opt) {
     reset_stapel();
     if (n_saddle+1 == max_print)
       break;  /* we've found all we want to know */
+  }
+  switch(opt.GRAPH[0]) {
+  case 'Q':
+    if (strcmp(opt.MOVESET,"c")==0)
+      Q_mem_cleanup();
+    break;
+  default:
+    break;
+    
   }
   merge_basins();
   if (mergefile) fclose(mergefile);
