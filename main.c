@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-05-25 20:11:13 ihofacke> */
+/* Last changed Time-stamp: <2001-06-08 18:37:06 studla> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.2 2001/05/25 18:16:43 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.3 2001/06/08 16:42:27 studla Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -215,7 +215,9 @@ static void usage(int status) {
 	 "      [no]Shift       with/out shift moves [default with]\n"
 	 "  Q2              Spin Glass\n"
 	 "                      point mutation [no other options]\n"
-	 "  Qa              a-letter Hamming (not yet)\n"
+	 "  Qa,ALPHA        a-letter Hamming graph.  \n"
+	 "                      Specification of the ALPHAbet is optional\n"
+	 "                      Default is 'ABC...'\n"
 	 "  T               Phylogenetic Trees\n"
 	 "      NNI             NNI moves [no other options yet]\n"
 	 "  P               Permutations\n"
@@ -226,3 +228,6 @@ static void usage(int status) {
   
   exit (status);
 }
+
+
+

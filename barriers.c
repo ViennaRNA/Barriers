@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-06-01 16:27:32 ivo> */
+/* Last changed Time-stamp: <2001-06-08 18:14:16 studla> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "treeplot.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.6 2001/06/01 14:29:00 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.7 2001/06/08 16:42:27 studla Exp $";
 #ifdef __GNUC__BLAH
 #define XLL unsigned long long
 #define MAXIMUM 18446744073709551615ULL
@@ -100,14 +100,41 @@ void set_barrier_options(barrier_options opt) {
     } else Sorry(opt.GRAPH);
     break;
   case 'Q' :    /* Haming graphs */
-    if (opt.GRAPH[1]=='2') {   /* binary +- alphabet */
+    if (strcmp(opt.GRAPH,"Q2")==0) {   /* binary +- alphabet */
       move_it = SPIN_move_it;
       pack_my_structure = pack_spin;
       unpack_my_structure = unpack_spin;
       if (verbose) 
 	fprintf(stderr, "Graph is Q2\n");
     }
-    else Sorry(opt.GRAPH);
+    else {
+      int alphabetsize=0;
+      int numconv, i;
+      char *ALPHA;
+      ALPHA = (char *) space(sizeof(opt.GRAPH));
+      numconv = sscanf(opt.GRAPH,"Q%d,%s",&alphabetsize,ALPHA);
+      switch(numconv) {
+      case 2 :
+	if(strlen(ALPHA)!=alphabetsize) Sorry(opt.GRAPH);
+	break;
+      case 1 :
+	if((alphabetsize<=0)||(alphabetsize>26)) Sorry(opt.GRAPH);
+	free(ALPHA);
+	ALPHA = (char *) space(sizeof(char)*(alphabetsize+1));
+	for(i=0;i<alphabetsize;i++) ALPHA[i] = (char) 65+i;
+	break;
+      default:
+	Sorry(opt.GRAPH);
+	break;
+      }
+      String_set_alpha(ALPHA);
+      move_it = String_move_it;
+      pack_my_structure = strdup;
+      unpack_my_structure = strdup;
+      if(verbose)
+	fprintf(stderr, "Graph is Q%d with Alphabet '%s'\n",
+		alphabetsize,ALPHA);
+    } 
     break;
   case 'P' :    /* Permutations */
     switch(*opt.MOVESET) {

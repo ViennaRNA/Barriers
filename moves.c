@@ -4,7 +4,39 @@
 #include "utils.h"
 #include "stapel.h"
 
-static char UNUSED rcsid[] = "$Id: moves.c,v 1.4 2001/05/25 15:27:22 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: moves.c,v 1.5 2001/06/08 16:42:27 studla Exp $";
+
+static char *ALPHABET;
+static int  ALPHASIZE;
+
+void String_move_it(char *string) {
+  int i, j, length, ID;
+  char *s;
+  
+  length = strlen(string); 
+  s = (char *) space((length+1)*sizeof(char));
+
+  for (i=0;i<length;i++) {
+    ID=0;
+    for (j=0;j<ALPHASIZE;j++) {
+      if(ALPHABET[j]!=string[i]) {
+	strcpy(s,string);
+	s[i]=ALPHABET[j];
+	push(s);
+      }
+      else ID++;
+      
+    }
+    if(ID!=1) fprintf(stderr,
+		      "Warning: Input string not from given Alphabet\n");
+  }
+  free(s);
+}
+
+void String_set_alpha(char *alpha) {
+  ALPHABET = alpha;
+  ALPHASIZE = strlen(alpha);
+}
 
 void SPIN_move_it(char *string) {
   /* generate 1-point error mutants */
@@ -55,7 +87,6 @@ static char *Perm2String(int *P) {
   string = strdup(tmp);
   return string;
 }
-
 
 void Transpos_move_it(char *perm) {
   int i,j,jj,n;
