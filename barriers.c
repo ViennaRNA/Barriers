@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-07-23 20:17:56 ivo> */
+/* Last changed Time-stamp: <2003-07-24 16:26:37 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.20 2003/07/22 17:41:23 ivo Exp $";
+"$Id: barriers.c,v 1.21 2003/07/24 14:32:31 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -223,7 +223,7 @@ static void Sorry(char *GRAPH) {
 }
 
 static FILE *mergefile=NULL;
-static int read=0;
+static int readl=0;
 loc_min *barriers(barrier_options opt) {
   int length;
   double new_en=0;
@@ -251,16 +251,16 @@ loc_min *barriers(barrier_options opt) {
   }
   
   while (read_data(opt, &new_en,form,length,POV)) {
-    if (read==0) mfe=energy=new_en;
+    if (readl==0) mfe=energy=new_en;
     if (new_en<energy) 
       nrerror("unsorted list!\n");
     if (new_en>energy) {
       merge_basins();
-      /* fprintf(stderr, "%d %d\n", read, lmin[1].my_pool); */
+      /* fprintf(stderr, "%d %d\n", readl, lmin[1].my_pool); */
       n_comp=0;
     }
     energy = new_en;
-    read++;   
+    readl++;   
     move_it(form);       /* generate all neighbor of configuration */
     check_neighbors();   /* flood the energy landscape */
     reset_stapel();
@@ -271,7 +271,7 @@ loc_min *barriers(barrier_options opt) {
   if (mergefile) fclose(mergefile);
   if(!shut_up) fprintf(stderr,
 		       "read %d structures, to find %d saddles\n",
-		       read, n_saddle);
+		       readl, n_saddle);
   
   if (max_print == 0 || max_print > n_lmin)
     max_print = n_lmin;
@@ -507,7 +507,7 @@ void check_neighbors(void)
     i_lmin = (is_min) ? n_lmin : basins->data[0].basin;
     set_kill(basins);
     /* store configuration "Structure" in hash table */
-    hp = hpool+read-1;  /* (hash_entry *) space(sizeof(hash_entry)); */
+    hp = hpool+readl-1;  /* (hash_entry *) space(sizeof(hash_entry)); */
     if (POV_size) {
       int i;
       hp->POV = (int *) space(sizeof(int)*POV_size);
@@ -519,7 +519,7 @@ void check_neighbors(void)
     hp->GradientBasin = gradmin;    /* for Gradient Basins */
     hp->down = down;
     hp->ccomp = ccomp;
-    hp->n = read;
+    hp->n = readl;
     lmin[gradmin].my_GradPool++;
     lmin[gradmin].Zg += Zi;
     if (write_hash(hp))
@@ -628,7 +628,7 @@ void mark_global(loc_min *Lmin)
 /*====================*/
 void print_results(loc_min *Lmin, int *truemin, char *farbe)
 {
-  int i,ii,j;
+  int i,ii,j, n;
   char *struc;
   char *format;
 
@@ -653,6 +653,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     if ((ii = truemin[i])==0) continue;
 
     struc = unpack_my_structure(Lmin[i].structure);
+    n = strlen(struc);
     f = Lmin[i].father; if (f>0) f = truemin[f];
     if (POV_size) {
       int jj;
@@ -682,7 +683,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
       }
       else {
 	printf(" ");
-	for (j=0;j<strlen(struc);j++) { printf("~"); }
+	for (j=0;j<n;j++) { printf("~"); }
       }
       
     }
@@ -945,6 +946,7 @@ static void print_hash_entry(hash_entry *h) {
 void print_rates(int n, char *fname) {
   int i,j;
   FILE *OUT;
+  
   OUT = fopen(fname, "w");
   if (!OUT) {
     fprintf(stderr, "could not open rates file %s for output\n", fname);
@@ -955,7 +957,9 @@ void print_rates(int n, char *fname) {
     for (j=1; j<=n; j++)
       fprintf(OUT, "%10.4g ", rate[i][j]);
     fprintf(OUT, "\n");
+    free(rate[i]);
   }
+  free(rate);
 }
 
 void compute_rates(int *truemin) {
@@ -967,32 +971,32 @@ void compute_rates(int *truemin) {
   n = truemin[0];
   rate = (double **) space((n + 1) * sizeof(double *));
   dr   = (double  *) space((n + 1) * sizeof(double));
-  for (i=0; i<=n; i++)
+  for (i=1; i<=n; i++)
     rate[i] = (double *) space((n + 1) * sizeof(double));
 
-  for (r=0; r<read; r++) {
+  for (r=0; r<readl; r++) {
     hpr= &hpool[r];
     gradmin = hpr->GradientBasin;
     Zi = exp((mfe-hpr->energy)/kT);
     while (truemin[gradmin]==0) gradmin = lmin[gradmin].father;
     gradmin=truemin[gradmin];
     if (gradmin>n) continue;
-    form = unpack_structure(hpr->structure);
-    move_it(form);       /* generate all neighbor of configuration */
+    form = unpack_my_structure(hpr->structure);
+    move_it(form);       /* generate all neighbors of configuration */
     free(form);
-    
     for (i=0; i<=n; i++) dr[i]=0;
     while ((p = pop())) {
       pp = pack_my_structure(p); 
       h.structure = pp;
       /* check whether we've seen the structure before */
-      if ((hp = lookup_hash(&h)) == NULL) continue;
-      if (hp->n>r) continue;
-      gb = hp->GradientBasin;
-      while (truemin[gb]==0) gb = lmin[gb].father;
-      gb = truemin[gb];
-      if (gb>n) continue;
-      dr[gb] += Zi;
+      if ((hp = lookup_hash(&h))) 
+        if (hp->n>r) {
+          gb = hp->GradientBasin;
+          while (truemin[gb]==0) gb = lmin[gb].father;
+          gb = truemin[gb];
+          if (gb<=n) dr[gb] += Zi;
+        }	
+      free(pp);
     }
 
     for (i=1; i<=n; i++) {
@@ -1002,6 +1006,9 @@ void compute_rates(int *truemin) {
   
     reset_stapel();
   }
+
+  fprintf(stderr, "done with 2nd pass\n" );
+  free(dr);
 
   for (i=ii=1; i<=n; i++, ii++) {
     while (truemin[ii]!=i) ii++;

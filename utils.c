@@ -17,7 +17,7 @@
 #endif
 
 /*
-static char rcsid[] = "$Id: utils.c,v 1.4 2002/05/16 15:17:04 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.5 2003/07/24 14:32:32 ivo Exp $";
 */
 
 #define PRIVATE  static
@@ -53,6 +53,9 @@ PUBLIC void *space(size_t size)
     }
     return  pointer;
 }
+#ifdef WITH_DMALLOC
+#define space(S) calloc(1,(S))
+#endif
 
 /*------------------------------------------------------------------------*/
 

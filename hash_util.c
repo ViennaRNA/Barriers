@@ -12,7 +12,7 @@
 #define   PRIVATE   static
 #define   PUBLIC
 
-static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.7 2002/09/06 08:25:41 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.8 2003/07/24 14:32:31 ivo Exp $";
 
 /* modify hash_f(), hash_comp() and the typedef of hash_entry in hash_utils.h
    to suit your application */
@@ -122,7 +122,7 @@ PUBLIC void kill_hash ()
   for (i=0;i<HASHSIZE+1;i++) {
     if (hashtab[i]) {
       free (((hash_entry *)hashtab[i])->structure);
-      free (hashtab[i]);
+      /*free (hashtab[i]);*/ 
       hashtab[i]=NULL;
     }
   }
