@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-08-25 13:33:43 ivo> */
+/* Last changed Time-stamp: <2003-09-22 18:50:22 ivo> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.13 2003/09/02 08:11:36 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.14 2003/09/23 15:13:08 ivo Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -114,14 +114,16 @@ int main (int argc, char *argv[]) {
   else
     print_results(LM,tm,NULL);
   fflush(stdout);
+
+  if (!opt.want_quiet) ps_tree(LM,tm,0);
   
   if (opt.rates) {
     compute_rates(tm);
     print_rates(tm[0], "rates.out");
+    if (!opt.want_quiet) ps_tree(LM,tm,1);
   }
   if (opt.poset) mark_global(LM);
 
-  if (!opt.want_quiet) ps_tree(LM,tm);
   if ((L1>0) && (L2>0)) {
     FILE *PATH = NULL;
     char tmp[30];

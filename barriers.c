@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-07-25 11:34:23 ivo> */
+/* Last changed Time-stamp: <2003-09-22 22:33:38 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.23 2003/09/23 15:12:08 ivo Exp $";
+"$Id: barriers.c,v 1.24 2003/09/23 15:13:08 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -77,7 +77,7 @@ static int  compare(const void *a, const void *b);
 void check_neighbors(void);
 static void merge_basins(void);
 void print_results(loc_min *L, int *tm, char *farbe);
-void ps_tree(loc_min *Lmin, int *truemin);
+void ps_tree(loc_min *Lmin, int *truemin, int rates);
 void print_rates(int n, char *fname);
 
 struct comp {
@@ -696,7 +696,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
   }
 }
 
-void ps_tree(loc_min *Lmin, int *truemin)
+void ps_tree(loc_min *Lmin, int *truemin, int rates)
 {
   nodeT *nodes;
   int i,ii;
@@ -719,8 +719,16 @@ void ps_tree(loc_min *Lmin, int *truemin)
     
     nodes[s1-1].father = (f==0)?-1:truemin[f]-1;
     /* was truemin[f]-1; */
-    nodes[s1-1].height = Lmin[ii].energy;
-    nodes[s1-1].saddle_height = E_saddle;
+    if (rates) {
+      double F,Ft;
+      F = mfe - kT*log(Lmin[ii].Zg);
+      Ft = (f>0) ? F -kT*log(rate[truemin[ii]][truemin[f]])  : E_saddle;
+      nodes[s1-1].height = F;
+      nodes[s1-1].saddle_height = Ft;
+    }else { 
+      nodes[s1-1].height = Lmin[ii].energy;
+      nodes[s1-1].saddle_height = E_saddle;
+    }
     if (print_labels) {
       char *L;
       char *s;
@@ -742,7 +750,10 @@ void ps_tree(loc_min *Lmin, int *truemin)
     }
     i++;
   }
-  PS_tree_plot(nodes, max_print, "tree.ps");
+  if (rates) 
+    PS_tree_plot(nodes, max_print, "treeR.ps");
+  else
+    PS_tree_plot(nodes, max_print, "tree.ps");
   free(nodes);
 }
 
