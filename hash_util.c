@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-11 10:11:58 ivo> */
+/* Last changed Time-stamp: <2002-09-06 10:22:56 ivo> */
 /* hash_util.c */
 
 #include <stdio.h>
@@ -12,7 +12,7 @@
 #define   PRIVATE   static
 #define   PUBLIC
 
-static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.6 2002/04/18 15:37:18 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.7 2002/09/06 08:25:41 ivo Exp $";
 
 /* modify hash_f(), hash_comp() and the typedef of hash_entry in hash_utils.h
    to suit your application */
@@ -86,7 +86,7 @@ PUBLIC void * lookup_hash (void *x)  /* returns NULL unless x is in the hash */
   if (hashtab[hashval]==NULL) return NULL; 
   while (hashtab[hashval]){
     if (hash_comp(x,hashtab[hashval])==0) return hashtab[hashval];
-    hashval = ((hashval++) & (HASHSIZE));
+    hashval = ((hashval+1) & (HASHSIZE));
   }
   return NULL;
 }
@@ -100,7 +100,7 @@ PUBLIC int write_hash (void *x)   /* returns 1 if x already was in the hash */
   hashval=hash_f(x);
   while (hashtab[hashval]){
     if (hash_comp(x,hashtab[hashval])==0) return 1;
-    hashval = ((hashval++) & (HASHSIZE));
+    hashval = ((hashval+1) & (HASHSIZE));
     collisions++;
   }
   hashtab[hashval]=x;
@@ -140,7 +140,7 @@ PUBLIC void delete_hash (void *x)  /* doesn't work in case of collsions */
       hashtab[hashval]=NULL;
       return;
     }
-    hashval = ((hashval++) & (HASHSIZE));
+    hashval = ((hashval+1) & (HASHSIZE));
   }
 }
 /* ----------------------------------------------------------------- */
