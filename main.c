@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-09-22 18:50:22 ivo> */
+/* Last changed Time-stamp: <2003-09-24 11:12:48 ivo> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.14 2003/09/23 15:13:08 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.15 2003/09/24 09:13:59 ivo Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -119,8 +119,8 @@ int main (int argc, char *argv[]) {
   
   if (opt.rates) {
     compute_rates(tm);
-    print_rates(tm[0], "rates.out");
     if (!opt.want_quiet) ps_tree(LM,tm,1);
+    print_rates(tm[0], "rates.out");
   }
   if (opt.poset) mark_global(LM);
 
@@ -240,7 +240,7 @@ static void usage(int status) {
          "--poset <n>       input is a poset from n objective functions\n"
 	 );
   printf("\nFILE  must have RNAsubopt output-format sorted by energy\n\n");
-  printf("Graph Types and Move Sets are:\n"
+  printf("Graph Types (-G graph) and Move Sets (-M mset)are:\n"
 	 "  RNA             RNA secondary structures\n"
 	 "  RNA-noLP        canonical RNA structures\n"
 	 "      [no]Shift       with/out shift moves [default with]\n"
