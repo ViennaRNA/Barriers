@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-01-16 21:32:25 studla> */
+/* Last changed Time-stamp: <2002-04-18 17:32:55 ivo> */
 /* treeplot.c */
 /* modified version from ViennaRNA-package */
 
@@ -9,7 +9,7 @@
 #include "system.h"
 #include "utils.h"
 
-static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.5 2002/01/16 20:39:08 studla Exp $";
+static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.6 2002/04/18 15:37:18 ivo Exp $";
 
 typedef struct node {
   float height;         /* height (energy, time, whatever) of this leaf   */
@@ -29,7 +29,7 @@ typedef struct link {
 void PS_tree_plot(nodeT *nodes, int n, char *filename) {
   /* plot tree with leaf-nodes nodes, to file filename (stdout if NULL) */
   FILE *out;
-  int i, k, f=0, *sindex;
+  int i, k, ll, f=0, *sindex;
   linkT *chain, *l;
   int bbox[4] = {72, 144, 522, 700};
   if (filename) {
@@ -51,7 +51,9 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
   chain = (linkT *) space(n * sizeof(linkT));
   /* start connecting the links of the chain */
   for (i=0; i<n; i++) { /* n-1 merges */
+    int ff;
     k = sindex[i]; f = nodes[k].father; /* ith saddle merges k and f */
+    if (f==-1) f=0;
     if (k==f) continue;  /* lowest node doesn't merge */
     for (l= &chain[f]; l->next!=NULL; l = l->next); 
     l->next=&chain[k]; /* attach child to chain of father */
@@ -68,6 +70,9 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  bbox[0], bbox[1], bbox[2], bbox[3]);
   fprintf(out, "/treedict 100 dict def\n"
 	  "treedict begin\n"
+	  "%% x y  => min(x,y)\n"
+	  "  /min { 2 copy gt { exch } if pop } bind def\n"
+	  "  /max { 2 copy lt { exch } if pop } bind def\n"
 	  "  /cmtx matrix currentmatrix def\n"
 	  "  /STR 128 string def\n"
 	  "  /NumH 1 def\n"
@@ -122,6 +127,12 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "    /Helvetica findfont fbsize scalefont setfont\n"
 	  "    setmatrix\n"
 	  "  } bind def\n"
+	  "%% - => -\n"
+	  "  /SetLabelFont {\n"
+	  "    matrix currentmatrix cmtx setmatrix\n"
+	  "    /Courier findfont fsize scalefont setfont\n"
+	  "    setmatrix\n"
+	  "  } bind def\n"
 	  "%% str => -\n"
 	  "  /Rotshow {\n"
 	  "    gsave\n"
@@ -151,18 +162,28 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "      1 add\n"
 	  "    } forall pop\n"
 	  "  } def\n"
-	  "%% - => -\n"
+	  "%% n => n'    Detect whether a minimum is connected\n"
+	  "  /MRX {\n"
+	  "     /murxi { true } def\n"
+          "     dup 0 lt { pop 0 /murxi { false } def } if\n"
+          "  } def\n"    
+  "%% - => -\n"
 	  "  /Connectlmins {\n"
 	  "    newpath\n"
 	  "    SADDEL {\n"
-	  "      aload [ exch aload pop  %% => c f h [ c f h\n"
-	  "      LX 4 -1 roll get LX 4 -1 roll get add 2 div exch ] "
-	  "%% =>  c f h [nx h]\n"
-	  "      exch dup LEAF 6 -1 roll get aload pop %% => f [nx h] h h cx cy\n"
-	  "      dup 3 1 roll moveto             %% => f [] h h cy\n"
-	  "      sub Rlineto                     %% => f [] h\n"
-	  "      LEAF 3 index get aload pop exch %% => f [] h fy fx\n"
-	  "      2 index lineto sub neg Rlineto  %% => f [] h fy\n"
+	  "      /forest {false} def  %%  draw as tree or forest node\n"
+	  "      aload pop exch dup 0 lt { pop 0 /forest {true} def} if"
+	  "   %% => c h f\n"
+	  "      dup LX exch get [ exch LX 5 index get add 2 div "
+	  "%% => c h f [ nx\n"
+	  "      3 index ]\t\t\t\t         %% => c h f [ nx h ]\n"
+	  "      3 -1 roll dup LEAF 6 -1 roll get aload pop "
+	  "%% => f [nx h] h h cx cy\n"
+	  "      dup 3 1 roll moveto\t\t         %% => f [] h h cy\n"
+	  "      sub Rlineto                                %% => f [] h\n"
+	  "      LEAF 3 index get aload pop exch\t\t %% => f [] h fy fx\n"
+	  "      2 index forest {moveto} {lineto} ifelse \n"
+	  "      sub neg Rlineto\t\t\t         %% => f [] h fy\n"
 	  "      LEAF 3 1 roll put\n"
 	  "    } forall\n"
 	  "    gsave\n"
@@ -173,8 +194,12 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "  /LABEL [");
 
   /* print label array */
+  if(nodes[0].label==NULL) ll = 8;
+  else ll = 3+strlen(nodes[0].label);
+  if(ll<8) ll = 8;
+  ll = (int) (80/ll);
   for (i=0; i<n; i++) {
-    if (i%10 == 0)  fprintf(out, "\n   ");
+    if (i%ll == 0)  fprintf(out, "\n   ");
     if (nodes[i].label) fprintf(out, "(%s) ", nodes[i].label);
     else fprintf(out, "%3d ", i+1);
   }
@@ -193,8 +218,9 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
   fprintf(out, "%% internal nodes (saddle) coordinates, sorted by height\n"
 	  "  /SADDEL [");
   for (i=0; i<n; i++) {
-    k=sindex[i]; if (k==nodes[k].father) continue;
+    int fath;
     if (i%4 == 0)  fprintf(out, "\n   ");
+    k=sindex[i]; if (k==nodes[k].father) continue;
     fprintf(out, "[%3d %3d %7.3f] ",k,nodes[k].father, nodes[k].saddle_height);
   }
   free(chain);  free(sindex);
@@ -216,6 +242,7 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "  maxy miny sub dup 20 div /MinHeight exch def\n"
 	  "  div scale\n"
 	  "  .5 LEAF 0 get 1 get neg translate\n"
+	  "  SetLabelFont\n"
 	  "  Drawlabels\n"
 	  "  DrawScale\n"
 	  "  SetBarFont\n"

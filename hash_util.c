@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-04 20:30:00 ivo> */
+/* Last changed Time-stamp: <2001-07-11 10:11:58 ivo> */
 /* hash_util.c */
 
 #include <stdio.h>
@@ -12,7 +12,7 @@
 #define   PRIVATE   static
 #define   PUBLIC
 
-static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.5 2001/07/05 16:02:36 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.6 2002/04/18 15:37:18 ivo Exp $";
 
 /* modify hash_f(), hash_comp() and the typedef of hash_entry in hash_utils.h
    to suit your application */
@@ -26,6 +26,7 @@ PUBLIC int hash_comp(void *x, void *y);
 
 inline PRIVATE unsigned hash_f (void *x);
 
+/* HASHBITS usually defined via configure and config.h */
 #ifndef HASHBITS
 #define HASHBITS 24
 #endif

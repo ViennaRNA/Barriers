@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-01-15 21:11:46 studla> */
+/* Last changed Time-stamp: <2002-04-18 17:14:19 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "simple_set.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.13 2002/01/16 20:39:08 studla Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.14 2002/04/18 15:37:18 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -559,9 +559,9 @@ void ps_tree(loc_min *Lmin, int *truemin)
       f = Lmin[ii].father; 
       if (f==0) {
 	E_saddle = Lmin[0].E_saddle; /* maximum energy */
-	f=1;                         /* join with mfe  */
+	/* f=1; */                         /* join with mfe  */
       }
-      nodes[s1-1].father = truemin[f]-1;
+      nodes[s1-1].father = (f==0)?-1:truemin[f]-1;
       nodes[s1-1].height = Lmin[ii].energy;
       nodes[s1-1].saddle_height = E_saddle;
       i++;
