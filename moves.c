@@ -4,10 +4,14 @@
 #include "utils.h"
 #include "stapel.h"
 
-static char UNUSED rcsid[] = "$Id: moves.c,v 1.7 2002/01/16 20:39:08 studla Exp $";
+static char UNUSED rcsid[] = "$Id: moves.c,v 1.8 2002/04/19 17:30:06 studla Exp $";
 
 static char *ALPHABET;
 static int  ALPHASIZE;
+
+static char *ADJLIST;
+void  put_ADJLIST(char *A);
+/* static char *get_ADJLIST(void); */
 
 void String_move_it(char *string) {
   int i, j, length, ID;
@@ -251,3 +255,28 @@ void EXCH_move_it(char *string)
    }
    free(s);
 }
+
+
+/********************************************************************/
+
+void put_ADJLIST(char *A) {
+  if(ADJLIST!=NULL) free(ADJLIST);
+  ADJLIST = strdup(A);
+}
+
+void LIST_move_it(char *string) {
+  char *s, *token;
+  /* parse adjacency list and push the token on the stack */
+  /* using strtok */
+
+  token=strtok(ADJLIST,":");
+  while(token) {
+    s = strdup(token);
+    push(s);
+    token = strtok(NULL,":");
+  }
+  free(ADJLIST);
+  ADJLIST = NULL;
+}
+
+/********************************************************************/

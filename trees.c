@@ -132,7 +132,7 @@ Tree *MakeRandomTree(int n)
   if (n<3) return NULL;
 
   T = Make3Tree();
-
+  TT = NULL;
   for (N=3; N<n; N++) {
     (void) urn(); /* what's this ??? */
     j = int_urn(1,2*N-3);  /* insert at edge j */

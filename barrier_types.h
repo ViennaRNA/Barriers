@@ -13,6 +13,8 @@ typedef struct {
   long fathers_pool; /* # of structures attracted by father-lmin */
   hash_entry *left;
   hash_entry *right;
+  int *POV;          /* only for the partial order */
+  char global;       /* mark global Pareto points */
 } loc_min;
 
 typedef struct {
@@ -28,6 +30,8 @@ typedef struct {
   char *GRAPH, *MOVESET;
   FILE *INFILE;
   char *seq;
+  int poset;
+  int label;
 } barrier_options;
 
 typedef struct {

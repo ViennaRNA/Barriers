@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-01-15 20:56:42 studla> */
+/* Last changed Time-stamp: <2002-04-19 09:23:51 studla> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.7 2002/01/16 20:39:08 studla Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.8 2002/04/19 17:30:06 studla Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -29,11 +29,13 @@ static struct option const long_options[] =
   {"verbose", no_argument, 0, 'v'},
   {"help", no_argument, 0, 'h'},
   {"version", no_argument, 0, 'V'},
+  {"label", no_argument, 0, 0},
   {"max", required_argument, 0, 0},
   {"minh", required_argument, 0, 0},
   {"bsize", no_argument, &opt.bsize, 1},
   {"ssize", no_argument, &opt.ssize, 1},
   {"saddle", no_argument, &opt.print_saddles, 1},
+  {"poset", required_argument, 0, 0 },
   {NULL, 0, NULL, 0}
 };
 
@@ -54,6 +56,7 @@ int main (int argc, char *argv[]) {
   opt.kT = -300;
   opt.MOVESET = "";
   opt.minh = 0.0000001;
+  opt.label = 0; /* normally, use numbers for minima */
   GRAPH   = NULL;
     
   /* Try to parse head to determine graph-type */  
@@ -75,6 +78,24 @@ int main (int argc, char *argv[]) {
   }
   opt.seq = (char *) space(strlen(line) + 1);
   sscanf(line,"%s %d %99s %99s", opt.seq, &tmp, signal, what);
+
+  if((!opt.poset)&&(strcmp(signal,"::")!=0)) {
+    int r, dim;
+    /* in this case we have a poset file !!!! */
+    r=sscanf(signal,"P:%d",&dim);
+    if(r<1) {
+      fprintf(stderr,
+	      "Warning: obsure headline in input file\n");
+      dim = 0;
+    }
+    if(dim>0) opt.poset  = dim; 
+  }
+
+  if(opt.poset)
+    fprintf(stderr,
+	    "!!! Input data are a poset with %d objective functions\n",
+	    opt.poset);
+    
   free(line);
 
   if (GRAPH==NULL)
@@ -87,6 +108,8 @@ int main (int argc, char *argv[]) {
   if (opt.INFILE != stdin) fclose(opt.INFILE);
   tm = make_truemin(LM);
 
+  if(opt.poset) mark_global(LM);
+  
   print_results(LM,tm);
   if(!opt.want_quiet) ps_tree(LM,tm);
   fflush(stdout);
@@ -141,6 +164,11 @@ static int decode_switches (int argc, char **argv)
 	  if (strcmp(long_options[option_index].name,"minh")==0)
 	    if (sscanf(optarg, "%lf", &opt.minh) == 0)
 	      usage(EXIT_FAILURE);
+	  if (strcmp(long_options[option_index].name,"poset")==0)
+	    if (sscanf(optarg, "%d", &opt.poset) == 0)
+	      usage(EXIT_FAILURE);
+	  if (strcmp(long_options[option_index].name,"label")==0)
+	    opt.label = 1;
 	  break;
         case 'q':               /* --quiet, --silent */
           opt.want_quiet = 1;
@@ -199,6 +227,7 @@ static void usage(int status) {
 	 "--saddle          log the saddle point structures\n"
 	 "-M Move-Set       select move-set\n"
 	 "-P <l1>=<l2>      backtrack path between lmins l2 and l1 (l1 < l2)\n"
+         "--poset <n>       input is a poset from n objective functions\n"
 	 );
   printf("\nFILE  must have RNAsubopt output-format sorted by energy\n\n");
   printf("Graph Types and Move Sets are:\n"
@@ -218,6 +247,7 @@ static void usage(int status) {
 	 "      C               Canonical Transpositions\n"
 	 "      R               Reversals\n"
 	 "  X               Exchange Moves on balances +/- strings\n"
+	 "  ?               General graph; adjacency list in file\n"
 	 );
   
   exit (status);

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-04-18 17:32:55 ivo> */
+/* Last changed Time-stamp: <2002-04-19 19:15:20 studla> */
 /* treeplot.c */
 /* modified version from ViennaRNA-package */
 
@@ -9,7 +9,7 @@
 #include "system.h"
 #include "utils.h"
 
-static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.6 2002/04/18 15:37:18 ivo Exp $";
+static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.7 2002/04/19 17:30:06 studla Exp $";
 
 typedef struct node {
   float height;         /* height (energy, time, whatever) of this leaf   */
@@ -51,7 +51,7 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
   chain = (linkT *) space(n * sizeof(linkT));
   /* start connecting the links of the chain */
   for (i=0; i<n; i++) { /* n-1 merges */
-    int ff;
+    /* int ff; */
     k = sindex[i]; f = nodes[k].father; /* ith saddle merges k and f */
     if (f==-1) f=0;
     if (k==f) continue;  /* lowest node doesn't merge */
@@ -218,7 +218,7 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
   fprintf(out, "%% internal nodes (saddle) coordinates, sorted by height\n"
 	  "  /SADDEL [");
   for (i=0; i<n; i++) {
-    int fath;
+    /* int fath; */
     if (i%4 == 0)  fprintf(out, "\n   ");
     k=sindex[i]; if (k==nodes[k].father) continue;
     fprintf(out, "[%3d %3d %7.3f] ",k,nodes[k].father, nodes[k].saddle_height);

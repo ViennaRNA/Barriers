@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-04-18 17:14:19 ivo> */
+/* Last changed Time-stamp: <2002-04-19 18:55:44 studla> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,8 @@
 #include "simple_set.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.14 2002/04/18 15:37:18 ivo Exp $";
+static char UNUSED rcsid[] =
+"$Id: barriers.c,v 1.15 2002/04/19 17:30:06 studla Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -29,6 +30,8 @@ static int n_saddle;
 static double minh;
 static double energy;
     /* energy of last read structure (for check_neighbors) */
+static int *POV;    /* list of last read POSET values */
+static int POV_size;
 static double mfe;           /* used for scaling Z */
 
 static void (*move_it)(char *);
@@ -46,13 +49,18 @@ static int shut_up = 0;
 static int verbose = 0;
 static int max_print = 0;
 static int IS_RNA = 0;
+static int print_labels = 0;
+static int IS_arbitrary = 0;
+
+static int maxlabellength = 0;
 
 /* private functions */
 static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag);
 static void backtrack_path_rec (int l1, int l2, const char *tag);
 static int *make_sorted_index(int *truemin);
 static void Sorry(char *GRAPH);
-static int  read_data(FILE *FP, double *energy,char *strucb, int len);
+static int  read_data(barrier_options opt, double *energy,char *strucb,
+		      int len, int *POV);
 
 static void merge_components(int c1, int c2);
 static int comp_comps(const void *A, const void *B);
@@ -85,6 +93,7 @@ void set_barrier_options(barrier_options opt) {
   max_print = opt.max_print;
   minh = opt.minh;
   verbose = opt.want_verbose;
+  print_labels = opt.label;
   switch(opt.GRAPH[0]) {
   case 'R' :    /* RNA secondary Structures */
     if (strncmp(opt.GRAPH, "RNA", 3)==0) {
@@ -175,6 +184,12 @@ void set_barrier_options(barrier_options opt) {
     pack_my_structure = pack_spin;
     unpack_my_structure = unpack_spin;    
     break;
+  case '?' : /* General graph; adjacency list on file */
+    move_it = LIST_move_it;
+    pack_my_structure = strdup;
+    unpack_my_structure = strdup;
+    IS_arbitrary = 1;
+    break;
   default :
     Sorry(opt.GRAPH);
   }
@@ -204,14 +219,18 @@ loc_min *barriers(barrier_options opt) {
   form = (char *) space((length+1)*sizeof(char));
   comp = (struct comp *) space((max_comp+1) * sizeof(struct comp));
   truecomp = (int *) space((max_comp+1) * sizeof(int));
-  
+  if(opt.poset) { 
+    POV_size = opt.poset;
+    POV  = (int *) space(sizeof(int)*opt.poset);
+  }
+  else POV = NULL;
   ini_stapel(length);
   if (opt.ssize) {
     mergefile = fopen("saddles.txt", "w");
     if (!mergefile) fprintf(stderr, "can't open saddle file\n");
   }
   
-  while (read_data(opt.INFILE, &new_en,form,length)) {
+  while (read_data(opt, &new_en,form,length,POV)) {
     if (read==0) mfe=energy=new_en;
     if (new_en<energy) 
       nrerror("unsorted list!\n");
@@ -267,28 +286,68 @@ int *make_truemin(loc_min *Lmin) {
   return truemin;
 }
 
-
-
 /*=============================================================*/
-static int read_data(FILE *FP, double *energy,char *strucb, int len) {
 
-  static char struc[501];
-  int r;
+static int read_data(barrier_options opt, double *energy, char *strucb,
+		     int len, int *POV){
+  int   r,l;
+  char *line;
+  char *token;
+  
+  line = get_line(opt.INFILE);
 
-  r = fscanf(FP, "%500s %lf", struc, energy);
-  if (r==EOF) return 0;
-  if (r!=2) {
-    fprintf(stderr, "Error in input file\n");
-    exit(123);
+  if(line==NULL) return 0;
+  if(strlen(line)==0) return 0;
+
+  token=strtok(line," \t");
+  if(token==NULL) return 0;
+  l = strlen(token);
+  if(l<1) return 0;
+  strcpy(strucb,token);
+  
+  token = strtok(NULL," \t");
+  if(token==NULL) { fprintf(stderr, "Error in input file\n"); exit(123); }
+  r=sscanf(token,"%lf",energy);
+  if(r<1) { fprintf(stderr, "Error in input file\n"); exit(124); }
+  
+  if(IS_arbitrary) {
+    /* record the maximal length of token name for output formatting */
+    if(l>maxlabellength) maxlabellength=l;
+    if(l>len) {
+      fprintf(stderr,"read_data():\n%s\n label too long !!\n", strucb);
+      exit (111);
+    }
+  }
+  else {
+    if(l != len) {
+      fprintf(stderr,"read_data():\n%s\n unequal length !!\n", strucb);
+      exit (112);
+    }
+  }
+  
+  if(opt.poset) {
+    int i,x;
+    for(i=0;i<opt.poset;i++) {
+      token = strtok(NULL," \t");
+      if(token==NULL) { fprintf(stderr, "Error in input file\n"); exit(125); }
+      r = sscanf(token,"%d",&x);
+      if(r!=1) { fprintf(stderr, "Error in input file\n"); exit(126); }
+      POV[i]=x;
+    }
   }
 
-  if(strlen(struc) != len) {
-    fprintf(stderr,"read_data():\n%s\n unequal length !!\n", struc);
-    exit (1);
+  if(IS_arbitrary) {
+    token = strtok(NULL," \t");
+    if(token==NULL) put_ADJLIST(":");
+    else put_ADJLIST(token);
   }
-  strcpy(strucb, struc);
 
-  return (1);
+  /* the rest of the line is junk an can safely (?) be ignored */
+
+  free(line);
+
+  return(1); 
+  
 }
 
 /*=====================================*/
@@ -306,6 +365,7 @@ void check_neighbors(void)
   int basin, obasin=-1;
   hash_entry *hp, h, *down=NULL;
   Set *basins; basinT b;
+  int hasneighbor;
     
   float minenergia;         /* for Gradient Basins */
   int   gradmin=0;          /* for Gradient Basins */
@@ -318,9 +378,22 @@ void check_neighbors(void)
   while ((p = pop())) {
     pp = pack_my_structure(p); 
     h.structure = pp;
-    
+
+    hasneighbor = 0;
+    if ((hp = lookup_hash(&h))) hasneighbor = 1;
+
+    if((hasneighbor)&&(POV_size)) { /* need to check if h is dominated by hp */
+      int i;
+      for(i=0;i<POV_size;i++) {
+	/* printf(" %d",hp->POV[i]); */
+	if(POV[i] < hp->POV[i]) hasneighbor=0;
+      }
+      /* if(hasneighbor) printf(" *");
+	 printf("\n"); */
+    }
+  
     /* check whether we've seen the structure before */
-    if ((hp = lookup_hash(&h))) {
+    if(hasneighbor) {
       /* because we've seen this structure before, it already */
       /* belongs to the basin of attraction of a local minimum */
       basin = hp->basin;
@@ -401,19 +474,23 @@ void check_neighbors(void)
     lmin[n_lmin].my_pool = 1;
     lmin[n_lmin].Z = exp((mfe-energy)/kT);
     lmin[n_lmin].Zg = 0;
-
     b.basin = n_lmin; b.hp=NULL;
     set_add(basins, &b);
   }
   else comp[ccomp].size++;
   set_merge(comp[ccomp].basins, basins);
-
+  
   { 
     int i_lmin;
     i_lmin = (is_min) ? n_lmin : basins->data[0].basin;
     set_kill(basins);
     /* store configuration "Structure" in hash table */
     hp = (hash_entry *) space(sizeof(hash_entry));
+    if (POV_size) {
+      int i;
+      hp->POV = (int *) space(sizeof(int)*POV_size);
+      for(i=0;i<POV_size;i++) hp->POV[i]=POV[i];
+    }
     hp->structure = pform;
     hp->energy = energy;
     hp->basin = i_lmin;
@@ -426,6 +503,8 @@ void check_neighbors(void)
     if (write_hash(hp))
       nrerror("duplicate structure");
   }
+
+  if((is_min)&&(POV_size)) lmin[n_lmin].POV = hp->POV;
 }
 
 static void merge_basins() {
@@ -493,18 +572,57 @@ static void merge_basins() {
   }
 }
 
+void mark_global(loc_min *Lmin)
+{
+  int i,j,k;
+  int n_gmin;
+  loc_min *G;
+
+  G = (loc_min *) space( n_lmin*sizeof(loc_min) );
+
+  Lmin[1].global = (char) 1;
+  G[1] = Lmin[1];
+  n_gmin = 1;
+  
+  for (i=1; i<=n_lmin; i++) {
+    Lmin[i].global = (char) 1;
+    for (j=1; j<=n_gmin; j++) {
+      int dom;
+      dom =1;
+      for(k=0;k<POV_size;k++) 
+	if(G[j].POV[k]>=Lmin[i].POV[k]) dom=0;
+      if(dom) {
+	Lmin[i].global = (char) 0;
+	j=n_gmin+1;
+      }
+    }
+    if (Lmin[i].global) {
+      n_gmin++;
+      G[n_gmin] = Lmin[i];
+    }
+  }
+}
+
 /*====================*/
 void print_results(loc_min *Lmin, int *truemin)
 {
   int i,ii,j;
   char *struc;
   char *format;
-  
-  if (IS_RNA)
+
+  fprintf(stderr," POV_size = %d\n",POV_size);
+  if (IS_arbitrary) {
+    char tfor[100];
+    sprintf(tfor,"%%4d %%-%ds %%6.2f %%4d %%6.2f",maxlabellength);
+    format = tfor;
+  }
+  else if (IS_RNA)
     format = "%4d %s %6.2f %4d %6.2f";
   else
     format = "%4d %s %13.5f %4d %13.5f";
-      
+  if(verbose) printf("Using output format string '%s'\n",format);
+
+  
   n_lmin = Lmin[0].fathers_pool;
 
   for (i = 1; i <= n_lmin; i++) {
@@ -513,8 +631,24 @@ void print_results(loc_min *Lmin, int *truemin)
 
     struc = unpack_my_structure(Lmin[i].structure);
     f = Lmin[i].father; if (f>0) f = truemin[f];
-    printf(format, ii, struc, Lmin[i].energy, f,
-	   Lmin[i].E_saddle - Lmin[i].energy);
+    if(POV_size) {
+      int jj;
+      printf("%4d %s ", ii, struc);
+      if(IS_RNA) printf("%6.2f ", Lmin[i].energy);
+      else printf("%13.5f ", Lmin[i].energy);
+      for(jj=0;jj<POV_size;jj++) printf("%6d ",Lmin[i].POV[jj]);
+      if(IS_RNA) printf("%4d %6.2f",f,
+			Lmin[i].E_saddle - Lmin[i].energy);
+      else printf("%4d %13.5f",f,
+		  Lmin[i].E_saddle - Lmin[i].energy);
+
+      if(Lmin[i].global) printf(" *");
+      else printf(" .");
+    }
+    else { 
+      printf(format, ii, struc, Lmin[i].energy, f,
+	     Lmin[i].E_saddle - Lmin[i].energy);
+    }
     free(struc);
     
     if (print_saddles) { 
@@ -548,24 +682,41 @@ void ps_tree(loc_min *Lmin, int *truemin)
   if (max_print>truemin[0]) max_print=truemin[0];
 
   nodes = (nodeT *) space(sizeof(nodeT)*(max_print+1));
-  for (i=0,ii=1; i<max_print && ii<=nlmin; ii++)
-    {
-      register int s1, f;
-      double E_saddle;
-      if ((s1=truemin[ii])==0) continue;
-      if (s1>max_print) 
-	nrerror("inconsistency in ps_tree, aborting");
-      E_saddle = Lmin[ii].E_saddle;
-      f = Lmin[ii].father; 
-      if (f==0) {
-	E_saddle = Lmin[0].E_saddle; /* maximum energy */
-	/* f=1; */                         /* join with mfe  */
+  for (i=0,ii=1; i<max_print && ii<=nlmin; ii++){
+    register int s1, f;
+    double E_saddle;
+    if ((s1=truemin[ii])==0) continue;
+    if (s1>max_print) 
+      nrerror("inconsistency in ps_tree, aborting");
+    E_saddle = Lmin[ii].E_saddle;
+    f = Lmin[ii].father;
+    if (f==0) E_saddle = Lmin[0].E_saddle; /* maximum energy */
+    
+    nodes[s1-1].father = (f==0)?-1:truemin[f]-1;
+    /* was truemin[f]-1; */
+    nodes[s1-1].height = Lmin[ii].energy;
+    nodes[s1-1].saddle_height = E_saddle;
+    if(print_labels) {
+      char *L;
+      char *s;
+      s = unpack_my_structure(Lmin[ii].structure);
+      if ((POV_size)&&(Lmin[ii].global)) {
+	L = (char *) space(sizeof(char)*(3+strlen(s)));
+	strcat(L,s); strcat(L," *");
+	nodes[s1-1].label = L;
       }
-      nodes[s1-1].father = (f==0)?-1:truemin[f]-1;
-      nodes[s1-1].height = Lmin[ii].energy;
-      nodes[s1-1].saddle_height = E_saddle;
-      i++;
+      else
+	nodes[s1-1].label = strdup(s);
+      free(s);
     }
+    else if((POV_size)&&(Lmin[ii].global)) {
+      char *L;
+      L = (char *) space(sizeof(char)*10);
+      (void) sprintf(L,"%d *",s1);
+      nodes[s1-1].label = L;
+    }
+    i++;
+  }
   PS_tree_plot(nodes, max_print, "tree.ps");
   free(nodes);
 }

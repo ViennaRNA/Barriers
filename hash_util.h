@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-07-06 19:22:17 ivo> */
+/* Last changed Time-stamp: <2002-01-18 17:32:09 studla> */
 /* hash_util.h */
 
 #ifndef _hash_util_h
@@ -18,6 +18,7 @@ typedef struct _hash_entry {
   int ccomp;
   int n;
   struct _hash_entry *down;
+  int *POV;       /* for Posets only */
 } hash_entry;
 
 #endif

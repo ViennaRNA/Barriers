@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-01-15 21:04:57 studla> */
+/* Last changed Time-stamp: <2002-04-18 22:08:09 studla> */
 /* ringlist.h */
 
 #ifndef _ringlist_h
@@ -24,4 +24,7 @@ extern void EXCH_move_it(char *);
 
 extern char *pack_spin(const char *spin);
 extern char *unpack_spin(const char *packed);
+
+extern void LIST_move_it(char *);
+extern void  put_ADJLIST(char *); 
 #endif
