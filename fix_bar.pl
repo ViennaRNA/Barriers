@@ -1,6 +1,6 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <1999-07-30 00:08:33 ivo>
+# Last changed Time-stamp: <2001-01-25 08:57:55 ivo>
 
 use RNA;
 use Getopt::Long;
@@ -21,7 +21,7 @@ $max = 20;
 $RNA::tetra_loop = 0 if ($opt_4);
 $RNA::dangles = 0 if ($opt_d);
 $RNA::dangles = 2 if ($opt_d2);
-
+use lib '/home/linse/ivo/RNA/barriers';
 require 'barrier.pl';
     
 print "Input sequence and two structures\n" .
