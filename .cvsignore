@@ -1,0 +1,5 @@
+config.log config.h config.cache config.status stamp-h 
+Makefile
+Makefile.in
+barriers barriers.lsm barriers.spec tree.ps
+.deps .cvsignore
