@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-04-19 09:23:51 studla> */
+/* Last changed Time-stamp: <2002-12-19 14:45:46 xtof> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.8 2002/04/19 17:30:06 studla Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.9 2002/12/19 14:45:17 xtof Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -109,8 +109,12 @@ int main (int argc, char *argv[]) {
   tm = make_truemin(LM);
 
   if(opt.poset) mark_global(LM);
+
+  if (opt.GRAPH == "RNA")
+    print_results(LM,tm,opt.seq);
+  else
+    print_results(LM,tm,NULL);
   
-  print_results(LM,tm);
   if(!opt.want_quiet) ps_tree(LM,tm);
   fflush(stdout);
   if ((L1>0) && (L2>0)) {

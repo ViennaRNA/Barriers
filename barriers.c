@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-09-11 13:12:18 ivo> */
+/* Last changed Time-stamp: <2002-12-19 14:38:30 xtof> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.17 2002/09/24 10:26:20 ivo Exp $";
+"$Id: barriers.c,v 1.18 2002/12/19 14:45:17 xtof Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -75,7 +75,7 @@ loc_min  *barriers(barrier_options opt);
 static int  compare(const void *a, const void *b);
 void check_neighbors(void);
 static void merge_basins(void);
-void print_results(loc_min *L, int *tm);
+void print_results(loc_min *L, int *tm, char *farbe);
 void ps_tree(loc_min *Lmin, int *truemin);
 
 struct comp {
@@ -618,7 +618,7 @@ void mark_global(loc_min *Lmin)
 }
 
 /*====================*/
-void print_results(loc_min *Lmin, int *truemin)
+void print_results(loc_min *Lmin, int *truemin, char *farbe)
 {
   int i,ii,j;
   char *struc;
@@ -639,6 +639,7 @@ void print_results(loc_min *Lmin, int *truemin)
   
   n_lmin = Lmin[0].fathers_pool;
 
+  if (IS_RNA) printf("     %s\n", farbe);
   for (i = 1; i <= n_lmin; i++) {
     int f;
     if ((ii = truemin[i])==0) continue;
