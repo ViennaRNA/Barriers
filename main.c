@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-06-23 16:22:35 ivo> */
+/* Last changed Time-stamp: <2003-07-22 19:38:35 ivo> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.10 2003/06/23 15:28:04 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.11 2003/07/22 17:41:23 ivo Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -86,7 +86,7 @@ int main (int argc, char *argv[]) {
     r=sscanf(signal,"P:%d",&dim);
     if (r<1) {
       fprintf(stderr,
-	      "Warning: obsure headline in input file\n");
+	      "Warning: obscure headline in input file\n");
       dim = 0;
     }
     if (dim>0) opt.poset  = dim; 
@@ -108,17 +108,18 @@ int main (int argc, char *argv[]) {
   LM = barriers(opt);
   if (opt.INFILE != stdin) fclose(opt.INFILE);
   tm = make_truemin(LM);
-  if (opt.rates) {
-    fix_rates(LM, tm);
-    print_rates(tm, "rates.out");
-  }
-  if (opt.poset) mark_global(LM);
 
   if (opt.GRAPH == "RNA")
     print_results(LM,tm,opt.seq);
   else
     print_results(LM,tm,NULL);
   
+  if (opt.rates) {
+    compute_rates(tm);
+    print_rates(tm[0], "rates.out");
+  }
+  if (opt.poset) mark_global(LM);
+
   if (!opt.want_quiet) ps_tree(LM,tm);
   fflush(stdout);
   if ((L1>0) && (L2>0)) {
