@@ -1,11 +1,11 @@
 bin_PROGRAMS=barriers
-barriers_SOURCES=main.c hash_util.c barriers.c stapel.c \
+barriers_SOURCES=main.c hash_util.c barriers.c compress.c stapel.c \
         ringlist.c moves.c trees.c treeplot.c utils.c simple_set.c \
 	getopt.c getopt1.c
 
 noinst_HEADERS = barrier_types.h barriers.h hash.h hash_util.h pair_mat.h \
         ringlist.h stapel.h tree_types.h trees.h utils.h treeplot.h \
-	system.h getopt.h simple_set.h
+	system.h getopt.h simple_set.h compress.h
 
 #  uncomment the following if barriers requires the math library
 barriers_LDADD=-lm
