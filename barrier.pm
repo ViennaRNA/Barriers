@@ -1,5 +1,5 @@
 # -*-Perl-*-
-# Last changed Time-stamp: <1999-07-29 14:56:43 ivo>
+# Last changed Time-stamp: <1999-08-01 20:41:21 ivo>
 # calculate (an upper limit) to the energy barrier separating
 # two secondary structures. Call as
 #
@@ -15,7 +15,7 @@ use strict;
 use RNA;
 
 my ($string, %shash, $max_keep, $opt_v);
-
+use vars '@path';
 
 BEGIN {
   RNA::update_fold_params();
@@ -202,6 +202,7 @@ sub find_saddle_once {
     $struc = $struc2;
     $saddleE = $structs[-1]{$struc}[0];
     my $saddle;
+    @path = ();
     foreach (reverse @structs) {
 	my %last = %{$_};
 	my ($en, $i, $j) = @{$last{$struc}};
@@ -215,6 +216,7 @@ sub find_saddle_once {
 	my $ee = RNA::energy_of_struct($string, $struc);
 	$saddle = $struc if ($ee==$saddleE);
 	printf "$struc (%6.2f) (%6.2f) $i $j\n", $ee, $en if ($opt_v);
+	push @path, $struc;
     }
     return ($saddleE, $saddle);
 }
