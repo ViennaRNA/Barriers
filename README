@@ -1,4 +1,4 @@
-	barriers - Compute local minima and energy barriers of landscape
+  barriers - Compute local minima and energy barriers of a landscape
 
 
 
@@ -20,4 +20,4 @@
 
 Comments are welcome.
 
-	- Ivo Hofacker, Christoph Flamm, Peter Stadler <ivo@tbi.univie.ac.at>
+	- Ivo Hofacker, <ivo@tbi.univie.ac.at>

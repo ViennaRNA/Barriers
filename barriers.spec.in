@@ -1,6 +1,6 @@
 # barriers.spec
 #
-# Copyright (c) 2001 Ivo Hofacker, Christoph Flamm, Peter Stadler ivo@tbi.univie.ac.at
+# Copyright (c) 2001 Ivo Hofacker, Christoph Flamm, Peter Stadler
 #
 %define name barriers
 %define version @VERSION@
@@ -19,7 +19,7 @@ Group: Application/Misc
 #Distribution:
 #Icon:
 #URL:
-#Packager: Ivo Hofacker, Christoph Flamm, Peter Stadler ivo@tbi.univie.ac.at
+Packager: Ivo Hofacker, ivo@tbi.univie.ac.at
 
 # source + patches
 Source: %{name}-%{version}.tar.gz
