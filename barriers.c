@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.22 2003/09/19 13:00:37 ivo Exp $";
+"$Id: barriers.c,v 1.23 2003/09/23 15:12:08 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -992,7 +992,7 @@ void compute_rates(int *truemin) {
       h.structure = pp;
       /* check whether we've seen the structure before */
       if ((hp = lookup_hash(&h))) 
-        if (hp->n>r) {
+        if (hp->n<r) {
           gb = hp->GradientBasin;
           while (truemin[gb]==0) gb = lmin[gb].father;
           gb = truemin[gb];
