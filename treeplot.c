@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-04-19 19:15:20 studla> */
+/* Last changed Time-stamp: <2002-12-18 17:49:12 xtof> */
 /* treeplot.c */
 /* modified version from ViennaRNA-package */
 
@@ -9,7 +9,7 @@
 #include "system.h"
 #include "utils.h"
 
-static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.7 2002/04/19 17:30:06 studla Exp $";
+static char UNUSED rcsid[]= "$Id: treeplot.c,v 1.8 2002/12/18 16:59:46 xtof Exp $";
 
 typedef struct node {
   float height;         /* height (energy, time, whatever) of this leaf   */
@@ -61,14 +61,18 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
   /* chain[f] now starts the ordered chain, next fill in the num field */
   for (i=0, l= &chain[f]; l!=NULL; l = l->next) l->x = i++;
 
-  fprintf(out, "%%!PS-Adobe-2.0 EPSF-1.2\n"
+  fprintf(out,
+	  "%%!PS-Adobe-2.0 EPSF-1.2\n"
 	  "%%%%Title: TreePlot\n"
 	  "%%%%Creator: treeplot.c\n"
 	  "%%%%CreationDate: %s", time_stamp());
-  fprintf(out, "%%%%Pages: 1\n"
+  fprintf(out,
 	  "%%%%BoundingBox: %d %d %d %d\n",
 	  bbox[0], bbox[1], bbox[2], bbox[3]);
-  fprintf(out, "/treedict 100 dict def\n"
+  fprintf(out,
+	  "%%%%EndComments\n"
+	  "%%%%BeginProlog\n"
+	  "/treedict 100 dict def\n"
 	  "treedict begin\n"
 	  "%% x y  => min(x,y)\n"
 	  "  /min { 2 copy gt { exch } if pop } bind def\n"
@@ -167,7 +171,7 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "     /murxi { true } def\n"
           "     dup 0 lt { pop 0 /murxi { false } def } if\n"
           "  } def\n"    
-  "%% - => -\n"
+	  "%% - => -\n"
 	  "  /Connectlmins {\n"
 	  "    newpath\n"
 	  "    SADDEL {\n"
@@ -224,9 +228,11 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
     fprintf(out, "[%3d %3d %7.3f] ",k,nodes[k].father, nodes[k].saddle_height);
   }
   free(chain);  free(sindex);
-  fprintf(out, "  \n] def\n"
-	       "end\n");
-  fprintf(out, "%%%%EndProlog\n"
+  fprintf(out,
+	  "  \n] def\n"
+	  "end\n");
+  fprintf(out,
+	  "%%%%EndProlog\n"
 	  "treedict begin\n"
 	  "  /fsize 10 def\n"
 	  "  /fbsize 7 def\n"
