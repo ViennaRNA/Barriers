@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-11-28 13:17:49 mtw> */
+/* Last changed Time-stamp: <2004-01-30 15:48:26 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.26 2003/11/28 12:28:26 mtw Exp $";
+"$Id: barriers.c,v 1.27 2004/01/30 14:57:13 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -117,6 +117,10 @@ void set_barrier_options(barrier_options opt) {
       unpack_my_structure = unpack_structure;
       if (strstr(opt.GRAPH,   "noLP")) nolp=1;
       if (strstr(opt.MOVESET, "noShift")) shift=0;
+      else if (strlen(opt.MOVESET)) {
+	fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
+	exit(1);
+      }
       RNA_init(opt.seq, shift, nolp);
       if (verbose) 
 	fprintf(stderr, "Graph is RNA with noLP=%d, Shift=%d\n", nolp, shift);
@@ -397,7 +401,7 @@ void check_neighbors(void)
   hash_entry *hp, h, *down=NULL;
   Set *basins; basinT b;
     
-  float minenergia =  100000000.0;  /* energy of lowest neighbor */
+  double minenergia =  100000000.0;  /* energy of lowest neighbor */
   double Zi;
   int   min_n = 1000000000;         /* index of lowest neighbor  */ 
   int   gradmin=0;                  /* for Gradient Basins */
