@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2003-08-03 21:33:18 ivo>
+# Last changed Time-stamp: <2003-09-02 10:07:48 ivo>
 
 # analyse folding landscape of the growing molecule: 
 
@@ -10,7 +10,8 @@
 # of minima.
 # Usage: bar_map.pl  1.bar 2.bar 3.bar ... n.bar
 
-
+use FindBin qw($Bin);
+#use lib ("$Bin", '/home/hofacker/ViennaRNA/Perl/blib/lib', '/home/hofacker/ViennaRNA/Perl/blib/arch');
 use RNA;
 use RNA::barrier;
 use Getopt::Long;
@@ -25,9 +26,11 @@ use vars qw/$opt_debug $opt_v $ParamFile $pf $ns_bases/;
                            "4" => sub {$RNA::tetra_loop = 0},
                            "d|d0" => sub {$RNA::dangles=0},
                            "d2" => sub {$RNA::dangles=2},,
+                           "d3" => sub {$RNA::dangles=3},,
                            "noGU" => \$RNA::noGU,
                            "noCloseGU" => \$RNA::no_closingGU,
                            "noLP" => \$RNA::noLonelyPairs,
+                           "logML" => \$RNA::logML,
                            "P=s" => \$ParamFile);
 
 RNA::read_parameter_file($ParamFile) if ($ParamFile);
@@ -65,7 +68,6 @@ while ($#ARGV >= 0) {
 }
 
 my @lines = map {[$_]} (1 .. keys(%{$match_list[0]}));
-
 for my $l (0..$#match_list) {
   my %seen;
   my %match  = %{$match_list[$l]};
@@ -83,18 +85,19 @@ for my $l (0..$#match_list) {
 #print "\n";
 }
 
+@lines = sort {$$a[-1] <=> $$b[-1]} @lines; 
 foreach my $l (@lines) {
   print defined($l->[0])? sprintf("%3d", $l->[0]) : "   ";
   for my $b (1..$#{$l}) {
     if (defined($l->[$b])) {
       if ($l->[$b-1] && $match_list[$b-1]{$l->[$b-1]}[1]) {
-	print ' ~> ';
+	print ' ~>';
       } else {
-	print ' -> ';
+	print ' ->';
       }
       printf("%3d", $l->[$b]);
     }
-    else {print "       ";}
+    else {print "      ";}
   }
   print "\n";
 }
