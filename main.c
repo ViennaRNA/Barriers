@@ -1,11 +1,11 @@
-/* Last changed Time-stamp: <2001-06-11 14:07:28 studla> */
+/* Last changed Time-stamp: <2001-07-04 20:15:50 ivo> */
 /* main.c */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/types.h>
+/* #include <sys/types.h> */
 #include <math.h>
 #include <getopt.h>
 #include "config.h"
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.4 2001/06/11 12:27:54 studla Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.5 2001/07/05 16:02:36 ivo Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -52,6 +52,7 @@ int main (int argc, char *argv[]) {
 
   opt.kT = -300;
   opt.MOVESET = "";
+  opt.minh = 0.0000001;
   GRAPH   = NULL;
     
   /* Try to parse head to determine graph-type */  

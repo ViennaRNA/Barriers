@@ -1,11 +1,10 @@
-/* Last changed Time-stamp: <2001-06-16 19:46:50 ivo> */
+/* Last changed Time-stamp: <2001-07-05 17:49:34 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/types.h>
 #include <math.h>
 #include <limits.h>
 #include "ringlist.h"
@@ -14,16 +13,10 @@
 #include "hash_util.h"
 #include "barrier_types.h"
 #include "treeplot.h"
+#include "simple_set.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.9 2001/06/18 10:04:38 ivo Exp $";
-#ifdef __GNUC__BLAH
-#define XLL unsigned long long
-#define MAXIMUM 18446744073709551615ULL
-#else
-#define XLL unsigned int
-#define MAXIMUM ULONG_MAX
-#endif
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.10 2001/07/05 16:02:36 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -32,9 +25,8 @@ static loc_min *lmin;      /* array for local minima */
 
 static int n_lmin;
 static unsigned int max_lmin;
-static int max_print;
 static int n_saddle;
-static double minh=0.0000001;
+static double minh;
 static double energy;
     /* energy of last read structure (for check_neighbors) */
 static double mfe;           /* used for scaling Z */
@@ -62,16 +54,28 @@ static int *make_sorted_index(int *truemin);
 static void Sorry(char *GRAPH);
 static int  read_data(FILE *FP, double *energy,char *strucb, int len);
 
+static void merge_components(int c1, int c2);
+static int comp_comps(void *A, void *B);
+
 /* public functiones */
 int      *make_truemin(loc_min *Lmin);
 loc_min  *barriers(barrier_options opt);
 
 static int  compare(const void *a, const void *b);
 void check_neighbors(void);
-void merge_basins(void);
+static void merge_basins(void);
 void print_results(loc_min *L, int *tm);
 void ps_tree(loc_min *Lmin, int *truemin);
-     
+
+struct comp {
+  Set *basins; /* set of basins connected by these saddles */
+  char *saddle; /* one representative (first found) */
+  int size;
+};
+
+static int *truecomp;
+static struct comp *comp;
+static int max_comp=1024, n_comp;     
 /* ----------------------------------------------------------- */
 
 void set_barrier_options(barrier_options opt) {
@@ -115,7 +119,7 @@ void set_barrier_options(barrier_options opt) {
       numconv = sscanf(opt.GRAPH,"Q%d,%s",&alphabetsize,ALPHA);
       switch(numconv) {
       case 2 :
-	if(strlen(ALPHA)!=alphabetsize) Sorry(opt.GRAPH);
+	if((int)strlen(ALPHA)!=alphabetsize) Sorry(opt.GRAPH);
 	break;
       case 1 :
 	if((alphabetsize<=0)||(alphabetsize>26)) Sorry(opt.GRAPH);
@@ -181,19 +185,29 @@ static void Sorry(char *GRAPH) {
 
 loc_min *barriers(barrier_options opt) {
   int length, read =0;
+  double new_en=0;
 
   set_barrier_options(opt);
-  length = strlen(opt.seq);
+  length = (int) strlen(opt.seq);
   max_lmin = 1023;
   lmin = (loc_min *) space((max_lmin + 1) * sizeof(loc_min));
   n_lmin = 0;
-
+  
   form = (char *) space((length+1)*sizeof(char));
+  comp = (struct comp *) space((max_comp+1) * sizeof(struct comp));
+  truecomp = (int *) space((max_comp+1) * sizeof(int));
   
   ini_stapel(length);
   
-  while (read_data(opt.INFILE, &energy,form,length)) {
-    if (read==0) mfe=energy;
+  while (read_data(opt.INFILE, &new_en,form,length)) {
+    if (read==0) mfe=energy=new_en;
+    if (new_en<energy) 
+      nrerror("unsorted list!\n");
+    if (new_en>energy) {
+      merge_basins();
+      n_comp=0;
+    }
+    energy = new_en;
     read++;   
     move_it(form);       /* generate all neighbor of configuration */
     check_neighbors();   /* flood the energy landscape */
@@ -201,6 +215,7 @@ loc_min *barriers(barrier_options opt) {
     if (n_saddle+1 == max_print)
       break;  /* we've found all we want to know */
   }
+  merge_basins();
   
   if(!shut_up) fprintf(stderr,
 		       "read %d structures, to find %d saddles\n",
@@ -218,8 +233,9 @@ loc_min *barriers(barrier_options opt) {
   free_stapel();
   free(form);
   fflush(stdout);
-  if(!shut_up) fprintf(stderr, "%ld hash table collisions\n", collisions);
-
+  if(!shut_up) fprintf(stderr, "%lu hash table collisions\n", collisions);
+  free(truecomp);
+  free(comp);
   return lmin;
 }
 
@@ -262,11 +278,6 @@ static int read_data(FILE *FP, double *energy,char *strucb, int len) {
   return (1);
 }
 
-typedef struct {
-  int basin;
-  hash_entry *hp;
-} basinT;
-
 /*=====================================*/
 static int compare(const void *a, const void *b) {
   int A, B;
@@ -279,108 +290,79 @@ static int compare(const void *a, const void *b) {
 void check_neighbors(void)
 {
   char *p, *pp, *pform;
-  int nb, i_lmin, basin, obasin;
-  static int false_lmin=0;
+  int basin, obasin;
   hash_entry *hp, h, *down=NULL;
-  basinT basins[1000];
+  Set *basins; basinT b;
     
   float minenergia;         /* for Gradient Basins */
-  int   gradmin=0;            /* for Gradient Basins */
-  
-  nb = 0; obasin = -1;
+  int   gradmin=0;          /* for Gradient Basins */
+  int is_min=1;
+  int ccomp=0;              /* which connected component */
+  basins = new_set(10); obasin = -1; 
   minenergia = 100000000.0; /* for Gradient Basins */
   
   /* foreach neighbor structure of configuration "Structure" */
-  while ((p = pop()))
-    {
-      pp = pack_my_structure(p); 
-      h.structure = pp;
-
-      /* check whether we've seen the structure before */
-      if ((hp = lookup_hash(&h)))
-	{
-	  /* because we've seen this structure before, it */
-	  /* already belongs to the basin of attraction */
-	  /* of a local minimum */
-	  basin = hp->basin;
-
-	  if ( hp->energy < minenergia ) { /* for Gradient Basins */
-	    minenergia = hp->energy;       /* for Gradient Basins */
-	    gradmin = hp->GradientBasin;   /* for Gradient Basins */
-	    down = hp;
-	  }                                /* for Gradient Basins */
- 
-	  /* the basin of attraction of this local minimum may have been */
-	  /* merged with the basin of attraction of an energetically */
-	  /* "deeper" local minimum in a previous step */
-	  /* go and find this "deeper" local minimum! */
-	  while (lmin[basin].father) basin=lmin[basin].father;
-	  
-	  /* put the "deepest" local minimum into the basins-list */
-	  if (basin != obasin) {
-	    basins[nb].hp = hp;
-	    basins[nb++].basin = basin;
-	  }
-	  obasin = basin;
-	}
-      free(pp);
-    }
-
-  pform = pack_my_structure(form);
-
-  if (nb > 1) {
-    /* Structure belongs to at least 2 basins of attraction */
-    /* i.e. it's a saddle */
-    int i;
-    int pool = 0;
-    double Z=0;
-
-    /* sort the basins-list in ascending order */
-    qsort(basins, nb, sizeof(basinT), compare);
+  while ((p = pop())) {
+    pp = pack_my_structure(p); 
+    h.structure = pp;
     
-    /* merge all basins of attraction Structure belongs to */
-    for (i = 1; i < nb; i++)
-      {
-	int ii;
-	ii = basins[i].basin;
-	if (ii == basins[i-1].basin) /* been there */
-	  continue;
-	/* going to merge basin[i] with basin[0] */
-	if ((!max_print) || (ii<=max_print+false_lmin)) { 
-	  /* found the saddle for a basin we're gonna print */
-	  if (energy-lmin[ii].energy>=minh) n_saddle++;
-	  else false_lmin++;
-	}
-	
-	if (lmin[ii].father != 0) fprintf(stderr, "This shouldn't happen\n");
-	lmin[ii].father = basins[0].basin;
-	lmin[ii].saddle = pform;
-	lmin[ii].E_saddle = energy;
-	lmin[ii].left = basins[i].hp;
-        lmin[ii].right = basins[0].hp;
-	if (bsize)
-	  {
-	    lmin[ii].fathers_pool = lmin[basins[0].basin].my_pool;
-	    pool += lmin[ii].my_pool;
-	    Z += lmin[ii].Z; 
-	  }
+    /* check whether we've seen the structure before */
+    if ((hp = lookup_hash(&h))) {
+      /* because we've seen this structure before, it already */
+      /* belongs to the basin of attraction of a local minimum */
+      basin = hp->basin;
+      if ( hp->energy < energy) is_min=0;
+      if ( hp->energy < minenergia ) { /* for Gradient Basins */
+	minenergia = hp->energy;
+	gradmin = hp->GradientBasin;
+	down = hp;
       }
-    if (bsize) {
-      lmin[basins[0].basin].my_pool += pool;
-      lmin[basins[0].basin].Z += Z;
+      if ( fabs(hp->energy - energy)<=1e-6*fabs(energy)) {
+	int tc=0, tcc=0;
+	while (tc != truecomp[hp->ccomp]) tc = truecomp[hp->ccomp];
+	if (ccomp==0)
+	  ccomp = tc;
+	else {
+	  while (tcc != truecomp[ccomp]) tcc = truecomp[ccomp];
+	  if (tcc != tc) merge_components(tc, tcc);
+	}
+      }
+      /* the basin of attraction of this local minimum may have been */
+      /* merged with the basin of attraction of an energetically */
+      /* "deeper" local minimum in a previous step */
+      /* go and find this "deeper" local minimum! */
+      while (lmin[basin].father) basin=lmin[basin].father;
+      
+      /* put the "deepest" local minimum into the basins-list */
+      if (basin != obasin) {
+	b.hp = hp; b.basin = basin;
+	set_add(basins, &b);
+      }
+      obasin = basin;
     }
+    free(pp);
   }
   
-  if (nb>0)
-    i_lmin = basins[0].basin;
-
-  else {
+  pform = pack_my_structure(form);
+  
+  if (ccomp==0) {
+    /* new compnent */
+    Set *set; 
+    set = new_set(10);
+    if (++n_comp>max_comp) {
+      max_comp *= 2; 
+      comp = (struct comp*) xrealloc(comp, (max_comp+1)*sizeof(struct comp));
+      truecomp = (int*) xrealloc(truecomp, (max_comp+1)*sizeof(int));
+    }
+    comp[n_comp].basins = set;
+    comp[n_comp].saddle = pform;
+    truecomp[n_comp] = ccomp = n_comp;
+  }
+  
+  if (is_min) {
+    basinT b;
     /* Structure is a "new" local minimum */
-    
-    i_lmin = n_lmin+1;
-    n_lmin = i_lmin;
-
-    gradmin = n_lmin;        /* for Gradient Basins */
+    gradmin = ++n_lmin;        /* for Gradient Basins */
     down = NULL;
     /* need to allocate more space for the lmin-list */
     if (n_lmin > max_lmin) {
@@ -391,28 +373,84 @@ void check_neighbors(void)
     }
     
     /* store configuration "Structure" in lmin-list */
-    lmin[i_lmin].father = 0;
-    lmin[i_lmin].structure = pform;
-    lmin[i_lmin].energy = energy;
-    lmin[i_lmin].my_GradPool = 0;
-    lmin[i_lmin].Z = 0;
-    lmin[i_lmin].Zg = 0;
+    lmin[n_lmin].father = 0;
+    lmin[n_lmin].structure = pform;
+    lmin[n_lmin].energy = energy;
+    lmin[n_lmin].my_GradPool = 0;
+    lmin[n_lmin].Z = 0;
+    lmin[n_lmin].Zg = 0;
+
+    b.basin = n_lmin; b.hp = NULL;
+    set_add(basins, &b);
   }
 
-  /* store configuration "Structure" in hash table */
-  hp = (hash_entry *) space(sizeof(hash_entry));
-  hp->structure = pform;
-  hp->energy = energy;
-  hp->basin = i_lmin;
-  hp->GradientBasin = gradmin;    /* for Gradient Basins */
-  hp->down = down;
-  lmin[i_lmin].my_pool++;
-  lmin[i_lmin].Z += exp(-(energy-mfe)/kT);
-  lmin[gradmin].my_GradPool++;
-  lmin[gradmin].Zg += exp(-(energy-mfe)/kT);
-  if (energy<mfe) fprintf(stderr, "%f %f shouldn't happen!\n", energy, mfe);
-  if (write_hash(hp))
-    nrerror("duplicate structure");
+  comp[ccomp].size++;
+  set_merge(comp[ccomp].basins, basins);
+
+  { 
+    int i_lmin;
+    i_lmin = (is_min) ? n_lmin : basins->data[0].basin;
+    
+    /* store configuration "Structure" in hash table */
+    hp = (hash_entry *) space(sizeof(hash_entry));
+    hp->structure = pform;
+    hp->energy = energy;
+    hp->basin = i_lmin;
+    hp->GradientBasin = gradmin;    /* for Gradient Basins */
+    hp->down = down;
+    hp->ccomp = ccomp;
+    /* lmin[i_lmin].my_pool++; */
+    /* lmin[i_lmin].Z += exp(-(energy-mfe)/kT); */
+    lmin[gradmin].my_GradPool++;
+    lmin[gradmin].Zg += exp(-(energy-mfe)/kT);
+    if (write_hash(hp))
+      nrerror("duplicate structure");
+  }
+}
+
+static void merge_basins() {
+  int c;
+  qsort(comp+1, n_comp, sizeof(struct comp), comp_comps);
+  for (c=1; c<=n_comp; c++) { /* foreach connected component */
+    /* merge all lmins connected by this component */
+    static int false_lmin=0;
+    int i, father, pool=0;
+    double Z=0;
+    basinT *basins;
+    
+    basins = comp[c].basins->data;
+    father = basins[0].basin;
+
+    for (i = 1; i < comp[c].basins->num_elem; i++) {
+      int ii;
+      ii = basins[i].basin;
+      while (lmin[ii].father) ii=lmin[ii].father;
+      if (ii<father) {int tmp; tmp=ii; ii=father; father=tmp;}
+      if (ii!=father) {
+	/* going to merge ii with father  */
+	if ((!max_print) || (ii<=max_print+false_lmin)) { 
+	  /* found the saddle for a basin we're gonna print */
+	  if (energy-lmin[ii].energy>=minh) n_saddle++;
+	  else false_lmin++;
+	}
+      
+	lmin[ii].father = father;
+	lmin[ii].saddle = comp[c].saddle;
+	lmin[ii].E_saddle = energy;
+	lmin[ii].left =  basins[i].hp;
+	lmin[ii].right = basins[0].hp;
+	if (bsize) {
+	  lmin[ii].fathers_pool = lmin[basins[0].basin].my_pool;
+	  pool += lmin[ii].my_pool;
+	  Z += lmin[ii].Z; 
+	}
+      }
+      if (bsize) {
+	lmin[basins[0].basin].my_pool += pool;
+	lmin[basins[0].basin].Z += Z;
+      }
+    }
+  }
 }
 
 /*====================*/
@@ -644,4 +682,18 @@ static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag)
     else
       backtrack_path_rec (LM, htmp->basin, tmp);
   }
+}
+
+
+static void merge_components(int c1, int c2) {
+  int cc;
+  if (comp[c1].size<comp[c2].size) {cc=c1; c1=c2; c2=cc;}
+  comp[c1].size += comp[c2].size;
+  truecomp[c2]=c1;
+  set_merge(comp[c1].basins, comp[c2].basins);
+}
+
+static int comp_comps(void *A, void *B) {
+  return ((struct comp *) A)->basins->data[0].basin -
+         ((struct comp *) B)->basins->data[0].basin;
 }

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-06-16 20:06:20 ivo> */
+/* Last changed Time-stamp: <2001-07-04 20:30:00 ivo> */
 /* hash_util.c */
 
 #include <stdio.h>
@@ -12,7 +12,7 @@
 #define   PRIVATE   static
 #define   PUBLIC
 
-static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.4 2001/06/18 10:04:38 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.5 2001/07/05 16:02:36 ivo Exp $";
 
 /* modify hash_f(), hash_comp() and the typedef of hash_entry in hash_utils.h
    to suit your application */
@@ -79,7 +79,7 @@ PUBLIC int hash_comp(void *x, void *y) {
  
 PUBLIC void * lookup_hash (void *x)  /* returns NULL unless x is in the hash */ 
 { 
-  int hashval;
+  unsigned int hashval;
 
   hashval=hash_f(x);
   if (hashtab[hashval]==NULL) return NULL; 
@@ -94,7 +94,7 @@ PUBLIC void * lookup_hash (void *x)  /* returns NULL unless x is in the hash */
     
 PUBLIC int write_hash (void *x)   /* returns 1 if x already was in the hash */ 
 {
-  int hashval;
+  unsigned int hashval;
   
   hashval=hash_f(x);
   while (hashtab[hashval]){
@@ -116,7 +116,7 @@ PUBLIC void initialize_hash ()
 
 PUBLIC void kill_hash ()
 {
-  int i;
+  unsigned int i;
   
   for (i=0;i<HASHSIZE+1;i++) {
     if (hashtab[i]) {
@@ -131,7 +131,7 @@ PUBLIC void kill_hash ()
 
 PUBLIC void delete_hash (void *x)  /* doesn't work in case of collsions */
 {                                  /* doesn't free anything ! */
-  int hashval;
+  unsigned int hashval;
   
   hashval=hash_f(x);
   while (hashtab[hashval]){
@@ -210,7 +210,7 @@ PRIVATE unsigned hash_f(void *x)
   
   /* Set up the internal state */
   k = ((hash_entry *)x)->structure;
-  len = length = strlen(k);
+  len = length = (unsigned) strlen(k);
   a = b = 0x9e3779b9;  /* the golden ratio; an arbitrary value */
   c = initval;         /* the previous hash value */
 
