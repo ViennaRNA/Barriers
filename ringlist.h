@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-08 15:41:26 ivo> */
+/* Last changed Time-stamp: <2001-05-23 19:25:47 ihofacke> */
 /* ringlist.h */
 
 #ifndef _ringlist_h
@@ -15,4 +15,7 @@ extern void NNI_move_it(char *struc);
 extern void Transpos_move_it(char *);
 extern void CTranspos_move_it(char *);
 extern void Reversal_move_it(char *);
+
+extern char *pack_spin(const char *spin);
+extern char *unpack_spin(const char *packed);
 #endif

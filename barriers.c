@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-05-11 17:58:17 ivo> */
+/* Last changed Time-stamp: <2001-05-23 19:27:45 ihofacke> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "treeplot.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.4 2001/05/11 16:02:28 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.5 2001/05/23 18:16:57 ivo Exp $";
 #ifdef __GNUC__BLAH
 #define XLL unsigned long long
 #define MAXIMUM 18446744073709551615ULL
@@ -102,8 +102,8 @@ void set_barrier_options(barrier_options opt) {
   case 'Q' :    /* Haming graphs */
     if (opt.GRAPH[1]=='2') {   /* binary +- alphabet */
       move_it = SPIN_move_it;
-      pack_my_structure = strdup;
-      unpack_my_structure = strdup;
+      pack_my_structure = pack_spin;
+      unpack_my_structure = unpack_spin;
       if (verbose) 
 	fprintf(stderr, "Graph is Q2\n");
     }

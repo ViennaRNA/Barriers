@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "stapel.h"
 
-static char UNUSED rcsid[] = "$Id: moves.c,v 1.1 2001/04/05 08:00:57 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: moves.c,v 1.2 2001/05/23 18:16:57 ivo Exp $";
 
 void SPIN_move_it(char *string) {
   /* generate 1-point error mutants */
@@ -141,4 +141,40 @@ void NNI_move_it(char *string) {
 
    FreeTree(T,1);
    FreeTree(T_NNI,nneigh);
+}
+
+static int spin_len;
+
+char *unpack_spin(const unsigned char *packed);
+char *pack_spin(const char *spin) {
+  int i,j,k,l;
+  unsigned char *packed;
+  spin_len = strlen(spin);
+  l = (spin_len+6)/7;
+  packed = (char *) space(l*sizeof(char)+1);
+  for (i=j=0; i<spin_len; j++) {
+    packed[j]=1;
+    for (k=0; (k<7)&&(i<spin_len); k++, i++) {
+      packed[j] <<= 1;
+      if (spin[i]=='+') packed[j]++;
+      else if (spin[i]!= '-') fprintf(stderr,"Junk in spin %s\n", spin);
+    }
+  }
+  return packed;
+}
+
+char *unpack_spin(const unsigned char *packed) {
+  int i,j,k,l;
+  int mask[7] = {64,32,16,8,4,2,1};
+  char *spin;
+  l = strlen(packed);
+  spin = space((7*l+1)*sizeof(char));
+  for (i=j=0; j<l; j++) {
+    int p;
+    p = packed[j];
+    for (k=0; k<7; k++) 
+      spin[i++] = (p & mask[k]) ? '+' : '-';
+  }
+  spin[spin_len]='\0';
+  return spin;
 }
