@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-04-09 15:08:54 ivo> */
+/* Last changed Time-stamp: <2001-05-11 17:58:17 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #include "treeplot.h"
 
 /* Tons of static arrays in this one! */
-static char UNUSED rcsid[] = "$Id: barriers.c,v 1.3 2001/04/09 13:21:21 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: barriers.c,v 1.4 2001/05/11 16:02:28 ivo Exp $";
 #ifdef __GNUC__BLAH
 #define XLL unsigned long long
 #define MAXIMUM 18446744073709551615ULL
@@ -199,7 +199,7 @@ int *make_truemin(loc_min *Lmin) {
 
   for (ii=i=1; (i<=max_print)&&(ii<=n_lmin); ii++) {
     if (!lmin[ii].father) lmin[ii].E_saddle = energy + 0.000001;
-    if (lmin[ii].E_saddle - lmin[ii].energy > minh) 
+    if (lmin[ii].E_saddle - lmin[ii].energy >= minh) 
       truemin[ii]=i++;
   }
   truemin[0] = i-1;
@@ -316,7 +316,7 @@ void check_neighbors(void)
 	/* going to merge basin[i] with basin[0] */
 	if ((!max_print) || (ii<=max_print+false_lmin)) { 
 	  /* found the saddle for a basin we're gonna print */
-	  if (energy-lmin[ii].energy>minh) n_saddle++;
+	  if (energy-lmin[ii].energy>=minh) n_saddle++;
 	  else false_lmin++;
 	}
 	
