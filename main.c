@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-12-19 14:45:46 xtof> */
+/* Last changed Time-stamp: <2003-06-23 16:22:35 ivo> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.9 2002/12/19 14:45:17 xtof Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.10 2003/06/23 15:28:04 ivo Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -29,12 +29,13 @@ static struct option const long_options[] =
   {"verbose", no_argument, 0, 'v'},
   {"help", no_argument, 0, 'h'},
   {"version", no_argument, 0, 'V'},
-  {"label", no_argument, 0, 0},
+  {"label", no_argument, &opt.label, 1},
   {"max", required_argument, 0, 0},
   {"minh", required_argument, 0, 0},
   {"bsize", no_argument, &opt.bsize, 1},
   {"ssize", no_argument, &opt.ssize, 1},
   {"saddle", no_argument, &opt.print_saddles, 1},
+  {"rates", no_argument, &opt.rates, 1},
   {"poset", required_argument, 0, 0 },
   {NULL, 0, NULL, 0}
 };
@@ -79,19 +80,19 @@ int main (int argc, char *argv[]) {
   opt.seq = (char *) space(strlen(line) + 1);
   sscanf(line,"%s %d %99s %99s", opt.seq, &tmp, signal, what);
 
-  if((!opt.poset)&&(strcmp(signal,"::")!=0)) {
+  if ((!opt.poset)&&(strcmp(signal,"::")!=0)) {
     int r, dim;
     /* in this case we have a poset file !!!! */
     r=sscanf(signal,"P:%d",&dim);
-    if(r<1) {
+    if (r<1) {
       fprintf(stderr,
 	      "Warning: obsure headline in input file\n");
       dim = 0;
     }
-    if(dim>0) opt.poset  = dim; 
+    if (dim>0) opt.poset  = dim; 
   }
 
-  if(opt.poset)
+  if (opt.poset)
     fprintf(stderr,
 	    "!!! Input data are a poset with %d objective functions\n",
 	    opt.poset);
@@ -99,7 +100,7 @@ int main (int argc, char *argv[]) {
   free(line);
 
   if (GRAPH==NULL)
-    if(strlen(what)) GRAPH = what;
+    if (strlen(what)) GRAPH = what;
 
   if (GRAPH==NULL) GRAPH="RNA";
   opt.GRAPH=GRAPH;
@@ -107,15 +108,18 @@ int main (int argc, char *argv[]) {
   LM = barriers(opt);
   if (opt.INFILE != stdin) fclose(opt.INFILE);
   tm = make_truemin(LM);
-
-  if(opt.poset) mark_global(LM);
+  if (opt.rates) {
+    fix_rates(LM, tm);
+    print_rates(tm, "rates.out");
+  }
+  if (opt.poset) mark_global(LM);
 
   if (opt.GRAPH == "RNA")
     print_results(LM,tm,opt.seq);
   else
     print_results(LM,tm,NULL);
   
-  if(!opt.want_quiet) ps_tree(LM,tm);
+  if (!opt.want_quiet) ps_tree(LM,tm);
   fflush(stdout);
   if ((L1>0) && (L2>0)) {
     FILE *PATH = NULL;
@@ -171,8 +175,6 @@ static int decode_switches (int argc, char **argv)
 	  if (strcmp(long_options[option_index].name,"poset")==0)
 	    if (sscanf(optarg, "%d", &opt.poset) == 0)
 	      usage(EXIT_FAILURE);
-	  if (strcmp(long_options[option_index].name,"label")==0)
-	    opt.label = 1;
 	  break;
         case 'q':               /* --quiet, --silent */
           opt.want_quiet = 1;
@@ -229,6 +231,7 @@ static void usage(int status) {
 	 "--max <digit>     compute only the lowest <digit> local minima\n"
 	 "--minh <de>       print only minima with barrier > de\n" 
 	 "--saddle          log the saddle point structures\n"
+	 "--rates           compute rates between macro states (basins)\n"
 	 "-M Move-Set       select move-set\n"
 	 "-P <l1>=<l2>      backtrack path between lmins l2 and l1 (l1 < l2)\n"
          "--poset <n>       input is a poset from n objective functions\n"

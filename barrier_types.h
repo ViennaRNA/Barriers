@@ -32,6 +32,7 @@ typedef struct {
   char *seq;
   int poset;
   int label;
+  int rates;
 } barrier_options;
 
 typedef struct {

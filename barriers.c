@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-12-19 14:38:30 xtof> */
+/* Last changed Time-stamp: <2003-06-23 17:19:23 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,11 +19,12 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.18 2002/12/19 14:45:17 xtof Exp $";
+"$Id: barriers.c,v 1.19 2003/06/23 15:28:04 ivo Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
-
+static double **rate;      /* rate matrix between basins */
+static double  *dr;        /* increments to rate matrix  */
 /* "global" variables */
 
 static int n_lmin;
@@ -77,6 +78,7 @@ void check_neighbors(void);
 static void merge_basins(void);
 void print_results(loc_min *L, int *tm, char *farbe);
 void ps_tree(loc_min *Lmin, int *truemin);
+void print_rates(int *truemin, char *fname);
 
 struct comp {
   Set *basins; /* set of basins connected by these saddles */
@@ -86,7 +88,8 @@ struct comp {
 
 static int *truecomp;
 static struct comp *comp;
-static int max_comp=1024, n_comp;     
+static int max_comp=1024, n_comp;
+static int do_rates=0;
 /* ----------------------------------------------------------- */
 
 void set_barrier_options(barrier_options opt) {
@@ -207,6 +210,7 @@ void set_barrier_options(barrier_options opt) {
     if (opt.kT<=-300) kT=1;
     else kT=opt.kT;
   }
+  do_rates = opt.rates;
 }
 
 static void Sorry(char *GRAPH) {
@@ -224,6 +228,13 @@ loc_min *barriers(barrier_options opt) {
   length = (int) strlen(opt.seq);
   max_lmin = 1023;
   lmin = (loc_min *) space((max_lmin + 1) * sizeof(loc_min));
+  if (do_rates) {
+    int i;
+    rate = (double **) space((max_lmin + 1) * sizeof(double *));
+    dr   = (double  *) space((max_lmin + 1) * sizeof(double));
+    for (i=0; i<=max_lmin; i++)
+      rate[i] = (double *) space((max_lmin + 1) * sizeof(double));
+  }
   n_lmin = 0;
   
   form = (char *) space((length+1)*sizeof(char));
@@ -288,14 +299,36 @@ int *make_truemin(loc_min *Lmin) {
   /* truemin[0] = nlmin; */
 
   for (ii=i=1; (i<=max_print)&&(ii<=n_lmin); ii++) {
-    if (!lmin[ii].father) lmin[ii].E_saddle = energy + 0.000001;
+    int f;
+    f = lmin[ii].father;
+    if (!f) lmin[ii].E_saddle = energy + 0.000001;
     if (lmin[ii].E_saddle - lmin[ii].energy >= minh) 
       truemin[ii]=i++;
+    else { /* ii is not a truemin */
+      lmin[f].Z += lmin[ii].Z;
+      lmin[f].Zg += lmin[ii].Zg;
+    }
   }
   truemin[0] = i-1;
   return truemin;
 }
 
+void fix_rates(loc_min *Lmin, int *truemin) {
+  int i,j,f;
+  /* fix rates to and from truemins by adding in non-truemins */
+  for (i=1; i<=n_lmin; i++) {
+    if (!truemin[i]) {
+      f = lmin[i].father;
+      for (j=1; j<=n_lmin; j++) {
+	rate[f][j] += rate[i][j];
+	rate[j][f] += rate[j][i];
+      }
+    }
+  }
+  for (i=1; i<=n_lmin; i++)
+    for (j=1; i<=n_lmin; i++)
+      rate[i][j] /= lmin[i].Zg;
+}
 /*=============================================================*/
 
 static int read_data(barrier_options opt, double *energy, char *strucb,
@@ -375,37 +408,38 @@ void check_neighbors(void)
   int basin, obasin=-1;
   hash_entry *hp, h, *down=NULL;
   Set *basins; basinT b;
-  int hasneighbor;
     
   float minenergia =  100000000.0;  /* energy of lowest neighbor */
+  double Zi;
   int   min_n = 1000000000;         /* index of lowest neighbor  */ 
   int   gradmin=0;                  /* for Gradient Basins */
   int is_min=1;
   int ccomp=0;                /* which connected component */
   basins = new_set(10);
-  
+
+  Zi = exp((mfe-energy)/kT);
+  if (do_rates) {
+    int i;
+    for (i=0; i<=n_lmin; i++) dr[i]=0;
+  }
+    
   /* foreach neighbor structure of configuration "Structure" */
   while ((p = pop())) {
     pp = pack_my_structure(p); 
     h.structure = pp;
 
-    hasneighbor = 0;
-    if ((hp = lookup_hash(&h))) hasneighbor = 1;
 
-    if((hasneighbor)&&(POV_size)) { /* need to check if h is dominated by hp */
-      int i;
-      for(i=0;i<POV_size;i++) {
-	/* printf(" %d",hp->POV[i]); */
-	if(POV[i] < hp->POV[i]) hasneighbor=0;
-      }
-      /* if(hasneighbor) printf(" *");
-	 printf("\n"); */
-    }
-  
     /* check whether we've seen the structure before */
-    if(hasneighbor) {
+    hp = lookup_hash(&h);
+
+    if (hp && POV_size) {
+      int i;
+      for(i=0;i<POV_size;i++) 
+	if (POV[i] < hp->POV[i]) hp=NULL;
+    }
+    if (hp) {
       /* because we've seen this structure before, it already */
-      /* belongs to the basin of attraction of a local minimum */
+      /* belongs to the basin of a local minimum */
       basin = hp->basin;
       if ( hp->energy < energy) is_min=0;  /* should we use hp->n here? */
       if ( hp->n < min_n ) {         /* find lowest energy neighbor */
@@ -414,11 +448,6 @@ void check_neighbors(void)
 	gradmin = hp->GradientBasin;
 	down = hp;
       }
-/*       if ( hp->energy == minenergia ) */
-/* 	if (down->basin > basin) { */
-/* 	  gradmin = hp->GradientBasin; */
-/* 	  down = hp; */
-/* 	} */
 
       /* careful: if input has higher precision than FLT_EPSILON
 	 bad things will happen */
@@ -433,10 +462,9 @@ void check_neighbors(void)
 	  ccomp = truecomp[ccomp];
 	}
       }
-      /* the basin of attraction of this local minimum may have been */
-      /* merged with the basin of attraction of an energetically */
-      /* "deeper" local minimum in a previous step */
-      /* go and find this "deeper" local minimum! */
+      /* the basin of this local minimum may have been merged with the
+	 basin of an energetically "deeper" local minimum in a
+	 previous step go and find this "deeper" local minimum! */
       while (lmin[basin].father) basin=lmin[basin].father;
       
       /* put the "deepest" local minimum into the basins-list */
@@ -445,6 +473,7 @@ void check_neighbors(void)
 	set_add(basins, &b);
       }
       obasin = basin;
+      if (do_rates) dr[hp->GradientBasin] += Zi;
     }
     free(pp);
   }
@@ -476,6 +505,18 @@ void check_neighbors(void)
       fprintf(stderr, "increasing lmin array to %d\n",max_lmin*2);
       lmin = (loc_min *) xrealloc(lmin, (max_lmin*2+1)*sizeof(loc_min));
       memset(lmin + max_lmin +1, 0, max_lmin);
+      if (do_rates) {
+        int i;
+        rate = (double **) xrealloc(rate, (max_lmin*2+1)*sizeof(double *));
+	dr   = (double  *) xrealloc(dr,   (max_lmin*2+1)*sizeof(double));
+        for (i=0; i<= max_lmin; i++) {
+          rate[i] = (double *) xrealloc(rate[i],
+                                        (max_lmin*2+1)*sizeof(double ));
+          memset(rate[i] + max_lmin +1, 0, max_lmin);
+        }
+        for (;i<= 2*max_lmin; i++)
+          rate[i] = (double *) space((2*max_lmin + 1) * sizeof(double));
+      }
       max_lmin *= 2;
     }
     
@@ -485,7 +526,7 @@ void check_neighbors(void)
     lmin[n_lmin].energy = energy;
     lmin[n_lmin].my_GradPool = 0;
     lmin[n_lmin].my_pool = 1;
-    lmin[n_lmin].Z = exp((mfe-energy)/kT);
+    lmin[n_lmin].Z = Zi;
     lmin[n_lmin].Zg = 0;
     b.basin = n_lmin; b.hp=NULL;
     set_add(basins, &b);
@@ -512,13 +553,19 @@ void check_neighbors(void)
     hp->ccomp = ccomp;
     hp->n = read;
     lmin[gradmin].my_GradPool++;
-    lmin[gradmin].Zg += exp(-(energy-mfe)/kT);
+    lmin[gradmin].Zg += Zi;
     if (write_hash(hp))
       nrerror("duplicate structure");
-    /* print_hash_entry(hp); */
+    if (do_rates) {
+      int i;
+      for (i=0; i<=n_lmin; i++) {
+	rate[i][gradmin] += dr[i];
+	rate[gradmin][i] += dr[i];
+      }
+    }
   }
-
-  if((is_min)&&(POV_size)) lmin[n_lmin].POV = hp->POV;
+  
+  if ((is_min)&&(POV_size)) lmin[n_lmin].POV = hp->POV;
 }
 
 static void merge_basins() {
@@ -604,8 +651,8 @@ void mark_global(loc_min *Lmin)
       int dom;
       dom =1;
       for(k=0;k<POV_size;k++) 
-	if(G[j].POV[k]>=Lmin[i].POV[k]) dom=0;
-      if(dom) {
+	if (G[j].POV[k]>=Lmin[i].POV[k]) dom=0;
+      if (dom) {
 	Lmin[i].global = (char) 0;
 	j=n_gmin+1;
       }
@@ -634,7 +681,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     format = "%4d %s %6.2f %4d %6.2f";
   else
     format = "%4d %s %13.5f %4d %13.5f";
-  if(verbose) printf("Using output format string '%s'\n",format);
+  if (verbose) printf("Using output format string '%s'\n",format);
 
   
   n_lmin = Lmin[0].fathers_pool;
@@ -646,18 +693,18 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 
     struc = unpack_my_structure(Lmin[i].structure);
     f = Lmin[i].father; if (f>0) f = truemin[f];
-    if(POV_size) {
+    if (POV_size) {
       int jj;
       printf("%4d %s ", ii, struc);
-      if(IS_RNA) printf("%6.2f ", Lmin[i].energy);
+      if (IS_RNA) printf("%6.2f ", Lmin[i].energy);
       else printf("%13.5f ", Lmin[i].energy);
       for(jj=0;jj<POV_size;jj++) printf("%6d ",Lmin[i].POV[jj]);
-      if(IS_RNA) printf("%4d %6.2f",f,
+      if (IS_RNA) printf("%4d %6.2f",f,
 			Lmin[i].E_saddle - Lmin[i].energy);
       else printf("%4d %13.5f",f,
 		  Lmin[i].E_saddle - Lmin[i].energy);
 
-      if(Lmin[i].global) printf(" *");
+      if (Lmin[i].global) printf(" *");
       else printf(" .");
     }
     else { 
@@ -711,7 +758,7 @@ void ps_tree(loc_min *Lmin, int *truemin)
     /* was truemin[f]-1; */
     nodes[s1-1].height = Lmin[ii].energy;
     nodes[s1-1].saddle_height = E_saddle;
-    if(print_labels) {
+    if (print_labels) {
       char *L;
       char *s;
       s = unpack_my_structure(Lmin[ii].structure);
@@ -724,7 +771,7 @@ void ps_tree(loc_min *Lmin, int *truemin)
 	nodes[s1-1].label = strdup(s);
       free(s);
     }
-    else if((POV_size)&&(Lmin[ii].global)) {
+    else if ((POV_size)&&(Lmin[ii].global)) {
       char *L;
       L = (char *) space(sizeof(char)*10);
       (void) sprintf(L,"%d *",s1);
@@ -934,3 +981,21 @@ static void print_hash_entry(hash_entry *h) {
          h->energy, h->basin, h->GradientBasin, h->ccomp, down);
 }
 
+void print_rates(int *truemin, char *fname) {
+  int i,j;
+  FILE *OUT;
+  OUT = fopen(fname, "w");
+  if (!OUT) {
+    fprintf(stderr, "could not open rates file %s for output\n", fname);
+    return;
+  }
+  
+  for (i=1; i<=n_lmin; i++) {
+    if (!truemin[i]) continue;
+    for (j=1; j<=n_lmin; j++) {
+      if (!truemin[j]) continue;
+      fprintf(OUT, "%10.4g ", rate[i][j]);
+    }
+    fprintf(OUT, "\n");
+  }
+}
