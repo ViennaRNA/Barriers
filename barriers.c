@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-04-21 13:06:05 mtw> */
+/* Last changed Time-stamp: <2005-06-28 12:15:57 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.28 2004/05/03 14:58:50 mtw Exp $";
+"$Id: barriers.c,v 1.29 2005/06/28 10:20:42 mtw Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -107,7 +107,7 @@ void set_barrier_options(barrier_options opt) {
   switch(opt.GRAPH[0]) {
   case 'R' :    /* RNA secondary Structures */
     if (strncmp(opt.GRAPH, "RNA", 3)==0) {
-      int nolp=0, shift=1;
+      int nolp=0, shift=1, i=0;
       IS_RNA=1;
       if (opt.kT<=-300) opt.kT=37;
       kT = 0.00198717*(273.15+opt.kT);   /* kT at 37C in kcal/mol */
@@ -120,6 +120,10 @@ void set_barrier_options(barrier_options opt) {
       else if (strlen(opt.MOVESET)) {
 	fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
 	exit(1);
+      }
+      for (i=0; i < (int)strlen(opt.seq); i++){
+	if (opt.seq[i] == 'T')
+	  opt.seq[i] = 'U';
       }
       RNA_init(opt.seq, shift, nolp);
       if (verbose) 
@@ -268,7 +272,7 @@ loc_min *barriers(barrier_options opt) {
     if (readl==0) mfe=energy=new_en;
     if (new_en<energy) 
       nrerror("unsorted list!\n");
-    if (new_en>energy) {
+    if (new_en>energy) { /* new energy band started */
       merge_basins();
       /* fprintf(stderr, "%d %d\n", readl, lmin[1].my_pool); */
       n_comp=0;
