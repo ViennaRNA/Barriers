@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2005-10-11 16:39:40 ivo>
-# $Id: treeplot.pl,v 1.1 2005/10/11 15:42:15 ivo Exp $
+# Last changed Time-stamp: <2005-10-14 14:33:53 ivo>
+# $Id: treeplot.pl,v 1.2 2005/10/14 12:38:27 ivo Exp $
 
 use Getopt::Long;
 use File::Basename;
@@ -39,13 +39,13 @@ print_eps();
 #     $L2I->{$F[ID]} = $.-1;
 #     $I2L->{$.-1}   = $F[ID];
 #   }
-
 # }
 sub parse_phylo_file {
   local $_;
   $_ = <>;
   while (<>) {
     my @F = split; # ID Energy Father LifeSpan
+#    $F[4] += 0.001 if $F[3]==0;
     $DATA->{$F[ID]} = [@F, $F[ENERGY]+$F[LIFETIME], $.-2];
     $L2I->{$F[ID]} = $.-2;
     $I2L->{$.-2}   = $F[ID];
@@ -118,10 +118,12 @@ sub print_saddle_array {
   printf "  /SADDEL [";
   for my $idx (@$A) {
     ($i++ % 4) ? print " " : print "\n   ";
+    my $f = $L2I->{$DATA->{$I2L->{$idx}}->[FATHER]};
+    $f = -1 if !defined($f);
     printf
 	"[%3d %3d %7.3f]",
 	$idx,
-	$L2I->{$DATA->{$I2L->{$idx}}->[FATHER]},
+	$f,
 	$DATA->{$I2L->{$idx}}->[SADDEL];
   }
   printf "  ] def\n";
@@ -133,7 +135,10 @@ sub idx_list_sorted_by_SADDEL {
 }
 
 #---
-sub by_SADDEL { $DATA->{$a}->[SADDEL] <=> $DATA->{$b}->[SADDEL] }
+sub by_SADDEL { int(1000*$DATA->{$a}->[SADDEL]+0.1) <=> 
+		int(1000*$DATA->{$b}->[SADDEL]+0.1) ||
+		$DATA->{$b}->[FATHER] <=> $DATA->{$a}->[FATHER] ||
+		$DATA->{$a}->[ENERGY] <=> $DATA->{$b}->[ENERGY]}
 
 #---
 sub print_eps_head {
