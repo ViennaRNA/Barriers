@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-06-28 12:15:57 mtw> */
+/* Last changed Time-stamp: <2006-03-10 20:08:04 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.29 2005/06/28 10:20:42 mtw Exp $";
+"$Id: barriers.c,v 1.30 2006/03/10 19:12:25 mtw Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -90,6 +90,7 @@ static int *truecomp;
 static struct comp *comp;
 static int max_comp=1024, n_comp;
 static int do_rates=0;
+static int do_microrates=0;
 
 #define HASHSIZE (((unsigned) 1<<HASHBITS)-1)
 static hash_entry *hpool;
@@ -232,6 +233,10 @@ void set_barrier_options(barrier_options opt) {
     else kT=opt.kT;
   }
   do_rates = opt.rates;
+  if(opt.microrates){
+    do_microrates = opt.microrates;
+    do_rates = opt.microrates;
+  }
 }
 
 static void Sorry(char *GRAPH) {
@@ -1003,28 +1008,39 @@ void print_rates(int n, char *fname) {
   fclose(OUT);
 }
 
-void compute_rates(int *truemin) {
-  int i, j, ii, r, gb, gradmin,n ;
-  char *p, *pp, *form;
+void compute_rates(int *truemin, char *farbe) {
+  int i, j, ii, r, gb, gradmin,n, rc, *realnr;
+  char *p, *pp, *form, newsub[10]="new.sub", mr[15]="microrates.out";
   hash_entry *hpr, h, *hp;
   double Zi;
-
+  FILE *NEWSUB=NULL, *MR=NULL;;
+  
   n = truemin[0];
   rate = (double **) space((n + 1) * sizeof(double *));
   dr   = (double  *) space((n + 1) * sizeof(double));
   for (i=1; i<=n; i++)
     rate[i] = (double *) space((n + 1) * sizeof(double));
+  if(do_microrates){
+    realnr = (int *)space((readl+1) * sizeof(int));
+    NEWSUB = fopen(newsub, "w");
+    fprintf(NEWSUB, "%s %6.2f\n", farbe, 100*mfe);
+    fflush(NEWSUB);
+    MR     = fopen(mr, "w");
+    fprintf(MR, ">%d states\n", readl);
+  }
 
-  for (r=0; r<readl; r++) {
+  for (rc=1, r=0; r<readl; r++) {
+    int b;
     hpr= &hpool[r];
     gradmin = hpr->GradientBasin;
     Zi = exp((mfe-hpr->energy)/kT);
     while (truemin[gradmin]==0) gradmin = lmin[gradmin].father;
     gradmin=truemin[gradmin];
     if (gradmin>n) continue;
+    for (b=hpr->basin; b>1; b=lmin[b].father);
     form = unpack_my_structure(hpr->structure);
     move_it(form);       /* generate all neighbors of configuration */
-    free(form);
+   
     for (i=0; i<=n; i++) dr[i]=0;
     while ((p = pop())) {
       pp = pack_my_structure(p); 
@@ -1036,15 +1052,26 @@ void compute_rates(int *truemin) {
           while (truemin[gb]==0) gb = lmin[gb].father;
           gb = truemin[gb];
           if (gb<=n) dr[gb] += Zi;
+	  if (do_microrates && b) {
+	    double rate,dg;
+	    dg = hpr->energy - hp->energy;
+	    rate = exp(-dg/kT);
+	    fprintf(MR,"%10d %8d %.6f 1\n",rc,realnr[hp->n],rate);
+	  }
         }	
       free(pp);
     }
-
+    if (do_microrates && b){ 
+      /* TODO: write subopt-header */
+      fprintf(NEWSUB, "%s %6.2f %i %i\n", form, hpr->energy, gradmin, hpr->basin);
+      fflush(NEWSUB);
+      realnr[hpr->n]=rc++;
+    }
     for (i=1; i<=n; i++) {
       rate[i][gradmin] += dr[i];
       rate[gradmin][i] += dr[i];
     }
-  
+    free(form);
     reset_stapel();
   }
 
@@ -1056,7 +1083,11 @@ void compute_rates(int *truemin) {
     for (j=1; j<=n; j++)
       rate[i][j] /= lmin[ii].Zg;
   }
-  
+  if(do_microrates){
+    free(realnr);
+    fclose(NEWSUB);
+    fclose(MR);
+  }
   if (free_move_it) 
     free_move_it();
   free_stapel();

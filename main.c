@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-11-28 13:22:18 mtw> */
+/* Last changed Time-stamp: <2006-03-10 20:03:17 mtw> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.17 2003/11/28 12:28:26 mtw Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.18 2006/03/10 19:12:25 mtw Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -36,6 +36,7 @@ static struct option const long_options[] =
   {"ssize", no_argument, &opt.ssize, 1},
   {"saddle", no_argument, &opt.print_saddles, 1},
   {"rates", no_argument, &opt.rates, 1},
+  {"microrates", no_argument, &opt.microrates, 1},
   {"poset", required_argument, 0, 0 },
   {NULL, 0, NULL, 0}
 };
@@ -118,8 +119,8 @@ int main (int argc, char *argv[]) {
 
   if (!opt.want_quiet) ps_tree(LM,tm,0);
   
-  if (opt.rates) {
-    compute_rates(tm);
+  if (opt.rates || opt.microrates) {
+    compute_rates(tm,opt.seq);
     if (!opt.want_quiet) ps_tree(LM,tm,1);
     print_rates(tm[0], "rates.out");
   }
@@ -237,6 +238,7 @@ static void usage(int status) {
 	 "--minh <de>       print only minima with barrier > de\n" 
 	 "--saddle          log the saddle point structures\n"
 	 "--rates           compute rates between macro states (basins)\n"
+	 "--microrates      compute microscopic rates between connected states\n"
 	 "-P <l1>=<l2>      backtrack path between lmins l2 and l1 (l1 < l2)\n"
          "--poset <n>       input is a poset from n objective functions\n"
 	 );

@@ -33,6 +33,7 @@ typedef struct {
   int poset;
   int label;
   int rates;
+  int microrates;
 } barrier_options;
 
 typedef struct {
