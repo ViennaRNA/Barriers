@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-03-10 20:08:04 mtw> */
+/* Last changed Time-stamp: <2006-03-16 13:03:20 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.30 2006/03/10 19:12:25 mtw Exp $";
+"$Id: barriers.c,v 1.31 2006/03/16 12:23:48 mtw Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -1022,11 +1022,10 @@ void compute_rates(int *truemin, char *farbe) {
     rate[i] = (double *) space((n + 1) * sizeof(double));
   if(do_microrates){
     realnr = (int *)space((readl+1) * sizeof(int));
+    MR = fopen(mr, "w");
     NEWSUB = fopen(newsub, "w");
     fprintf(NEWSUB, "%s %6.2f\n", farbe, 100*mfe);
     fflush(NEWSUB);
-    MR     = fopen(mr, "w");
-    fprintf(MR, ">%d states\n", readl);
   }
 
   for (rc=1, r=0; r<readl; r++) {
@@ -1047,7 +1046,7 @@ void compute_rates(int *truemin, char *farbe) {
       h.structure = pp;
       /* check whether we've seen the structure before */
       if ((hp = lookup_hash(&h))) 
-        if (hp->n<r) {
+        if (hp->n<=r) {
           gb = hp->GradientBasin;
           while (truemin[gb]==0) gb = lmin[gb].father;
           gb = truemin[gb];
@@ -1056,13 +1055,12 @@ void compute_rates(int *truemin, char *farbe) {
 	    double rate,dg;
 	    dg = hpr->energy - hp->energy;
 	    rate = exp(-dg/kT);
-	    fprintf(MR,"%10d %8d %.6f 1\n",rc,realnr[hp->n],rate);
+	    fprintf(MR,"%10d %8d %15.12f 1\n",rc,realnr[hp->n],rate);
 	  }
         }	
       free(pp);
     }
     if (do_microrates && b){ 
-      /* TODO: write subopt-header */
       fprintf(NEWSUB, "%s %6.2f %i %i\n", form, hpr->energy, gradmin, hpr->basin);
       fflush(NEWSUB);
       realnr[hpr->n]=rc++;
