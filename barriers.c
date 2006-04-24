@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-03-16 13:03:20 mtw> */
+/* Last changed Time-stamp: <2006-04-24 12:41:39 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.31 2006/03/16 12:23:48 mtw Exp $";
+"$Id: barriers.c,v 1.32 2006/04/24 11:23:35 mtw Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -1026,6 +1026,7 @@ void compute_rates(int *truemin, char *farbe) {
     NEWSUB = fopen(newsub, "w");
     fprintf(NEWSUB, "%s %6.2f\n", farbe, 100*mfe);
     fflush(NEWSUB);
+    fprintf(MR, ">%d states\n", readl);
   }
 
   for (rc=1, r=0; r<readl; r++) {
