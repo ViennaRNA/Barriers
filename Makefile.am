@@ -1,3 +1,9 @@
+if BUILD_SECIS_EXT
+SEDIR=SECIS
+endif
+
+SUBDIRS = $(SEDIR) .
+
 bin_PROGRAMS=barriers
 barriers_SOURCES=main.c hash_util.c barriers.c compress.c stapel.c \
         ringlist.c moves.c trees.c treeplot.c utils.c simple_set.c \
@@ -8,7 +14,11 @@ noinst_HEADERS = barrier_types.h barriers.h hash.h hash_util.h pair_mat.h \
 	getopt.h simple_set.h compress.h
 
 #  uncomment the following if barriers requires the math library
-barriers_LDADD=-lm
+if BUILD_SECIS_EXT
+barriers_LDADD= -LSECIS -lSECIS -L@ac_VRNA_lib@ -lRNA -lm
+else
+barriers_LDADD= -lm 
+endif
 
 EXTRA_DIST=barriers.lsm.in barriers.spec.in barriers.texinfo barriers.1
 
