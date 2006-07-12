@@ -4,6 +4,7 @@ Makefile.in
 barriers barriers.lsm barriers.spec tree.ps
 .deps .cvsignore
 *.bar
+*.tar.gz
 stamp-*
 autom*
 aclocal.m4
