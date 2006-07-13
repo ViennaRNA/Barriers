@@ -15,7 +15,7 @@ noinst_HEADERS = barrier_types.h barriers.h hash.h hash_util.h pair_mat.h \
 
 #  uncomment the following if barriers requires the math library
 if BUILD_SECIS_EXT
-barriers_LDADD= -LSECIS -lSECIS -L@ac_VRNA_lib@ -lRNA -lm
+barriers_LDADD= -LSECIS -lSECIS -L@ac_VRNA_lib@ -lRNA -lm -lstdc++
 else
 barriers_LDADD= -lm 
 endif
