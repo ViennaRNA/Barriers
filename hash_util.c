@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-09-06 10:22:56 ivo> */
+/* Last changed Time-stamp: <2006-07-14 12:36:23 xtof> */
 /* hash_util.c */
 
 #include <stdio.h>
@@ -12,7 +12,7 @@
 #define   PRIVATE   static
 #define   PUBLIC
 
-static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.8 2003/07/24 14:32:31 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.9 2006/07/17 09:22:31 xtof Exp $";
 
 /* modify hash_f(), hash_comp() and the typedef of hash_entry in hash_utils.h
    to suit your application */
@@ -83,6 +83,13 @@ PUBLIC void * lookup_hash (void *x)  /* returns NULL unless x is in the hash */
   unsigned int hashval;
 
   hashval=hash_f(x);
+/* xtof poset debug ! */
+#ifdef _DEBUG_HASH_
+  fprintf(stderr,
+	  "lookup %s => %d\n",
+	  ((hash_entry *)x)->structure,
+	  hashval);
+#endif
   if (hashtab[hashval]==NULL) return NULL; 
   while (hashtab[hashval]){
     if (hash_comp(x,hashtab[hashval])==0) return hashtab[hashval];
@@ -98,6 +105,12 @@ PUBLIC int write_hash (void *x)   /* returns 1 if x already was in the hash */
   unsigned int hashval;
   
   hashval=hash_f(x);
+#ifdef _DEBUG_HASH_
+  fprintf(stderr,
+	  "write  %s => %d\n",
+	  ((hash_entry *)x)->structure,
+	  hashval);
+#endif
   while (hashtab[hashval]){
     if (hash_comp(x,hashtab[hashval])==0) return 1;
     hashval = ((hashval+1) & (HASHSIZE));
