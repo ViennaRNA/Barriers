@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-03-10 20:03:17 mtw> */
+/* Last changed Time-stamp: <2006-07-14 11:42:21 xtof> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.18 2006/03/10 19:12:25 mtw Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.19 2006/07/17 09:26:21 xtof Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -85,10 +85,11 @@ int main (int argc, char *argv[]) {
     strcpy(opt.seq, stuff);
   }
 
+#if 0
   if ((!opt.poset)&&(strcmp(signal,"::")!=0)) {
     int r, dim;
     /* in this case we have a poset file !!!! */
-    r=sscanf(signal,"P:%d",&dim);
+    r=sscanf(signal,":%d:",&dim);
     if (r<1) {
       fprintf(stderr,
 	      "Warning: obscure headline in input file\n");
@@ -96,11 +97,63 @@ int main (int argc, char *argv[]) {
     }
     if (dim>0) opt.poset  = dim; 
   }
+#endif
 
-  if (opt.poset)
+  if (opt.poset) { /* in this case we have a poset file !!!! */
     fprintf(stderr,
 	    "!!! Input data are a poset with %d objective functions\n",
 	    opt.poset);
+    /* we have a SECIS design file */
+    if (  ((GRAPH != NULL) && (strstr(GRAPH, "SECIS") != NULL)) 
+	||(strncmp(what, "SECIS", 5) == 0) )
+      {
+#ifdef HAVE_SECIS_EXTENSION
+	int len, max_m, min_as;
+	char *sec_structure, *protein_sequence;
+	
+	if (sscanf(what,"SECIS,%d,%d", &max_m, &min_as) < 2) {
+	  fprintf(stderr,
+		  "Error in input format for SECIS design !"
+		  "expected format: SECIS,INT,INT\n"
+		  "got: `%s'",
+		  what);
+	  exit(EXIT_FAILURE);
+	}
+
+	free(line);
+	line = get_line(opt.INFILE);
+	len  = strlen(line);
+	sec_structure    = (char*)calloc(len+1, sizeof(char));
+	protein_sequence = (char*)calloc(len+1, sizeof(char));
+	sscanf(line,"%s %s", sec_structure, protein_sequence);
+
+	if (opt.want_verbose)
+	  fprintf(stderr,
+		  "\nGraph is SECIS design with the following parameters:\n"
+		  "Structure:   %s\n"
+		  "Constraints: %s\n"
+		  "Protein sequence: %s\n"
+		  "Max. number of mutations : %d\n"
+		  "Min. alignment score (aa): %d\n\n",
+		  sec_structure,
+		  opt.seq,
+		  protein_sequence,
+		  max_m,
+		  min_as);
+
+	initialize_SECIS(opt.seq, sec_structure, protein_sequence,
+			 max_m, min_as);
+
+	free(sec_structure);
+	free(protein_sequence);
+#else
+	fprintf(stderr,
+		"You need to reconfigure barriers with the option\n"
+		"--with-secis option to use this feature\n");
+	exit(EXIT_FAILURE);
+#endif
+    }
+  }
     
   free(line);
 
