@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-04-24 12:41:39 mtw> */
+/* Last changed Time-stamp: <2006-07-17 11:31:12 xtof> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,10 +16,13 @@
 #include "compress.h"
 #include "treeplot.h"
 #include "simple_set.h"
+#ifdef HAVE_SECIS_EXTENSION
+#include "SECIS/secis_neighbors.h"
+#endif
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.32 2006/04/24 11:23:35 mtw Exp $";
+"$Id: barriers.c,v 1.33 2006/07/17 09:33:25 xtof Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -207,6 +210,18 @@ void set_barrier_options(barrier_options opt) {
       fprintf(stderr, "Graph is Permutations with moveset %c\n",
 	      *opt.MOVESET ? *opt.MOVESET : 'T');
     break;
+  case 'S':     /* multi objective SECIS design */
+#ifdef HAVE_SECIS_EXTENSION
+    move_it = SECIS_move_it;
+    pack_my_structure = strdup;
+    unpack_my_structure = strdup;
+#else
+    fprintf(stderr,
+	    "You need to reconfigure barriers with the --with-secis option\n"
+	    "to use this feature\n");
+    exit(EXIT_FAILURE);
+#endif
+    break;
   case 'T' :    /* Phylogenetic Trees */
     move_it = NNI_move_it;
     pack_my_structure = strdup;
@@ -353,6 +368,9 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
   int   r,l;
   char *line;
   char *token;
+#ifdef _DEBUG_POSET_
+  static count = 1;
+#endif
   
   line = get_line(opt.INFILE);
 
@@ -396,6 +414,18 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
       if(r!=1) { fprintf(stderr, "Error in input file\n"); exit(126); }
       POV[i]=x;
     }
+#ifdef _DEBUG_POSET_
+    {
+      int i;
+      fprintf(stderr,"POV[%4d] = {", count);
+      for(i=0;i<opt.poset;i++) {
+	fprintf(stderr,"%2d", POV[i]);
+	if (i<opt.poset-1) fprintf(stderr,",");
+      }
+      fprintf(stderr, "}\n"); 
+    }
+    count++;
+#endif
   }
 
   if(IS_arbitrary) {
@@ -450,7 +480,7 @@ void check_neighbors(void)
     if (hp && POV_size) {
       int i;
       for(i=0;i<POV_size;i++) 
-	if (POV[i] < hp->POV[i]) hp=NULL;
+	if (POV[i] < hp->POV[i]) { hp=NULL; break; }
     }
     if (hp) {
       /* because we've seen this structure before, it already */
