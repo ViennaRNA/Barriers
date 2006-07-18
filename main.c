@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-07-14 11:42:21 xtof> */
+/* Last changed Time-stamp: <2006-07-18 16:15:43 xtof> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.19 2006/07/17 09:26:21 xtof Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.20 2006/07/18 14:18:42 xtof Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -107,7 +107,7 @@ int main (int argc, char *argv[]) {
     if (  ((GRAPH != NULL) && (strstr(GRAPH, "SECIS") != NULL)) 
 	||(strncmp(what, "SECIS", 5) == 0) )
       {
-#ifdef HAVE_SECIS_EXTENSION
+#if HAVE_SECIS_EXTENSION
 	int len, max_m, min_as;
 	char *sec_structure, *protein_sequence;
 	

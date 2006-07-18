@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-07-17 11:31:12 xtof> */
+/* Last changed Time-stamp: <2006-07-18 16:16:50 xtof> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -16,13 +16,13 @@
 #include "compress.h"
 #include "treeplot.h"
 #include "simple_set.h"
-#ifdef HAVE_SECIS_EXTENSION
+#if HAVE_SECIS_EXTENSION
 #include "SECIS/secis_neighbors.h"
 #endif
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.33 2006/07/17 09:33:25 xtof Exp $";
+"$Id: barriers.c,v 1.34 2006/07/18 14:18:42 xtof Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -211,7 +211,7 @@ void set_barrier_options(barrier_options opt) {
 	      *opt.MOVESET ? *opt.MOVESET : 'T');
     break;
   case 'S':     /* multi objective SECIS design */
-#ifdef HAVE_SECIS_EXTENSION
+#if HAVE_SECIS_EXTENSION
     move_it = SECIS_move_it;
     pack_my_structure = strdup;
     unpack_my_structure = strdup;
