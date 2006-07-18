@@ -89,3 +89,20 @@ AC_DEFINE_UNQUOTED(HAVE_SECIS_EXTENSION,
 AM_CONDITIONAL(BUILD_SECIS_EXT, test "$with_secis" != "no")
 
 AC_OUTPUT(Makefile barriers.lsm barriers.spec)
+
+
+if test "$with_secis" != "no"; then
+AC_MSG_NOTICE(
+[
+Configure successful with the following options:
+
+  SECIS Extension:               ${with_secis:-yes}
+  Dependency to ViennaRNA        ${with_secis:-yes}
+  Expecte ViennaRNA headers in:  $ac_VRNA_includes 
+  Expecte ViennaRNA library in:  $ac_VRNA_lib
+
+If the ViennaRNA headers and library are in a different location on
+your system, please set the appropriate absolute paths with the
+configure options --with-ViennaRNA-include and --with-ViennaRNA-lib
+])
+fi
