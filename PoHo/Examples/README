@@ -1,0 +1,21 @@
+MiniHowTo:
+
+Hopffield-Hamiltonian Problem
+
+(1) generate landscape
+    > ../genPoHoLandscape 10 3 4 > poho_n10_3_4
+
+    1st integer ...... string length
+    2nd integer ...... number of cost functions
+    3nd integer ...... number of spin patterns
+                       (must be larger than 2nd integer)
+
+(2) convert landscape file to barriers input file
+    > ./to_bar_in.pl poho_n10_3_4 > n10_3_4_bar.in
+
+(3) call barriers
+    > ../../barriers < n10_3_4_bar.in > n10_3_4.bar
+    > mv tree.ps n10_3_4_tree.ps
+
+=;)
+
