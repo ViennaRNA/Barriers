@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <2006-07-18 15:35:54 xtof>
-# $Id: to_bar_in.pl,v 1.1 2006/07/18 14:10:07 xtof Exp $
+# Last changed Time-stamp: <2006-07-24 18:39:53 xtof>
+# $Id: to_bar_in.pl,v 1.2 2006/07/25 14:37:05 xtof Exp $
 
 use Getopt::Long;
 use POSIX;
@@ -102,7 +102,7 @@ sub trim_whitespace {
 sub to_header {
   my ($structure, $constrain, $protein, $max_m, $min_as, $cols) = @_;
   my $header =
-      join " ", $constrain, -999999, ":$cols:", "SECIS,$max_m,$min_as";
+      join " ", $constrain, -999999, "P:$cols", "SECIS,$max_m,$min_as";
 
   return join "\n", $header, join " ", $structure, $protein;
 }

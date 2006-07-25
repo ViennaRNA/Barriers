@@ -69,6 +69,7 @@ AC_CHECK_HEADERS(string.h unistd.h)
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
+AC_CHECK_FUNCS(erand48)
 
 dnl Conditionally build Makefile in SECIS subdirectory
 have_secis_ext=0
@@ -89,6 +90,7 @@ AC_DEFINE_UNQUOTED(HAVE_SECIS_EXTENSION,
 AM_CONDITIONAL(BUILD_SECIS_EXT, test "$with_secis" != "no")
 
 AC_OUTPUT(Makefile barriers.lsm barriers.spec)
+AC_OUTPUT(PoHo/Makefile)
 
 
 if test "$with_secis" != "no"; then

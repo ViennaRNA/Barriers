@@ -1,13 +1,18 @@
 MiniHowTo:
 
+SECIS design
+
 (1) generate sequences compatible with the design constrains in secis.txt
     > ../secisFindSeqs -M 9 -S 24 < secis.txt > sequences_m9_s24
+
+    M ...... maximal number of point mutations
+    S ...... minimal protein alignment score
 
 (2) convert sequences file to barriers input file
     > ./to_bar_in.pl sequences_m9_s24 > m9s24_bar.in
 
 (3) call barriers
-    > ../../barriers --poset 3 m9s24.bar > m9s24.bar
+    > ../../barriers m9s24.bar > m9s24.bar
     > mv tree.ps m9s24_tree.ps
 
 =;)

@@ -2,7 +2,7 @@ if BUILD_SECIS_EXT
 SEDIR=SECIS
 endif
 
-SUBDIRS = $(SEDIR) .
+SUBDIRS = $(SEDIR) PoHo .
 
 bin_PROGRAMS=barriers
 barriers_SOURCES=main.c hash_util.c barriers.c compress.c stapel.c \

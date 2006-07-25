@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-07-18 16:16:50 xtof> */
+/* Last changed Time-stamp: <2006-07-24 19:22:22 xtof> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -22,10 +22,11 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.34 2006/07/18 14:18:42 xtof Exp $";
+"$Id: barriers.c,v 1.35 2006/07/25 14:37:05 xtof Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
+
 static double **rate;      /* rate matrix between basins */
 static double  *dr;        /* increments to rate matrix  */
 /* "global" variables */
@@ -123,7 +124,7 @@ void set_barrier_options(barrier_options opt) {
       if (strstr(opt.MOVESET, "noShift")) shift=0;
       else if (strlen(opt.MOVESET)) {
 	fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
-	exit(1);
+	exit (EXIT_FAILURE);
       }
       for (i=0; i < (int)strlen(opt.seq); i++){
 	if (opt.seq[i] == 'T')
@@ -217,8 +218,8 @@ void set_barrier_options(barrier_options opt) {
     unpack_my_structure = strdup;
 #else
     fprintf(stderr,
-	    "You need to reconfigure barriers with the --with-secis option\n"
-	    "to use this feature\n");
+	    "You need to reconfigure barriers with the --with-secis"
+	    " option\nto use barriers SECIS design extension\n");
     exit(EXIT_FAILURE);
 #endif
     break;
@@ -268,7 +269,6 @@ loc_min *barriers(barrier_options opt) {
   hpool = (hash_entry *) space((HASHSIZE+1)*sizeof(hash_entry));
   set_barrier_options(opt);
 
-  
   length = (int) strlen(opt.seq);
   max_lmin = 16383;
   lmin = (loc_min *) space((max_lmin + 1) * sizeof(loc_min));
@@ -292,7 +292,8 @@ loc_min *barriers(barrier_options opt) {
     if (readl==0) mfe=energy=new_en;
     if (new_en<energy) 
       nrerror("unsorted list!\n");
-    if (new_en>energy) { /* new energy band started */
+    if (new_en>energy) {
+      /* new energy band started */
       merge_basins();
       /* fprintf(stderr, "%d %d\n", readl, lmin[1].my_pool); */
       n_comp=0;
@@ -312,7 +313,6 @@ loc_min *barriers(barrier_options opt) {
     break;
   default:
     break;
-    
   }
   merge_basins();
   if (mergefile) fclose(mergefile);
@@ -396,14 +396,18 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
       exit (111);
     }
   }
-  /*  else { */
-  /*     if(l != len) { */
-  /*       fprintf(stderr,"read_data():\n%s\n unequal length !!\n", strucb); */
-  /*       exit (112); */
-  /*     } */
-  /*   } */
-  /* removed because in the lattice protein case, the sequence is one */
-  /* character longer than the actual SAWs */
+#if 0
+  /*
+   * removed because in the lattice protein case, the sequence is one
+   * character longer than the actual SAWs
+   */
+  else {
+    if(l != len) {
+      fprintf(stderr,"read_data():\n%s\n unequal length !!\n", strucb);
+      exit (112);
+    }
+  }
+#endif
   
   if(opt.poset) {
     int i,x;
@@ -461,11 +465,11 @@ void check_neighbors(void)
   double minenergia =  100000000.0;  /* energy of lowest neighbor */
   double Zi;
   int   min_n = 1000000000;         /* index of lowest neighbor  */ 
-  int   gradmin=0;                  /* for Gradient Basins */
+  int   gradmin=0;          /* for Gradient Basins */
   int is_min=1;
-  int ccomp=0;                /* which connected component */
+  int ccomp=0;              /* which connected component */
   basins = new_set(10);
-
+  
   Zi = exp((mfe-energy)/kT);
     
   /* foreach neighbor structure of configuration "Structure" */
@@ -474,17 +478,19 @@ void check_neighbors(void)
     h.structure = pp;
 
 
-    /* check whether we've seen the structure before */
     hp = lookup_hash(&h);
 
-    if (hp && POV_size) {
+    if (hp && POV_size) { /* need to check if h is dominated by hp */
       int i;
-      for(i=0;i<POV_size;i++) 
+      for(i=0;i<POV_size;i++) {
+	/* printf(" %d",hp->POV[i]); */
 	if (POV[i] < hp->POV[i]) { hp=NULL; break; }
+      }
     }
+    /* check whether we've seen the structure before */
     if (hp) {
       /* because we've seen this structure before, it already */
-      /* belongs to the basin of a local minimum */
+      /* belongs to the basin of attraction of a local minimum */
       basin = hp->basin;
       if ( hp->energy < energy) is_min=0;  /* should we use hp->n here? */
       if ( hp->n < min_n ) {         /* find lowest energy neighbor */
@@ -507,9 +513,10 @@ void check_neighbors(void)
 	  ccomp = truecomp[ccomp];
 	}
       }
-      /* the basin of this local minimum may have been merged with the
-	 basin of an energetically "deeper" local minimum in a
-	 previous step go and find this "deeper" local minimum! */
+      /* the basin of attraction of this local minimum may have been */
+      /* merged with the basin of attraction of an energetically */
+      /* "deeper" local minimum in a previous step */
+      /* go and find this "deeper" local minimum! */
       while (lmin[basin].father) basin=lmin[basin].father;
       
       /* put the "deepest" local minimum into the basins-list */
@@ -589,8 +596,8 @@ void check_neighbors(void)
     if (write_hash(hp))
       nrerror("duplicate structure");
   }
-  
-  if ((is_min)&&(POV_size)) lmin[n_lmin].POV = hp->POV;
+
+  if((is_min)&&(POV_size)) lmin[n_lmin].POV = hp->POV;
 }
 
 static void merge_basins() {
@@ -676,8 +683,8 @@ void mark_global(loc_min *Lmin)
       int dom;
       dom =1;
       for(k=0;k<POV_size;k++) 
-	if (G[j].POV[k]>=Lmin[i].POV[k]) dom=0;
-      if (dom) {
+	if(G[j].POV[k]>=Lmin[i].POV[k]) dom=0;
+      if(dom) {
 	Lmin[i].global = (char) 0;
 	j=n_gmin+1;
       }
@@ -706,7 +713,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     format = "%4d %s %6.2f %4d %6.2f";
   else
     format = "%4d %s %13.5f %4d %13.5f";
-  if (verbose) printf("Using output format string '%s'\n",format);
+  if(verbose) printf("Using output format string '%s'\n",format);
 
   
   n_lmin = Lmin[0].fathers_pool;
@@ -719,18 +726,18 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     struc = unpack_my_structure(Lmin[i].structure);
     n = strlen(struc);
     f = Lmin[i].father; if (f>0) f = truemin[f];
-    if (POV_size) {
+    if(POV_size) {
       int jj;
       printf("%4d %s ", ii, struc);
-      if (IS_RNA) printf("%6.2f ", Lmin[i].energy);
+      if(IS_RNA) printf("%6.2f ", Lmin[i].energy);
       else printf("%13.5f ", Lmin[i].energy);
       for(jj=0;jj<POV_size;jj++) printf("%6d ",Lmin[i].POV[jj]);
-      if (IS_RNA) printf("%4d %6.2f",f,
+      if(IS_RNA) printf("%4d %6.2f",f,
 			Lmin[i].E_saddle - Lmin[i].energy);
       else printf("%4d %13.5f",f,
 		  Lmin[i].E_saddle - Lmin[i].energy);
 
-      if (Lmin[i].global) printf(" *");
+      if(Lmin[i].global) printf(" *");
       else printf(" .");
     }
     else { 
@@ -805,7 +812,7 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
 	nodes[s1-1].label = strdup(s);
       free(s);
     }
-    else if ((POV_size)&&(Lmin[ii].global)) {
+    else if((POV_size)&&(Lmin[ii].global)) {
       char *L;
       L = (char *) space(sizeof(char)*10);
       (void) sprintf(L,"%d *",s1);

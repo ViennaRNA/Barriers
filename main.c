@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-07-18 16:15:43 xtof> */
+/* Last changed Time-stamp: <2006-07-24 19:25:00 xtof> */
 /* main.c */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include "hash_util.h"
          
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.20 2006/07/18 14:18:42 xtof Exp $";
+static char UNUSED rcsid[] = "$Id: main.c,v 1.21 2006/07/25 14:37:05 xtof Exp $";
 static void usage(int status);
 static barrier_options opt;
 static  char *GRAPH;
@@ -85,19 +85,17 @@ int main (int argc, char *argv[]) {
     strcpy(opt.seq, stuff);
   }
 
-#if 0
-  if ((!opt.poset)&&(strcmp(signal,"::")!=0)) {
+  if((!opt.poset)&&(strcmp(signal,"::")!=0)) {
     int r, dim;
     /* in this case we have a poset file !!!! */
-    r=sscanf(signal,":%d:",&dim);
-    if (r<1) {
+    r=sscanf(signal,"P:%d",&dim);
+    if(r<1) {
       fprintf(stderr,
 	      "Warning: obscure headline in input file\n");
       dim = 0;
     }
-    if (dim>0) opt.poset  = dim; 
+    if(dim>0) opt.poset  = dim; 
   }
-#endif
 
   if (opt.poset) { /* in this case we have a poset file !!!! */
     fprintf(stderr,
@@ -148,8 +146,8 @@ int main (int argc, char *argv[]) {
 	free(protein_sequence);
 #else
 	fprintf(stderr,
-		"You need to reconfigure barriers with the option\n"
-		"--with-secis option to use this feature\n");
+		"You need to reconfigure barriers with the --with-secis"
+		" option\nto use barriers SECIS design extension\n");
 	exit(EXIT_FAILURE);
 #endif
     }
@@ -158,7 +156,7 @@ int main (int argc, char *argv[]) {
   free(line);
 
   if (GRAPH==NULL)
-    if (strlen(what)) GRAPH = what;
+    if(strlen(what)) GRAPH = what;
 
   if (GRAPH==NULL) GRAPH="RNA";
   opt.GRAPH=GRAPH;
@@ -167,6 +165,8 @@ int main (int argc, char *argv[]) {
   if (opt.INFILE != stdin) fclose(opt.INFILE);
   tm = make_truemin(LM);
 
+  if(opt.poset) mark_global(LM);
+  
   print_results(LM,tm,opt.seq);
   fflush(stdout);
 
