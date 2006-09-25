@@ -17,13 +17,13 @@
 #endif
 
 /*
-static char rcsid[] = "$Id: utils.c,v 1.5 2003/07/24 14:32:32 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.6 2006/09/25 08:33:03 ivo Exp $";
 */
 
 #define PRIVATE  static
 #define PUBLIC
 
-PUBLIC void  *space(unsigned int size);
+PUBLIC void  *space(size_t size);
 PUBLIC void   nrerror(const char message[]);
 PUBLIC double urn(void);
 PUBLIC int    int_urn(int from, int to);
