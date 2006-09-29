@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-07-24 19:22:22 xtof> */
+/* Last changed Time-stamp: <2006-09-29 13:38:09 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -22,7 +22,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.35 2006/07/25 14:37:05 xtof Exp $";
+"$Id: barriers.c,v 1.36 2006/09/29 16:07:50 mtw Exp $";
 
 static char *form;         /* array for configuration */ 
 static loc_min *lmin;      /* array for local minima */
@@ -759,7 +759,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
       
     }
     if (bsize) 
-      printf (" %12ld %8ld %7.3f %8ld %7.3f",
+      printf (" %12ld %8ld %10.6f %8ld %10.6f",
 	      Lmin[i].my_pool, Lmin[i].fathers_pool, mfe -kT*log(lmin[i].Z),
 	      Lmin[i].my_GradPool, mfe -kT*log(lmin[i].Zg));
     printf("\n");
@@ -1028,6 +1028,26 @@ static void print_hash_entry(hash_entry *h) {
 void print_rates(int n, char *fname) {
   int i,j;
   FILE *OUT;
+#define BINRATES
+#ifdef BINRATES
+  FILE *BINOUT;
+  char *binfile = "rates.bin";
+  double tmprate;
+  BINOUT = fopen(binfile, "w");
+  if (!BINOUT){
+    fprintf(stderr, "could not open file pointer 4 binary outfile\n");
+    exit(101);
+  }
+  /* first write dim to file */
+  fwrite(&n,sizeof(int),1,BINOUT);
+  for(i=1;i<=n;i++)
+    for(j=1;j<=n;j++){
+      tmprate = rate[j][i];
+      fwrite(&tmprate,sizeof(double),1,BINOUT);
+    }
+  fprintf(stderr, "rate matrix written to binfile\n");
+  fclose(BINOUT);
+#endif
   
   OUT = fopen(fname, "w");
   if (!OUT) {
