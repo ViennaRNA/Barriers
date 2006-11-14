@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2003-09-02 11:50:57 ivo>
+# Last changed Time-stamp: <2006-11-14 13:59:03 xtof>
 
 # analyse folding landscape of the growing molecule: 
 
@@ -87,7 +87,7 @@ for my $l (0..$#match_list) {
 
 @lines = sort {$$a[-1] <=> $$b[-1]} @lines; 
 foreach my $l (@lines) {
-  print defined($l->[0])? sprintf("%3d", $l->[0]) : "   ";
+  print defined($l->[0])? sprintf("%3d", $l->[0]) : ' ' x 3;
   for my $b (1..$#{$l}) {
     if (defined($l->[$b])) {
       if ($l->[$b-1] && $match_list[$b-1]{$l->[$b-1]}[1]) {
@@ -97,7 +97,7 @@ foreach my $l (@lines) {
       }
       printf("%3d", $l->[$b]);
     }
-    else {print "      ";}
+    else {print ' ' x 3;}
   }
   print "\n";
 }
