@@ -1,41 +1,36 @@
 #!/usr/bin/perl -w
-# -*-CPerl-*-
-# Last changed Time-stamp: <2006-11-14 13:59:03 xtof>
-
-# analyse folding landscape of the growing molecule: 
-
-# read a series of bar files for different length fragments (in the
-# order of the growing chain) and compute which minima in successive
-# barrier trees are equivalent. Output the correpondence table
-# of minima.
-# Usage: bar_map.pl  1.bar 2.bar 3.bar ... n.bar
-
+# -*-Perl-*-
+# Last changed Time-stamp: <2006-11-14 17:14:23 xtof>
+# $Id: bar_map.pl,v 1.5 2006/11/14 16:16:00 xtof Exp $
+#
 use FindBin qw($Bin);
 use lib "$Bin";
 use RNA;
 use barrier;
 use Getopt::Long;
-use strict;
+use Pod::Usage;
 use warnings;
+use strict;
+use vars qw/$opt_debug $opt_v $ParamFile $pf $ns_bases/;
 
 Getopt::Long::config("no_ignore_case");
-
-use vars qw/$opt_debug $opt_v $ParamFile $pf $ns_bases/;
-&usage() unless GetOptions(
-                           "T=f" => \$RNA::temperature,
-                           "4" => sub {$RNA::tetra_loop = 0},
-                           "d|d0" => sub {$RNA::dangles=0},
-                           "d2" => sub {$RNA::dangles=2},,
-                           "d3" => sub {$RNA::dangles=3},,
-                           "noGU" => \$RNA::noGU,
-                           "noCloseGU" => \$RNA::no_closingGU,
-                           "noLP" => \$RNA::noLonelyPairs,
-                           "logML" => \$RNA::logML,
-                           "P=s" => \$ParamFile);
+pod2usage(-verbose => 0)
+  unless GetOptions("T=f"       => \$RNA::temperature,
+		    "4"         => sub {$RNA::tetra_loop = 0},
+		    "d|d0"      => sub {$RNA::dangles = 0},
+		    "d2"        => sub {$RNA::dangles = 2},
+		    "d3"        => sub {$RNA::dangles = 3},
+		    "noGU"      => \$RNA::noGU,
+		    "noCloseGU" => \$RNA::no_closingGU,
+		    "noLP"      => \$RNA::noLonelyPairs,
+		    "logML"     => \$RNA::logML,
+		    "P=s"       => \$ParamFile,
+		    "man"       => sub {pod2usage(-verbose => 2)},
+		    "help"      => sub {pod2usage(-verbose => 1)});
 
 RNA::read_parameter_file($ParamFile) if ($ParamFile);
 
-usage() if $#ARGV<1;
+pod2usage(-verbose => 0) if $#ARGV<1;
 my ($seq1, @lmin1) = read_bar();
 
 my @match_list;
@@ -85,6 +80,7 @@ for my $l (0..$#match_list) {
 #print "\n";
 }
 
+# print correspondence table of local minima to STDOUT
 @lines = sort {$$a[-1] <=> $$b[-1]} @lines; 
 foreach my $l (@lines) {
   print defined($l->[0])? sprintf("%3d", $l->[0]) : ' ' x 3;
@@ -102,6 +98,7 @@ foreach my $l (@lines) {
   print "\n";
 }
 
+#---
 sub grad_walk {
   my ($seq, $stru) = @_;
   my $E = RNA::energy_of_struct($seq, $stru);
@@ -119,7 +116,7 @@ sub grad_walk {
   return $stru;
 }
 
-
+#---
 sub read_bar {
   $_ = <>;
   warn "no seq in bar file" unless /^\s+(\S+)/;
@@ -137,6 +134,91 @@ sub read_bar {
   return $seq, @lmin;
 }
 
+#---
 sub usage {
   die "$0 [ViennaRNA options] 1.bar 2.bar [3.bar [...]]\n";
 }
+
+=head1 NAME
+
+bar_map.pl - analyse dynamic RNA folding landscapes
+
+=head1 SYNOPSIS
+
+bar_map.pl [-T temp] [-4] [-d[0|1|2|3]] [-no[GU|CloseGU|LP]] [-logML]
+           [-P paramfile] 1.bar 2.bar [3.bar [...]]
+
+=head1 DESCRIPTION
+
+The program reads a series of bar files e.g for different length
+fragments in the order of the growing chain or for different
+temperatures in the order of the heating/cooling schedule, and
+computes which minima in successive barrier trees are equivalent. The
+program Outputs the correpondence table of minima to I<STDOUT>.
+
+Each column of the output corresponds to the minima of a bar file
+(last bar file is the right most gap-less column). The correspondence
+between minima of successive columns are calculated by a gradient
+walk. Within a row of the output the symbol I<-E<gt>> indicates exact
+correspondence between the local minima in the succesive barrier trees
+while the symbol I<~E<gt>> indicates approximate correspondence with
+maximal similarity (= base pair distance). Approximate similarity
+arises if forinstance not all minima are listed in the bar file
+because the program C<barriers> was used with the I<-minh> option.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-d[0|1|2|3]>
+
+Set the "dangling end" energies for bases adjacent to helices in free
+ends and multi-loops: With I<-d1> only unpaired bases can participate
+in at most one dangling end. With I<-d2> this check is ignored,
+dangling energies will be added for the bases adjacent to a helix on
+both sides in any case. With I<-d | -d0> dangling ends are ignored
+altogether. With I<-d3> mfe folding will allow coaxial stacking of
+adjacent helices in multi-loops. At the moment the implementation will
+not allow coaxial stacking of the two interior pairs in a loop of
+degree 3 and works only for mfe folding.
+
+=item B<-h, -help>
+
+Display long help message.
+
+=item B<-man>
+
+Display man page.
+
+=item B<-no[GU|CloseGU|LP]>
+
+With I<-noGU> do not allow GU pairs. With I<-noCloseGU> do not allow
+GU pairs at the end of helices. With I<-noLP> disallow pairs that can
+only occur isolated.
+
+=item B<-P> I<paramfile>
+
+Read energy parameters from  paramfile.
+
+=item B<-T> I<temp>
+
+Rescale energy parameters to a temperature of I<temp>.
+
+=item B<-4>
+
+Turn off special stabilizing energies for certain tetra-loops.
+
+=back
+
+=head1 AUTHORS
+
+Ivo L Hofacker, Peter F Stadler, Christoph Flamm
+
+=head1 BUGS
+
+If in doubt our program is right, nature is at fault. Please send
+comments and bug reports to xtof@tbi.univie.ac.at.
+
+=cut
+
+__END__
