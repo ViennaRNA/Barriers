@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2006-11-14 17:14:23 xtof>
-# $Id: bar_map.pl,v 1.5 2006/11/14 16:16:00 xtof Exp $
+# Last changed Time-stamp: <2006-11-28 15:55:23 xtof>
+# $Id: bar_map.pl,v 1.6 2006/11/30 19:41:24 xtof Exp $
 #
 use FindBin qw($Bin);
 use lib "$Bin";
@@ -11,7 +11,7 @@ use Getopt::Long;
 use Pod::Usage;
 use warnings;
 use strict;
-use vars qw/$opt_debug $opt_v $ParamFile $pf $ns_bases/;
+use vars qw/$opt_debug $opt_v $ParamFile $pf $ns_bases @FILES/;
 
 Getopt::Long::config("no_ignore_case");
 pod2usage(-verbose => 0)
@@ -62,6 +62,9 @@ while ($#ARGV >= 0) {
   push @match_list, \%match;
 }
 
+# print processed filenames to STDOUT
+print "#@FILES\n";
+
 my @lines = map {[$_]} (1 .. keys(%{$match_list[0]}));
 for my $l (0..$#match_list) {
   my %seen;
@@ -82,6 +85,9 @@ for my $l (0..$#match_list) {
 
 # print correspondence table of local minima to STDOUT
 @lines = sort {$$a[-1] <=> $$b[-1]} @lines; 
+use Data::Dumper;
+#print Dumper(\@lines);
+#print Dumper(\@match_list);
 foreach my $l (@lines) {
   print defined($l->[0])? sprintf("%3d", $l->[0]) : ' ' x 3;
   for my $b (1..$#{$l}) {
@@ -93,7 +99,7 @@ foreach my $l (@lines) {
       }
       printf("%3d", $l->[$b]);
     }
-    else {print ' ' x 3;}
+    else {print ' ' x 6;}
   }
   print "\n";
 }
@@ -119,6 +125,8 @@ sub grad_walk {
 #---
 sub read_bar {
   $_ = <>;
+  print STDERR "Processing $ARGV\n";
+  push @FILES, $ARGV;
   warn "no seq in bar file" unless /^\s+(\S+)/;
   my $seq = $1;
   my @lmin;
