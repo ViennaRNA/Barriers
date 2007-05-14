@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-09-29 13:38:09 mtw> */
+/* Last changed Time-stamp: <2007-05-14 17:09:46 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -22,9 +22,9 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.36 2006/09/29 16:07:50 mtw Exp $";
+"$Id: barriers.c,v 1.37 2007/05/14 15:11:19 ivo Exp $";
 
-static char *form;         /* array for configuration */ 
+static char *form;         /* array for configuration */
 static loc_min *lmin;      /* array for local minima */
 
 static double **rate;      /* rate matrix between basins */
@@ -131,7 +131,7 @@ void set_barrier_options(barrier_options opt) {
 	  opt.seq[i] = 'U';
       }
       RNA_init(opt.seq, shift, nolp);
-      if (verbose) 
+      if (verbose)
 	fprintf(stderr, "Graph is RNA with noLP=%d, Shift=%d\n", nolp, shift);
     } else Sorry(opt.GRAPH);
     break;
@@ -142,7 +142,7 @@ void set_barrier_options(barrier_options opt) {
 	if (verbose)
 	  fprintf(stderr, "Graph is Q2 with complementation moves\n");
       }
-      else {  
+      else {
 	move_it = SPIN_move_it;
 	if (verbose) fprintf(stderr, "Graph is Q2\n");
       }
@@ -192,7 +192,7 @@ void set_barrier_options(barrier_options opt) {
 	pack_my_structure = strdup;
 	unpack_my_structure = strdup;
       }
-    } 
+    }
     break;
   case 'P' :    /* Permutations */
     switch(*opt.MOVESET) {
@@ -202,12 +202,12 @@ void set_barrier_options(barrier_options opt) {
       move_it = CTranspos_move_it; break;
     case 'T':
     default:
-      
+
       move_it = Transpos_move_it;
     }
     pack_my_structure = strdup;
     unpack_my_structure = strdup;
-    if (verbose) 
+    if (verbose)
       fprintf(stderr, "Graph is Permutations with moveset %c\n",
 	      *opt.MOVESET ? *opt.MOVESET : 'T');
     break;
@@ -227,13 +227,13 @@ void set_barrier_options(barrier_options opt) {
     move_it = NNI_move_it;
     pack_my_structure = strdup;
     unpack_my_structure = strdup;
-    if (verbose) 
+    if (verbose)
       fprintf(stderr, "Graph is Trees with NNI moves\n");
-    break;   
+    break;
   case 'X' : /* Johnson graph J(n,n/2) = balanced +/- with exchange moves */
     move_it = EXCH_move_it;
     pack_my_structure = pack_spin;
-    unpack_my_structure = unpack_spin;    
+    unpack_my_structure = unpack_spin;
     break;
   case '?' : /* General graph; adjacency list on file */
     move_it = LIST_move_it;
@@ -273,11 +273,11 @@ loc_min *barriers(barrier_options opt) {
   max_lmin = 16383;
   lmin = (loc_min *) space((max_lmin + 1) * sizeof(loc_min));
   n_lmin = 0;
-  
+
   form = (char *) space((length+1)*sizeof(char));
   comp = (struct comp *) space((max_comp+1) * sizeof(struct comp));
   truecomp = (int *) space((max_comp+1) * sizeof(int));
-  if(opt.poset) { 
+  if(opt.poset) {
     POV_size = opt.poset;
     POV  = (int *) space(sizeof(int)*opt.poset);
   }
@@ -287,10 +287,10 @@ loc_min *barriers(barrier_options opt) {
     mergefile = fopen("saddles.txt", "w");
     if (!mergefile) fprintf(stderr, "can't open saddle file\n");
   }
-  
+
   while (read_data(opt, &new_en,form,length,POV)) {
     if (readl==0) mfe=energy=new_en;
-    if (new_en<energy) 
+    if (new_en<energy)
       nrerror("unsorted list!\n");
     if (new_en>energy) {
       /* new energy band started */
@@ -299,7 +299,7 @@ loc_min *barriers(barrier_options opt) {
       n_comp=0;
     }
     energy = new_en;
-    readl++;   
+    readl++;
     move_it(form);       /* generate all neighbor of configuration */
     check_neighbors();   /* flood the energy landscape */
     reset_stapel();
@@ -319,16 +319,16 @@ loc_min *barriers(barrier_options opt) {
   if(!shut_up) fprintf(stderr,
 		       "read %d structures, to find %d saddles\n",
 		       readl, n_saddle);
-  
+
   if (max_print == 0 || max_print > n_lmin)
     max_print = n_lmin;
-  
+
   lmin[0].fathers_pool = n_lmin;   /* store size here; pfs 03 2001 */
   lmin[0].E_saddle = energy + 0.001;
   lmin[0].energy = lmin[1].energy;
 
   if (!do_rates) {
-    if (free_move_it) 
+    if (free_move_it)
       free_move_it();
     free_stapel();
   }
@@ -350,7 +350,7 @@ int *make_truemin(loc_min *Lmin) {
     int f;
     f = lmin[ii].father;
     if (!f) lmin[ii].E_saddle = energy + 0.000001;
-    if (lmin[ii].E_saddle - lmin[ii].energy >= minh) 
+    if (lmin[ii].E_saddle - lmin[ii].energy >= minh)
       truemin[ii]=i++;
     else { /* ii is not a truemin */
       lmin[f].Z += lmin[ii].Z;
@@ -371,7 +371,7 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
 #ifdef _DEBUG_POSET_
   static count = 1;
 #endif
-  
+
   line = get_line(opt.INFILE);
 
   if(line==NULL) return 0;
@@ -382,12 +382,12 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
   l = strlen(token);
   if(l<1) return 0;
   strcpy(strucb,token);
-  
+
   token = strtok(NULL," \t");
   if(token==NULL) { fprintf(stderr, "Error in input file\n"); exit(123); }
   r=sscanf(token,"%lf",energy);
   if(r<1) { fprintf(stderr, "Error in input file\n"); exit(124); }
-  
+
   if(IS_arbitrary) {
     /* record the maximal length of token name for output formatting */
     if(l>maxlabellength) maxlabellength=l;
@@ -408,7 +408,7 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
     }
   }
 #endif
-  
+
   if(opt.poset) {
     int i,x;
     for(i=0;i<opt.poset;i++) {
@@ -426,7 +426,7 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
 	fprintf(stderr,"%2d", POV[i]);
 	if (i<opt.poset-1) fprintf(stderr,",");
       }
-      fprintf(stderr, "}\n"); 
+      fprintf(stderr, "}\n");
     }
     count++;
 #endif
@@ -442,8 +442,8 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
 
   free(line);
 
-  return(1); 
-  
+  return(1);
+
 }
 
 /*=====================================*/
@@ -461,20 +461,20 @@ void check_neighbors(void)
   int basin, obasin=-1;
   hash_entry *hp, h, *down=NULL;
   Set *basins; basinT b;
-    
+
   double minenergia =  100000000.0;  /* energy of lowest neighbor */
   double Zi;
-  int   min_n = 1000000000;         /* index of lowest neighbor  */ 
+  int   min_n = 1000000000;         /* index of lowest neighbor  */
   int   gradmin=0;          /* for Gradient Basins */
   int is_min=1;
   int ccomp=0;              /* which connected component */
   basins = new_set(10);
-  
+
   Zi = exp((mfe-energy)/kT);
-    
+
   /* foreach neighbor structure of configuration "Structure" */
   while ((p = pop())) {
-    pp = pack_my_structure(p); 
+    pp = pack_my_structure(p);
     h.structure = pp;
 
 
@@ -518,7 +518,7 @@ void check_neighbors(void)
       /* "deeper" local minimum in a previous step */
       /* go and find this "deeper" local minimum! */
       while (lmin[basin].father) basin=lmin[basin].father;
-      
+
       /* put the "deepest" local minimum into the basins-list */
       if (basin != obasin) {
 	b.hp = hp; b.basin = basin;
@@ -528,15 +528,15 @@ void check_neighbors(void)
     }
     free(pp);
   }
-  
+
   pform = pack_my_structure(form);
-  
+
   if (ccomp==0) {
     /* new compnent */
-    Set *set; 
+    Set *set;
     set = new_set(10);
     if (++n_comp>max_comp) {
-      max_comp *= 2; 
+      max_comp *= 2;
       comp = (struct comp*) xrealloc(comp, (max_comp+1)*sizeof(struct comp));
       truecomp = (int*) xrealloc(truecomp, (max_comp+1)*sizeof(int));
     }
@@ -545,7 +545,7 @@ void check_neighbors(void)
     comp[n_comp].size = 0;
     truecomp[n_comp] = ccomp = n_comp;
   }
-  
+
   if (is_min) {
     basinT b;
     /* Structure is a "new" local minimum */
@@ -558,7 +558,7 @@ void check_neighbors(void)
       memset(lmin + max_lmin +1, 0, max_lmin);
       max_lmin *= 2;
     }
-    
+
     /* store configuration "Structure" in lmin-list */
     lmin[n_lmin].father = 0;
     lmin[n_lmin].structure = pform;
@@ -572,8 +572,8 @@ void check_neighbors(void)
   }
   else comp[ccomp].size++;
   set_merge(comp[ccomp].basins, basins);
-  
-  { 
+
+  {
     int i_lmin;
     i_lmin = (is_min) ? n_lmin : basins->data[0].basin;
     set_kill(basins);
@@ -603,7 +603,7 @@ void check_neighbors(void)
 static void merge_basins() {
   int c, i, t;
   for (i=t=1; i<=n_comp; i++) {
-    if (truecomp[i]==i) 
+    if (truecomp[i]==i)
       comp[t++]=comp[i];
     else set_kill(comp[i].basins);
   }
@@ -639,12 +639,12 @@ static void merge_basins() {
 	if (ii<father) {int tmp; tmp=ii; ii=father; father=tmp; l=0; r=i;}
 	else {l=i; r=0;}
 	/* going to merge ii with father  */
-	if ((!max_print) || (ii<=max_print+false_lmin)) { 
+	if ((!max_print) || (ii<=max_print+false_lmin)) {
 	  /* found the saddle for a basin we're gonna print */
 	  if (energy-lmin[ii].energy>=minh) n_saddle++;
 	  else false_lmin++;
 	}
-      
+
 	lmin[ii].father = father;
 	lmin[ii].saddle = comp[c].saddle;
 	lmin[ii].E_saddle = energy;
@@ -653,7 +653,7 @@ static void merge_basins() {
 	if (bsize) {
 	  lmin[ii].fathers_pool = lmin[father].my_pool;
 	  pool += lmin[ii].my_pool;
-	  Z += lmin[ii].Z; 
+	  Z += lmin[ii].Z;
 	}
       }
     }
@@ -676,13 +676,13 @@ void mark_global(loc_min *Lmin)
   Lmin[1].global = (char) 1;
   G[1] = Lmin[1];
   n_gmin = 1;
-  
+
   for (i=1; i<=n_lmin; i++) {
     Lmin[i].global = (char) 1;
     for (j=1; j<=n_gmin; j++) {
       int dom;
       dom =1;
-      for(k=0;k<POV_size;k++) 
+      for(k=0;k<POV_size;k++)
 	if(G[j].POV[k]>=Lmin[i].POV[k]) dom=0;
       if(dom) {
 	Lmin[i].global = (char) 0;
@@ -703,7 +703,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
   char *struc;
   char *format;
 
-  fprintf(stderr," POV_size = %d\n",POV_size);
+  if (POV_size) fprintf(stderr," POV_size = %d\n",POV_size);
   if (IS_arbitrary) {
     char tfor[100];
     sprintf(tfor,"%%4d %%-%ds %%6.2f %%4d %%6.2f",maxlabellength);
@@ -715,7 +715,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     format = "%4d %s %13.5f %4d %13.5f";
   if(verbose) printf("Using output format string '%s'\n",format);
 
-  
+
   n_lmin = Lmin[0].fathers_pool;
 
   printf("     %s\n", farbe);
@@ -740,13 +740,13 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
       if(Lmin[i].global) printf(" *");
       else printf(" .");
     }
-    else { 
+    else {
       printf(format, ii, struc, Lmin[i].energy, f,
 	     Lmin[i].E_saddle - Lmin[i].energy);
     }
     free(struc);
-    
-    if (print_saddles) { 
+
+    if (print_saddles) {
       if (Lmin[i].saddle)  {
 	struc = unpack_my_structure(Lmin[i].saddle);
 	printf(" %s", struc);
@@ -756,9 +756,9 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 	printf(" ");
 	for (j=0;j<n;j++) { printf("~"); }
       }
-      
+
     }
-    if (bsize) 
+    if (bsize)
       printf (" %12ld %8ld %10.6f %8ld %10.6f",
 	      Lmin[i].my_pool, Lmin[i].fathers_pool, mfe -kT*log(lmin[i].Z),
 	      Lmin[i].my_GradPool, mfe -kT*log(lmin[i].Zg));
@@ -771,9 +771,9 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
   nodeT *nodes;
   int i,ii;
   int nlmin;
-  
+
   nlmin = Lmin[0].fathers_pool;
-  
+
   if (max_print>truemin[0]) max_print=truemin[0];
 
   nodes = (nodeT *) space(sizeof(nodeT)*(max_print+1));
@@ -781,12 +781,12 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
     register int s1, f;
     double E_saddle;
     if ((s1=truemin[ii])==0) continue;
-    if (s1>max_print) 
+    if (s1>max_print)
       nrerror("inconsistency in ps_tree, aborting");
     E_saddle = Lmin[ii].E_saddle;
     f = Lmin[ii].father;
     if (f==0) E_saddle = Lmin[0].E_saddle; /* maximum energy */
-    
+
     nodes[s1-1].father = (f==0)?-1:truemin[f]-1;
     /* was truemin[f]-1; */
     if (rates) {
@@ -795,7 +795,7 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
       Ft = (f>0) ? F -kT*log(rate[truemin[ii]][truemin[f]])  : E_saddle;
       nodes[s1-1].height = F;
       nodes[s1-1].saddle_height = Ft;
-    }else { 
+    }else {
       nodes[s1-1].height = Lmin[ii].energy;
       nodes[s1-1].saddle_height = E_saddle;
     }
@@ -820,7 +820,7 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
     }
     i++;
   }
-  if (rates) 
+  if (rates)
     PS_tree_plot(nodes, max_print, "treeR.ps");
   else
     PS_tree_plot(nodes, max_print, "tree.ps");
@@ -863,7 +863,7 @@ static int *make_sorted_index(int *truemin)
   for (i = 0, ii=1; i < max_print; ii++)
     if (truemin[ii])
       index[i++] = ii;
-  
+
   /* sort local minima by saddle-point-heights */
   /* starting with the 1st excited state */
   qsort(index+1, max_print-1, sizeof(int), indx_comp);
@@ -902,48 +902,55 @@ path_entry *backtrack_path(int l1, int l2, loc_min *LM, int *truemin) {
 
 static void backtrack_path_rec (int l1, int l2, const char *tag)
 {
-  hash_entry h;
-  int dir=1, left=1, swap=0, child, father, maxsaddle;
+  hash_entry h, *l1dir, *l2dir;
+  int dir=1, swap=0, child, father, maxsaddle;
   /* if left==1 left points toward l2 else toward l1 */
   if (l1>l2) {
     dir = -1;
     {int t; t=l1; l1=l2; l2=t;}
   }
   child  = l2; father = l1;
-  /* fprintf(stderr,"f:>%d< c:>%d<\n", father, child); */
+
   maxsaddle = child;
   /* find saddle connecting l1 and l2 */
-  while (lmin[child].father != father) { 
-    int tmp;
+  while (lmin[child].father != father) {
     if (lmin[child].father == 0){
       fprintf(stderr, "ERROR in backtrack_path(): ");
       fprintf(stderr,"No saddle between lmin %d and lmin %d\n", l2, l1);
       exit (1);
     }
     child = lmin[child].father;
-    if (child<father) {tmp = child; child = father; father = tmp; swap= !swap;}
-    if (lmin[child].E_saddle > lmin[maxsaddle].E_saddle) {
+    if (child<father) {int t; t = child; child = father; father = t;}
+    if (lmin[child].E_saddle > lmin[maxsaddle].E_saddle)
       maxsaddle = child;
-      if (swap) left= -left;
-    }
-    /* fprintf(stderr,"f:>%d< c:>%d<\n", father, child); */
+    /* fprintf(stderr,"f:>%d< c:>%d< %d\n", father, child, maxsaddle); */
   }
+  /* found the saddle point, maxsaddle, connecting l1 and l2 */
   h.structure = lmin[maxsaddle].saddle;
-  path[np].hp = lookup_hash(&h); 
+  path[np].hp = lookup_hash(&h);
   strcpy(path[np].key,tag); strcat(path[np].key, "M");
   np++;
 
-  if (left>0) {
-    /* branch to l2 */
-    if (lmin[maxsaddle].left) /* else saddle==l2 and we're done */
-      walk_limb (lmin[maxsaddle].left, l2, -dir, tag);
-    /* branch to l1 (to father) */
-    walk_limb (lmin[maxsaddle].right, l1, dir, tag);
-  } else {
-    walk_limb (lmin[maxsaddle].right, l2, -dir, tag);
-    if (lmin[maxsaddle].left)
-      walk_limb (lmin[maxsaddle].left, l1, dir, tag);
-  }    
+  /* which direction from saddle to l2, l1 ? */
+  for (child=l2; child>0 ; child=lmin[child].father) {
+    if (child==maxsaddle) {
+      l2dir = lmin[maxsaddle].left;
+      l1dir = lmin[maxsaddle].right;
+      break;
+    }
+    if (child==lmin[maxsaddle].father) {
+      l2dir = lmin[maxsaddle].right;
+      l1dir = lmin[maxsaddle].left;
+      break;
+    }
+  }
+
+  /* branch to l2,  else saddle==l2 and we're done */
+  if (l2dir)
+    walk_limb (l2dir, l2, -dir, tag);
+  /* branch to l1 (to father) */
+  if (l1dir) /* else saddle==l1 and we're done */
+      walk_limb (l1dir, l1, dir, tag);
 }
 
 /*=======================================================================*/
@@ -963,7 +970,7 @@ static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag)
     }
     path[np].hp = htmp;
     strcpy(path[np].key, tmp);
-    path[np].num = num; 
+    path[np].num = num;
   }
 
   /* store local minimum (but only once) */
@@ -974,6 +981,9 @@ static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag)
   }
 
   if (inc<0) tmp[strlen(tmp)-1] = '\0';
+
+  /* fprintf(stderr, "walk towards %d lands in %d\n", LM, htmp->basin); */
+
   /* wrong local minimum start cruising again */
   if (htmp->basin != LM) {
     if (inc == -1)
@@ -986,10 +996,10 @@ static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag)
 void print_path(FILE *PATH, path_entry *path, int *tm) {
   int i;
   for (i=0; path[i].hp; i++) {
-    char c[6] = {0,0,0,0}, *struc; 
+    char c[6] = {0,0,0,0}, *struc;
     if (path[i].hp->down==NULL) {
       sprintf(c, "L%04d", tm[path[i].hp->basin]);
-    } else 
+    } else
       if (path[i].key[strlen(path[i].key)-1] == 'M')
 	c[0] = 'S';
       else c[0] = 'I';
@@ -1021,8 +1031,8 @@ static int comp_comps(const void *A, const void *B) {
 static void print_hash_entry(hash_entry *h) {
   int down=0;
   if (h->down) down=h->down->n;
-  fprintf(stderr, "%2d %s %6.2f %2d %2d %2d %2d\n", h->n, h->structure, 
-         h->energy, h->basin, h->GradientBasin, h->ccomp, down);
+  fprintf(stderr, "%2d %s %6.2f %2d %2d %2d %2d\n", h->n, h->structure,
+	 h->energy, h->basin, h->GradientBasin, h->ccomp, down);
 }
 
 void print_rates(int n, char *fname) {
@@ -1048,13 +1058,13 @@ void print_rates(int n, char *fname) {
   fprintf(stderr, "rate matrix written to binfile\n");
   fclose(BINOUT);
 #endif
-  
+
   OUT = fopen(fname, "w");
   if (!OUT) {
     fprintf(stderr, "could not open rates file %s for output\n", fname);
     return;
   }
-  
+
   for (i=1; i<=n; i++) {
     for (j=1; j<=n; j++)
       fprintf(OUT, "%10.4g ", rate[i][j]);
@@ -1071,7 +1081,7 @@ void compute_rates(int *truemin, char *farbe) {
   hash_entry *hpr, h, *hp;
   double Zi;
   FILE *NEWSUB=NULL, *MR=NULL;;
-  
+
   n = truemin[0];
   rate = (double **) space((n + 1) * sizeof(double *));
   dr   = (double  *) space((n + 1) * sizeof(double));
@@ -1097,28 +1107,28 @@ void compute_rates(int *truemin, char *farbe) {
     for (b=hpr->basin; b>1; b=lmin[b].father);
     form = unpack_my_structure(hpr->structure);
     move_it(form);       /* generate all neighbors of configuration */
-   
+
     for (i=0; i<=n; i++) dr[i]=0;
     while ((p = pop())) {
-      pp = pack_my_structure(p); 
+      pp = pack_my_structure(p);
       h.structure = pp;
       /* check whether we've seen the structure before */
-      if ((hp = lookup_hash(&h))) 
-        if (hp->n<=r) {
-          gb = hp->GradientBasin;
-          while (truemin[gb]==0) gb = lmin[gb].father;
-          gb = truemin[gb];
-          if (gb<=n) dr[gb] += Zi;
+      if ((hp = lookup_hash(&h)))
+	if (hp->n<=r) {
+	  gb = hp->GradientBasin;
+	  while (truemin[gb]==0) gb = lmin[gb].father;
+	  gb = truemin[gb];
+	  if (gb<=n) dr[gb] += Zi;
 	  if (do_microrates && b) {
 	    double rate,dg;
 	    dg = hpr->energy - hp->energy;
 	    rate = exp(-dg/kT);
 	    fprintf(MR,"%10d %8d %15.12f 1\n",rc,realnr[hp->n],rate);
 	  }
-        }	
+	}
       free(pp);
     }
-    if (do_microrates && b){ 
+    if (do_microrates && b){
       fprintf(NEWSUB, "%s %6.2f %i %i\n", form, hpr->energy, gradmin, hpr->basin);
       fflush(NEWSUB);
       realnr[hpr->n]=rc++;
@@ -1144,7 +1154,7 @@ void compute_rates(int *truemin, char *farbe) {
     fclose(NEWSUB);
     fclose(MR);
   }
-  if (free_move_it) 
+  if (free_move_it)
     free_move_it();
   free_stapel();
 }
