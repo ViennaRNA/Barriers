@@ -76,7 +76,7 @@ have_secis_ext=0
 if test "$with_secis" != "no"; then
    if test -f $srcdir/SECIS/Makefile.am; then
       have_secis_ext=1 
-      AC_OUTPUT(SECIS/Makefile)
+dnl      AC_OUTPUT(SECIS/Makefile)
    else
       AC_MSG_WARN([SECIS subdirectory does not exist])
       with_secis="no"
@@ -91,6 +91,7 @@ AM_CONDITIONAL(BUILD_SECIS_EXT, test "$with_secis" != "no")
 
 AC_OUTPUT(Makefile barriers.lsm barriers.spec)
 AC_OUTPUT(PoHo/Makefile)
+AC_OUTPUT(SECIS/Makefile)
 
 
 if test "$with_secis" != "no"; then
