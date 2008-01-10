@@ -1,0 +1,42 @@
+# Last changed Time-stamp: <2008-01-10 14:38:25 ivo> 
+# $Id: barriers.ggo,v 1.1 2008/01/10 14:40:01 ivo Exp $
+package "barriers"
+purpose "Compute local minima and energy barriers of a landscape"
+args    "--default-optional --unamed-opts=[FILE] --include-getopt"
+
+option "quiet"    q  "be quiet, inhibit PS output"  flag off
+option "verbose"  v  "print more information" flag off
+option "graph"    G  "define graph type" string default="RNA" string typestr="Graph"
+option "moves"    M  "select move-set (if Graph allows several different ones)" string 
+option "bsize"    -  "print basin sizes" flag off
+option "ssize"    -  "print saddle component sizes" flag off
+option "max"      -  "compute only the lowest <num> local minima" int default="100"
+option "minh"     -  "print only minima with barrier > dE" double default="0.000001"
+option "saddle"   -  "print saddle point structures" flag off 
+option "rates"    -  "compute rates between macro states (basins)" flag off
+option "microrates" - "compute microscopic rates between connected states" flag off hidden
+option "poset"    -  "input is a poset from n objective functions" int default="0"
+option "path"     P  "backtrack path between lmins l2 and l1 (l1 < l2),\
+       can be specified multiple times" typestr="<l1>=<l2>" string multiple
+option "temp"     T  "temperature for Boltzmann factor" double hidden
+
+section "Graph Types (-G graph) and Move Sets (-M mset)"
+text "\n
+Graph Types (-G graph) and Move Sets (-M mset)are:
+  RNA             RNA secondary structures
+  RNA-noLP        canonical RNA structures
+      [no]Shift       with/out shift moves [default with]
+  Q2              Spin Glass
+      p               point mutation (default)
+      c               flip 2nd half
+  Qa,ALPHA        a-letter Hamming graph.  
+                      ALPHAbet is optional, default is 'ABC...'
+  T               Phylogenetic Trees
+      NNI             NNI moves [no other options yet]
+  P               Permutations
+      T               Transpositions [default]
+      C               Canonical Transpositions
+      R               Reversals
+  X               Exchange Moves on balances +/- strings
+  ?               General graph; adjacency list in file
+"

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-05-14 17:09:46 ivo> */
+/* Last changed Time-stamp: <2008-01-10 15:28:10 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -22,7 +22,7 @@
 
 /* Tons of static arrays in this one! */
 static char UNUSED rcsid[] =
-"$Id: barriers.c,v 1.37 2007/05/14 15:11:19 ivo Exp $";
+"$Id: barriers.c,v 1.38 2008/01/10 14:40:01 ivo Exp $";
 
 static char *form;         /* array for configuration */
 static loc_min *lmin;      /* array for local minima */
@@ -872,7 +872,7 @@ static int *make_sorted_index(int *truemin)
 }
 
 static path_entry *path;
-static int np, max_path=128;
+static int np, max_path;
 
 static int path_cmp(const void *a, const void *b) {
   path_entry *A, *B; int d;
@@ -892,11 +892,13 @@ path_entry *backtrack_path(int l1, int l2, loc_min *LM, int *truemin) {
     if (truemin[i]==l1) ll1=i;
     if (truemin[i]==l2) ll2=i;
   }
+  np=0;
+  max_path=128;
   path = (path_entry *) space(max_path*sizeof(path_entry));
   tag = (char *) space(16);
   backtrack_path_rec(ll1, ll2, tag);  path[np].hp = NULL;
   qsort(path, np, sizeof(path_entry), path_cmp);
-
+  free(tag);
   return(path);
 }
 
@@ -991,6 +993,7 @@ static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag)
     else
       backtrack_path_rec (LM, htmp->basin, tmp);
   }
+  free(tmp);
 }
 
 void print_path(FILE *PATH, path_entry *path, int *tm) {

@@ -7,11 +7,11 @@ SUBDIRS = $(SEDIR) PoHo .
 bin_PROGRAMS=barriers
 barriers_SOURCES=main.c hash_util.c barriers.c compress.c stapel.c \
         ringlist.c moves.c trees.c treeplot.c utils.c simple_set.c \
-	getopt.c getopt1.c
+	cmdline.c
 
 noinst_HEADERS = barrier_types.h barriers.h hash.h hash_util.h pair_mat.h \
         ringlist.h stapel.h tree_types.h trees.h utils.h treeplot.h \
-	getopt.h simple_set.h compress.h
+	simple_set.h compress.h cmdline.h
 
 #  uncomment the following if barriers requires the math library
 if BUILD_SECIS_EXT
@@ -20,7 +20,7 @@ else
 barriers_LDADD= -lm 
 endif
 
-EXTRA_DIST=barriers.lsm.in barriers.spec.in barriers.texinfo barriers.1
+EXTRA_DIST=barriers.lsm.in barriers.spec.in barriers.texinfo barriers.1 barriers.ggo
 
 #  if you write a self-test script named `chk', uncomment the
 #  following and add `chk' to the EXTRA_DIST list
@@ -32,3 +32,9 @@ EXTRA_DIST=barriers.lsm.in barriers.spec.in barriers.texinfo barriers.1
 
 #  install the man pages
 man_MANS=barriers.1
+
+main.c: cmdline.h
+
+
+cmdline.h cmdline.c: barriers.ggo
+	gengetopt -i barriers.ggo
