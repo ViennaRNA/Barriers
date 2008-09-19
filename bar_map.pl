@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2006-11-28 15:55:23 xtof>
-# $Id: bar_map.pl,v 1.6 2006/11/30 19:41:24 xtof Exp $
+# $Id: bar_map.pl,v 1.7 2008/09/19 17:17:05 ivo Exp $
 #
 use FindBin qw($Bin);
 use lib "$Bin";
@@ -75,7 +75,9 @@ for my $l (0..$#match_list) {
     $seen{$match{$m}->[0]}=1;
 #    print "$m -> ", $match{$m}->[0],"\n";
   }
-  foreach my $k (sort {$a <=> $b} keys %match) {
+  # grow @lines array by adding minima that appear on the next
+  # landscape for the first time
+  foreach my $k (sort {$a <=> $b} keys %{$match_list[$l+1]}) {
     next if $seen{$k};
     my $z = $#lines;
     $lines[$z+1][$l+1] = $k;
