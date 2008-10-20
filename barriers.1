@@ -68,6 +68,16 @@ print only minima with energy barrier greater than \fIdelta\fP (default 0)
 .B \-\-saddle
 print the saddle point conformations in output
 .TP
+.B \-\-rates
+compute rates between macro states (basins) for use with treekin
+.TP
+.B \-T temp
+Set temperature in centigrade. Used to compute Boltzmann fators in
+conjunction with --rates. (default = 37) 
+.TP
+.B \-\-poset n
+input landscape is a poset with n objective functions
+.TP
 .B \-P l1=l2
 Compute a minimal barrier path between local minima \fIl1\fP and
 \fIl2\fP. The result will be written to the file "path.l1.l2.txt"
