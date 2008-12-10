@@ -14,7 +14,7 @@ Hopffield-Hamiltonian Problem
     > ./to_bar_in.pl poho_n10_3_4 > n10_3_4_bar.in
 
 (3) call barriers
-    > ../../barriers < n10_3_4_bar.in > n10_3_4.bar
+    > ../../barriers -G Q2 < n10_3_4_bar.in > n10_3_4.bar
     > mv tree.ps n10_3_4_tree.ps
 
 =;)
