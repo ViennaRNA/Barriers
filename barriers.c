@@ -932,6 +932,10 @@ static void backtrack_path_rec (int l1, int l2, const char *tag)
   path[np].hp = lookup_hash(&h);
   strcpy(path[np].key,tag); strcat(path[np].key, "M");
   np++;
+  if (np+2>=max_path) {
+    max_path *= 2;
+    path = (path_entry *) xrealloc(path, max_path*sizeof(path_entry));
+  }
 
   /* which direction from saddle to l2, l1 ? */
   for (child=l2; child>0 ; child=lmin[child].father) {
@@ -974,12 +978,15 @@ static void walk_limb (hash_entry *hp, int LM, int inc, const char *tag)
     strcpy(path[np].key, tmp);
     path[np].num = num;
   }
-
   /* store local minimum (but only once) */
   if (htmp->basin == LM) {
     path[np].hp = htmp;
     strcpy(path[np].key, tmp);
     path[np++].num = num;
+    if (np+2>=max_path) {
+      max_path *= 2;
+      path = (path_entry *) xrealloc(path, max_path*sizeof(path_entry));
+    }
   }
 
   if (inc<0) tmp[strlen(tmp)-1] = '\0';
