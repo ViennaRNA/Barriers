@@ -21,3 +21,7 @@
 Comments are welcome.
 
 	- Ivo Hofacker, <ivo@tbi.univie.ac.at>
+
+And now some useful information:
+
+add gcc option -mcmodel=large if you set the define HASHBITS larger then the default which is 27
