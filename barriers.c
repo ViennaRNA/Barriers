@@ -96,7 +96,7 @@ static int max_comp=1024, n_comp;
 static int do_rates=0;
 static int do_microrates=0;
 
-#define HASHSIZE (((unsigned) 1<<HASHBITS)-1)
+#define HASHSIZE (((unsigned long) 1<<HASHBITS)-1)
 static hash_entry *hpool;
 
 /* ----------------------------------------------------------- */
