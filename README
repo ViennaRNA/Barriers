@@ -1,7 +1,5 @@
   barriers - Compute local minima and energy barriers of a landscape
 
-
-
   Copyright (C) 2001 Ivo Hofacker, Christoph Flamm, Peter Stadler
 
   barriers is free software; you can redistribute it and/or modify
@@ -22,6 +20,22 @@ Comments are welcome.
 
 	- Ivo Hofacker, <ivo@tbi.univie.ac.at>
 
+
+For ian explanation of the algorithm, please see 
+
+Ch. Flamm, I.L. Hofacker, P.F. Stadler, M.T. Wolfinger. Barrier trees of degenerate landscapes. 
+Z. Phys. Chem., 216:155–173, 2002. (doi:10.1524/zpch.2002.216.2.155)
+
 And now some useful information:
 
-add gcc option -mcmodel=large if you set the define HASHBITS larger then the default which is 27
+The barriers program uses a large static array for the hash table at the heart of the method.
+The size of this hash and therefore the maximum size of the landscape you can analyse is set at 
+compile time using the --with-hash-bits option of the configure script.
+E.g.:
+	./configure --with-hash-bits=27
+will create a hash of 2^27 entries 
+
+If you you need a hash size >2^27 you may have to set the --mcmodel=medium or -mcmodel=large option in gcc.
+E.g.:
+	./configure --with-hash-bits=29 CFLAGS='-mcmodel=medium'
+
