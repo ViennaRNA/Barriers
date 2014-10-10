@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-07-14 12:36:23 xtof> */
+/* Last changed Time-stamp: <2013-07-02 15:32:58 mtw> */
 /* hash_util.c */
 
 #include <stdio.h>
@@ -30,7 +30,7 @@ inline PRIVATE unsigned hash_f (void *x);
 #ifndef HASHBITS
 #define HASHBITS 24
 #endif
-#define HASHSIZE (((unsigned) 1<<HASHBITS)-1)
+#define HASHSIZE (((unsigned long) 1<<HASHBITS)-1)
 
 /* #define HASHSIZE 67108864 -1 */ /* 2^26 -1   must be power of 2 -1 */
 /* #define HASHSIZE 33554432 -1 */ /* 2^25 -1   must be power of 2 -1 */
