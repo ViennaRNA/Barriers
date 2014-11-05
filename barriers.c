@@ -350,7 +350,7 @@ int *make_truemin(loc_min *Lmin) {
     int f;
     f = lmin[ii].father;
     if (!f) lmin[ii].E_saddle = energy + 0.000001;
-    if (lmin[ii].E_saddle - lmin[ii].energy >= minh)
+    if (lmin[ii].E_saddle - lmin[ii].energy - (float)minh + FLT_EPSILON >= 0.)
       truemin[ii]=i++;
     else { /* ii is not a truemin */
       lmin[f].Z += lmin[ii].Z;
