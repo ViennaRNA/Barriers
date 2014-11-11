@@ -22,6 +22,10 @@ static  char *GRAPH;
 static   struct gengetopt_args_info args_info;
 static int decode_switches (int argc, char **argv);
 
+extern int cut_point;
+extern int MYTURN;
+extern char *tokenize(char *line);
+
 static char* program_name;
 /*============================*/
 int main (int argc, char *argv[]) {
@@ -58,6 +62,10 @@ int main (int argc, char *argv[]) {
   }
   opt.seq = (char *) space(strlen(line) + 1);
   sscanf(line,"%s %d %99s %99s %99s", opt.seq, &tmp, signal, what, stuff);
+  opt.seq = tokenize(opt.seq);
+  if (cut_point > -1) 
+    MYTURN = 1;
+
   if(strcmp(stuff, "\0")!=0 && strncmp(what, "Q", 1)==0){ /* lattice proteins*/
     memset(opt.seq, 0, strlen(line)+1);
     strcpy(opt.seq, stuff);

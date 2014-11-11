@@ -32,8 +32,12 @@ PUBLIC char  *time_stamp(void);
 PUBLIC char  *random_string(int l, const char symbols[]);
 PUBLIC int    hamming(const char *s1, const char *s2);
 PUBLIC char  *get_line(FILE *fp);
+PUBLIC char *costring(char *string);
+PUBLIC char *tokenize(char *line);
 
 PUBLIC unsigned short xsubi[3];
+
+PUBLIC int cut_point = -1;
 
 /*-------------------------------------------------------------------------*/
 
@@ -185,6 +189,51 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
 
    return line;
 }
+
+PUBLIC char *tokenize(char *line)
+{
+  char *pos, *copy = NULL;
+  int cut = -1;
+
+  if(line){
+    copy = (char *) space(strlen(line)+1);
+    (void) sscanf(line, "%s", copy);
+    pos = strchr(copy, '&');
+    if (pos) {
+      cut = (int) (pos-copy)+1;
+      if (cut >= strlen(copy)) cut = -1;
+      if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
+      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
+    }
+    if (cut > -1) {
+      if (cut_point==-1) cut_point = cut;
+      else if (cut_point != cut) {
+        fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
+        nrerror("Two different cut points.");
+      }
+    }
+    free(line);
+  }
+  return copy;
+}
+
+PUBLIC char *costring(char *string)
+{
+  char *ctmp;
+  int len;
+
+  len = strlen(string);
+  ctmp = (char *)space((len+2) * sizeof(char));
+  /* first sequence */
+  (void) strncpy(ctmp, string, cut_point-1);
+  /* spacer */
+  ctmp[cut_point-1] = '&';
+  /* second sequence */
+  (void) strcat(ctmp, string+cut_point-1);
+
+  return ctmp;
+}
+
 
 
 /*-----------------------------------------------------------------*/

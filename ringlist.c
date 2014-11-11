@@ -11,7 +11,7 @@
 
 static char UNUSED rcsid[] = "$Id: ringlist.c,v 1.1 2001/04/05 08:00:57 ivo Exp $";
 
-#define MYTURN 4
+int MYTURN = 4;
 
 typedef struct _rlItem{
   int nummer;    /* number of base in sequence */
