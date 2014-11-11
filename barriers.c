@@ -731,8 +731,6 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 
   n_lmin = Lmin[0].fathers_pool;
 
-  if (cut_point > -1)
-    farbe = costring(farbe);
   printf("     %s\n", farbe);
   for (i = 1; i <= n_lmin; i++) {
     int f;

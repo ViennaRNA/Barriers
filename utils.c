@@ -230,6 +230,7 @@ PUBLIC char *costring(char *string)
   ctmp[cut_point-1] = '&';
   /* second sequence */
   (void) strcat(ctmp, string+cut_point-1);
+  free(string);
 
   return ctmp;
 }

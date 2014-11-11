@@ -25,6 +25,7 @@ static int decode_switches (int argc, char **argv);
 extern int cut_point;
 extern int MYTURN;
 extern char *tokenize(char *line);
+extern char *costring(char *line);
 
 static char* program_name;
 /*============================*/
@@ -153,6 +154,7 @@ int main (int argc, char *argv[]) {
 
   if(opt.poset) mark_global(LM);
 
+  opt.seq = costring(opt.seq);
   print_results(LM,tm,opt.seq);
   fflush(stdout);
 
