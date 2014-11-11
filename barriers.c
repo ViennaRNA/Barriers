@@ -74,6 +74,10 @@ static void merge_components(int c1, int c2);
 static int comp_comps(const void *A, const void *B);
 
 /* public functiones */
+extern int cut_point;
+extern char *costring(char *string);
+extern char *tokenize(char *line);
+
 int      *make_truemin(loc_min *Lmin);
 loc_min  *barriers(barrier_options opt);
 
@@ -381,7 +385,16 @@ static int read_data(barrier_options opt, double *energy, char *strucb,
   if(token==NULL) return 0;
   l = strlen(token);
   if(l<1) return 0;
-  strcpy(strucb,token);
+  if (cut_point == -1)
+    strcpy(strucb,token);
+  else {
+    char *mystr;
+    mystr = (char *) space((l+1)*sizeof(char));
+    strcpy(mystr,token);
+    mystr = tokenize(mystr);
+    strcpy(strucb,mystr);
+    free(mystr);
+  }
 
   token = strtok(NULL," \t");
   if(token==NULL) { fprintf(stderr, "Error in input file\n"); exit(123); }
@@ -724,6 +737,8 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     if ((ii = truemin[i])==0) continue;
 
     struc = unpack_my_structure(Lmin[i].structure);
+    if (cut_point > -1)
+      struc = costring(struc);
     n = strlen(struc);
     f = Lmin[i].father; if (f>0) f = truemin[f];
     if(POV_size) {
