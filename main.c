@@ -154,7 +154,8 @@ int main (int argc, char *argv[]) {
 
   if(opt.poset) mark_global(LM);
 
-  opt.seq = costring(opt.seq);
+  if (cut_point > -1)
+    opt.seq = costring(opt.seq);
   print_results(LM,tm,opt.seq);
   fflush(stdout);
 
