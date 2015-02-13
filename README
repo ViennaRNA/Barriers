@@ -21,7 +21,7 @@ Comments are welcome.
 	- Ivo Hofacker, <ivo@tbi.univie.ac.at>
 
 
-For ian explanation of the algorithm, please see 
+For an explanation of the algorithm, please see 
 
 Ch. Flamm, I.L. Hofacker, P.F. Stadler, M.T. Wolfinger. Barrier trees of degenerate landscapes. 
 Z. Phys. Chem., 216:155–173, 2002. (doi:10.1524/zpch.2002.216.2.155)
@@ -38,4 +38,6 @@ will create a hash of 2^27 entries
 If you you need a hash size >2^27 you may have to set the --mcmodel=medium or -mcmodel=large option in gcc.
 E.g.:
 	./configure --with-hash-bits=29 CFLAGS='-mcmodel=medium'
+
+You can use the script './get_hashbits.pl' to optimize the hashsize given your RAM size and sequence length
 
