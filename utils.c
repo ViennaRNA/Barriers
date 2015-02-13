@@ -262,7 +262,7 @@ PUBLIC char *pack_structure(const char *struc) {
       case ')':
         p += 2;
         break;
-      default: nrerror("pack_structure: illegal charcter in structure");
+      default: nrerror("pack_structure: illegal character in structure");
       }
       if (i<l) i++;
     }
