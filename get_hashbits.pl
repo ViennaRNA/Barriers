@@ -35,7 +35,7 @@ print STDERR "With $HB HASHBITS you have:\n".
 "*) a hash that can store ".(2**$HB)." structures of length <= ".(($BS-1)*$CL)."\n",
 "*) ".(($RAM*1024 - (2**$HB*($HE+$BS)))/1024)." kB of RAM left for the system.\n";
 
-print "./configure --with-hash-bits=".$HB." CFLAGS+=\"-mcmodel=large\"\n";
+print "./configure --with-hash-bits=".$HB." CFLAGS=\"-mcmodel=large\"\n";
 
 sub usage {
   die "\n$0 [-ram r] [-maxlen m]\n\n",
