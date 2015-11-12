@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2015-12-29 17:24:47 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -1059,6 +1058,43 @@ static void print_hash_entry(hash_entry *h) {
   fprintf(stderr, "%2d %s %6.2f %2d %2d %2d %2d\n", h->n, h->structure,
 	 h->energy, h->basin, h->GradientBasin, h->ccomp, down);
 }
+
+void print_struc(FILE *OUT, char *p, loc_min *LM, int *tm) {
+  hash_entry *hp, h;
+  char *pp, *struc;
+  int min, gradmin, tmin, tgradmin;
+  
+  pp = pack_my_structure(p);
+  h.structure = pp;
+  hp = lookup_hash(&h);
+
+  if (hp==NULL) {
+    fprintf(OUT, "not in hash\n");
+    return;
+  }
+	    
+  min = hp->basin;
+  while (tm[min]==0) {
+    min = LM[min].father;
+  }
+  gradmin = hp->GradientBasin;
+  while (tm[gradmin]==0) {
+    gradmin = LM[gradmin].father;
+  }
+
+  if (gradmin == 0) {
+    fprintf(OUT, "not yet assigned\n");
+    return;
+  }
+
+  struc = unpack_my_structure(LM[gradmin].structure);
+  
+  fprintf(OUT, "%s %6d %6.2f %3d %3d %3d %3d\n", struc, hp->n, hp->energy,
+	  min, tm[min], gradmin, tm[gradmin]);
+
+  free(pp); free(struc);
+}
+
 
 void print_rates(int n, char *fname) {
   int i,j;

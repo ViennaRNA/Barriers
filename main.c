@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-01-10 15:37:28 ivo> */
+/* Last changed Time-stamp: <2015-11-12 17:39:05 ivo> */
 /* main.c */
 
 #include <stdio.h>
@@ -189,6 +189,20 @@ int main (int argc, char *argv[]) {
     }
   }
 
+  if (args_info.mapstruc_given) {
+    FILE *MAPF;
+    char *line, *token;
+    MAPF = fopen(args_info.mapstruc_arg, "r");
+    if (MAPF == NULL) nrerror("couldn't open mapfile for reading");
+
+    while (line=get_line(MAPF)) {
+      token=strtok(line," \t");
+      print_struc(stderr, line, LM, tm);
+      free(line);
+    }
+    fclose(MAPF);
+  }
+  
   /* memory cleanup */
   free(opt.seq);
   free(LM);

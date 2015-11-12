@@ -82,6 +82,14 @@ input landscape is a poset with n objective functions
 Compute a minimal barrier path between local minima \fIl1\fP and
 \fIl2\fP. The result will be written to the file "path.l1.l2.txt"
 .TP
+.B \--mapstruc filename
+Once the barrier tree is constructed, read stuctures from filename and map
+them to their corresponding minima (macro states). Writes to stderr lines
+of the form:
+gradient_min  index_in_subopt energy basin truebasin gradient_basin true_grad_basin
+(the last number is probably what you want, true basins are those that
+fulfill the minh criterium).
+.TP
 .B \-G graph
 Set the type of configuration space, where \fIgraph\fP can be one of:
 .br
