@@ -1068,6 +1068,11 @@ void print_struc(FILE *OUT, char *p, loc_min *LM, int *tm) {
     gradmin = LM[gradmin].father;
   }
 
+  if (gradmin == 0) {
+    fprintf(OUT, "not yet assigned\n");
+    return;
+  }
+
   struc = unpack_my_structure(LM[gradmin].structure);
   
   fprintf(OUT, "%s %6d %6.2f %3d %3d %3d %3d\n", struc, hp->n, hp->energy,
