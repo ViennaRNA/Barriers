@@ -7,6 +7,29 @@ AC_INIT([barriers],
 
 AM_INIT_AUTOMAKE
 
+dnl enable unit tests if 'Check' framework is installed
+AC_CHECK_HEADERS(
+    [check.h],
+    [check_header_found=true],
+    [
+        check_header_found=false
+        AC_MSG_WARN( [Header of 'Check' framework not found, skipping unit tests])
+    ]
+)
+PKG_CHECK_MODULES(
+    [CHECK],
+    [check >= 0.9.4],
+    [ check_found=true ],
+    [
+        AC_MSG_WARN( ['Check' framework not found, skipping unit tests])
+        check_found=false
+    ]
+)
+AM_CONDITIONAL(
+    [CHECK_FOUND],
+    [ test x$check_header_found = xtrue &&
+      test x$check_found = xtrue ])
+
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
 AM_CONFIG_HEADER(config.h)
 

@@ -36,9 +36,11 @@ text "\n
 Graph Types (-G graph) and Move Sets (-M mset)are:
   RNA             RNA secondary structures
   RNA-noLP        canonical RNA structures
-      noShift         turn shift moves off [default off]
-      Shift           turn on shift moves [default off]
+      [no]Shift       toggle shift moves [default noShift]
       ligand          RNA-ligand/protein interaction [default off]
+  RNA2            RNA secondary structures
+  RNA2-noLP       canonical RNA structures, no lonely pairs
+      [no]Shift       toggle shift moves [default noShift]
   Q2              Spin Glass
       p               point mutation (default)
       c               flip 2nd half
