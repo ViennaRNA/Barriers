@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2015-11-12 17:38:45 ivo> */
+/* Last changed Time-stamp: <2015-12-29 17:24:47 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -307,7 +307,7 @@ loc_min *barriers(barrier_options opt) {
     move_it(form);       /* generate all neighbor of configuration */
     check_neighbors();   /* flood the energy landscape */
     reset_stapel();
-    if (n_saddle+1 == max_print)
+    if ((n_saddle+1 == max_print) && (!opt.rates))
       break;  /* we've found all we want to know */
   }
   switch(opt.GRAPH[0]) {
