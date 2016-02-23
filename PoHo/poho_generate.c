@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
   }
   free(J);
 
-
+  return 0;
 } 
 
 void num2STRING(int dec, int l, char s[])
