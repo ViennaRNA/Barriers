@@ -1,0 +1,49 @@
+# barriers.spec
+#
+# Copyright (c) 2001-2016 Ivo Hofacker, Christoph Flamm, Peter Stadler
+#
+
+Name:     barriers
+Version:  @PACKAGE_VERSION@
+Release:  1%{?dist}
+Summary:  Compute local minima and energy barriers of landscape
+
+Vendor:     Ivo Hofacker, TBI - University of Vienna
+Packager:   Ronny Lorenz <ronny@tbi.univie.ac.at>
+
+Group:      Applications/Engineering
+License:    GPLv2
+URL:        @PACKAGE_URL@
+Source:     Barriers-%{version}.tar.gz
+BuildRoot:  %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  rpm-devel
+
+BuildRequires:  gcc glibc-devel
+
+Requires:       glibc
+
+%description
+Compute local minima and energy barriers of a landscape
+
+%prep
+%setup -n Barriers-%{version} -q
+
+%build
+%configure
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+%{__make} install DESTDIR=$RPM_BUILD_ROOT
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root,-)
+%{_bindir}/*
+%{_mandir}/man1/barriers.1.gz

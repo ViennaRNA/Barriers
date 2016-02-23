@@ -1,6 +1,6 @@
 # $Id: Makefile.am,v 1.1 2006/07/18 14:08:49 xtof Exp $
 # Last changed Time-stamp: <2006-07-18 16:02:35 xtof>
-INCLUDES = -I@ac_VRNA_includes@
+AM_CPPFLAGS = -I@ac_VRNA_includes@
 LDADD = -L@ac_VRNA_lib@ -lRNA -lstdc++
 lib_LIBRARIES = libSECIS.a
 libSECIS_a_SOURCES = secis_basics.cpp \

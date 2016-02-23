@@ -1,12 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
-dnl extract package version
-if test -f "VERSION.txt"; then
-   m4_define(BAR_VERSION,
-       m4_esyscmd(cat VERSION.txt | sed 's/\-.*$//' | tr -d '\n\r'))
-
 dnl define package name and version
-AC_INIT([barriers],BAR_VERSION,[{ivo,xtof}@tbi.univie.ac.at],[Barriers])
+AC_INIT([barriers],1.5.2,[{ivo,xtof}@tbi.univie.ac.at],[Barriers], [https://www.tbi.univie.ac.at/RNA/Barriers])
 
 AM_INIT_AUTOMAKE
 
@@ -89,9 +84,10 @@ AC_DEFINE_UNQUOTED(HAVE_SECIS_EXTENSION,
 
 AM_CONDITIONAL(BUILD_SECIS_EXT, test "$with_secis" != "no")
 
-AC_OUTPUT(Makefile barriers.lsm barriers.spec)
-AC_OUTPUT(PoHo/Makefile)
-AC_OUTPUT(SECIS/Makefile)
+AC_OUTPUT([Makefile barriers.lsm])
+AC_OUTPUT([PoHo/Makefile])
+AC_OUTPUT([SECIS/Makefile])
+AC_OUTPUT([packaging/barriers.spec packaging/PKGBUILD])
 
 
 if test "$with_secis" != "no"; then

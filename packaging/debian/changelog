@@ -1,0 +1,11 @@
+barriers (1.5.2-2) UNRELEASED; urgency=low
+
+  * Minor upstream fixes
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Tue, 22 Feb 2016 14:12:43 +0100
+
+barriers (1.5.2-1) precise; urgency=low
+
+  * Initial release of ubuntu package
+
+ -- Stefan Hammer <jango@jango-thinkpad.lan>  Mon, 03 Jun 2013 08:25:43 +0200
