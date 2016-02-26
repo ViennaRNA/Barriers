@@ -13,7 +13,7 @@ optdepends=('viennarna: Generate sets of suboptimal RNA secondary structures wit
 makedepends=()
 provides=()
 source=(http://www.tbi.univie.ac.at/RNA/packages/source/Barriers-${pkgver}.tar.gz)
-sha256sums=('eaae4a48bf0d787e898bd539fabbef7a038cba7f1b7ee6f6621d199c5bc941f7')
+sha256sums=('6eba175d237325e9b4493d7675e1da5edfd9beb6c21bd60c83ed64ad498bf7e3')
 
 build() {
   cd "${srcdir}/Barriers-${pkgver}"
