@@ -1,7 +1,6 @@
-# Last changed Time-stamp: <2015-11-12 15:44:10 ivo> 
-# $Id: barriers.ggo,v 1.1 2008/01/10 14:40:01 ivo Exp $
 package "barriers"
 purpose "Compute local minima and energy barriers of a landscape"
+version "1.6.0"
 args    "--default-optional --unamed-opts=[FILE] --include-getopt"
 
 option "quiet"    q  "be quiet, inhibit PS output"  flag off

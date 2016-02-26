@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl define package name and version
-AC_INIT([barriers],1.5.2,[{ivo,xtof}@tbi.univie.ac.at],[Barriers], [https://www.tbi.univie.ac.at/RNA/Barriers])
+AC_INIT([barriers],1.6.0,[{ivo,xtof}@tbi.univie.ac.at],[Barriers], [https://www.tbi.univie.ac.at/RNA/Barriers])
 
 AM_INIT_AUTOMAKE
 
