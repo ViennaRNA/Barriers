@@ -190,17 +190,28 @@ int main (int argc, char *argv[]) {
   }
 
   if (args_info.mapstruc_given) {
-    FILE *MAPF;
+    FILE *MAPF, *out;
+    int  outfile;
     char *line, *token;
+    outfile = 0;
     MAPF = fopen(args_info.mapstruc_arg, "r");
     if (MAPF == NULL) nrerror("couldn't open mapfile for reading");
+    if(args_info.mapstruc_output_given){
+      out = fopen(args_info.mapstruc_output_arg, "w");
+      if(out == NULL) nrerror("couldn't open mapping output file for writing");
+      outfile = 1;
+    } else {
+      out = stderr;
+    }
 
     while (line=get_line(MAPF)) {
       token=strtok(line," \t");
-      print_struc(stderr, line, LM, tm);
+      print_struc(out, line, LM, tm);
       free(line);
     }
+
     fclose(MAPF);
+    if(outfile != 0) fclose(out);
   }
   
   /* memory cleanup */
