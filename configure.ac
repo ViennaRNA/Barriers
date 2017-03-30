@@ -19,7 +19,17 @@ AM_WITH_DMALLOC
 hashbits=24
 AC_ARG_WITH(hash-bits,
 [  --with-hash-bits=ARG    use hashtable with 2^ARG entries (<32, default 24)],
-[ hashbits=$withval ],
+[
+  hashbits=$withval
+  if test $hashbits -ge 32; then
+    AC_MSG_WARN([Hash table size too large, setting to default size=24])
+    hashbits=24
+  else
+    if test $hashbits -ge 27; then
+      CFLAGS="$CFLAGS -mcmodel=large"
+    fi
+  fi
+],
 )
 AC_DEFINE_UNQUOTED(HASHBITS, $hashbits, [use hash with 2^HASHBITS entries])
 

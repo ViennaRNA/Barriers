@@ -1,13 +1,13 @@
 /* Last changed Time-stamp: <2015-11-12 17:39:05 ivo> */
 /* main.c */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 /* #include <sys/types.h> */
 #include <math.h>
-#include "config.h"
 #include "barrier_types.h"
 #include "utils.h"
 #include "barriers.h"

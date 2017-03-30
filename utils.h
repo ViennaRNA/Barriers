@@ -39,4 +39,5 @@ extern int bp_distance(const char *str1, const char *str2);
 #define UNUSED __attribute__ ((unused))
 #else
 #define UNUSED
+
 #endif

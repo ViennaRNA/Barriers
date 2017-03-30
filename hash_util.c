@@ -1,11 +1,12 @@
 /* Last changed Time-stamp: <2013-07-02 15:32:58 mtw> */
 /* hash_util.c */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#include "config.h"
 #include "utils.h"
 #include "hash_util.h"
 
