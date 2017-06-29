@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2015-12-29 17:24:47 ivo> */
+/* Last changed Time-stamp: <2017-06-26 11:58:24 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -487,6 +487,10 @@ void check_neighbors(void)
 
   /* foreach neighbor structure of configuration "Structure" */
   while ((p = pop())) {
+    if (IS_RNA)
+      if (p[strlen(p)-1] == 'D')
+	p[strlen(p)-1] = '\0';
+	  
     pp = pack_my_structure(p);
     h.structure = pp;
 
@@ -1161,8 +1165,8 @@ void compute_rates(int *truemin, char *farbe) {
   for (rc=1, r=0; r<readl; r++) {
     int b;
     hpr= &hpool[r];
-    gradmin = hpr->GradientBasin;
     Zi = exp((mfe-hpr->energy)/kT);
+    gradmin = hpr->GradientBasin;
     while (truemin[gradmin]==0) gradmin = lmin[gradmin].father;
     gradmin=truemin[gradmin];
     if (gradmin>n) continue;
@@ -1172,15 +1176,26 @@ void compute_rates(int *truemin, char *farbe) {
 
     for (i=0; i<=n; i++) dr[i]=0;
     while ((p = pop())) {
+      int double_move = 0;
+      if (IS_RNA) {
+	if (p[strlen(p)-1]=='D') {
+	  double_move = 1;
+	  p[strlen(p)-1]='\0';
+	}
+	else
+	  double_move=0;
+      }
+	  
       pp = pack_my_structure(p);
       h.structure = pp;
       /* check whether we've seen the structure before */
       if ((hp = lookup_hash(&h)))
-	if (hp->n<=r) {
+	if (hp->n <=r ) {
 	  gb = hp->GradientBasin;
 	  while (truemin[gb]==0) gb = lmin[gb].father;
 	  gb = truemin[gb];
-	  if (gb<=n) dr[gb] += Zi;
+	  if (gb<=n)
+	    dr[gb] += (double_move)?(0.05*Zi):Zi;
 	  if (do_microrates && b) {
 	    double rate,dg;
 	    dg = hpr->energy - hp->energy;

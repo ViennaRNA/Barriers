@@ -25,7 +25,7 @@ void free_stapel(void);
 /**/
 void ini_stapel(int size) {
   int i;
-  len = size+1;
+  len = size+2;
   v = (char**) space(BASIS_SIZE * sizeof(char*));    
   for (i=0;i<BASIS_SIZE;i++) v[i] = (char*) space(len*sizeof(char));
   stapelTop=0;

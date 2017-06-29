@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-08 17:32:40 ivo> */
+/* Last changed Time-stamp: <2017-06-26 11:15:45 ivo> */
 /* ringlist.c */
 
 #include<stdio.h>
@@ -68,6 +68,8 @@ static void ini_or_reset_rl(char *seq,char *struc){
   len=strlen(seq);
   if(wurzl==NULL){
     form  = strdup(struc);
+    form = (char *) xrealloc(form, (strlen(struc)+2)*sizeof(char));
+    form[len+1] = '\0';
     farbe = strdup(seq);
 /*      update_fold_params(); */
     make_pair_matrix();
@@ -277,7 +279,9 @@ static void inb_nolp(rlItem *root){
 	  /* double insert */
 	  close_bp(rli->next, rlj->prev);
 	  close_bp(rli, rlj);
+	  form[len]='D';
 	  push(form);
+	  form[len]='\0';
 	  open_bp(rli);
 	  open_bp(rli->next);
 	}
@@ -372,7 +376,9 @@ static void dnb_nolp(rlItem *rli) {
   if (rlip==NULL && rlin && rljn->next != rljn->prev ) {     /* doubledelete */
     open_bp(rli);
     open_bp(rlin);
+    form[len]='D';
     push(form);
+    form[len]='\0';
     close_bp(rlin, rljn);
     close_bp(rli, rlj);
   } else {
