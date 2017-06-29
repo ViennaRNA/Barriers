@@ -1,4 +1,4 @@
-# Last changed Time-stamp: <2015-11-12 15:44:10 ivo> 
+# Last changed Time-stamp: <2017-06-29 11:47:27 ivo> 
 # $Id: barriers.ggo,v 1.1 2008/01/10 14:40:01 ivo Exp $
 package "barriers"
 purpose "Compute local minima and energy barriers of a landscape"
@@ -14,6 +14,7 @@ option "max"      -  "compute only the lowest <num> local minima" int default="1
 option "minh"     -  "print only minima with barrier > dE" double default="0.000001"
 option "saddle"   -  "print saddle point structures" flag off 
 option "rates"    -  "compute rates between macro states (basins)" flag off
+option "noLP-rate"  - "scale rates of double moves for RNA-noLP (e.g. 0.01)" double 
 option "microrates" - "compute microscopic rates between connected states" flag off hidden
 option "poset"    -  "input is a poset from n objective functions" int default="0"
 option "path"     P  "backtrack path between lmins l2 and l1 (l1 < l2),\

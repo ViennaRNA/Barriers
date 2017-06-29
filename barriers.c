@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-06-26 11:58:24 ivo> */
+/* Last changed Time-stamp: <2017-06-29 11:39:21 ivo> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -99,6 +99,7 @@ static struct comp *comp;
 static int max_comp=1024, n_comp;
 static int do_rates=0;
 static int do_microrates=0;
+static double noLP_rate=1.;
 
 #define HASHSIZE (((unsigned long) 1<<HASHBITS)-1)
 static hash_entry *hpool;
@@ -124,7 +125,10 @@ void set_barrier_options(barrier_options opt) {
       free_move_it = RNA_free_rl;
       pack_my_structure = pack_structure;
       unpack_my_structure = unpack_structure;
-      if (strstr(opt.GRAPH,   "noLP")) nolp=1;
+      if (strstr(opt.GRAPH,   "noLP")) {
+	nolp=1;
+	noLP_rate = opt.noLP_rate;
+      }
       if (strstr(opt.MOVESET, "noShift")) shift=0;
       else if (strlen(opt.MOVESET)) {
 	fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
@@ -1195,7 +1199,7 @@ void compute_rates(int *truemin, char *farbe) {
 	  while (truemin[gb]==0) gb = lmin[gb].father;
 	  gb = truemin[gb];
 	  if (gb<=n)
-	    dr[gb] += (double_move)?(0.05*Zi):Zi;
+	    dr[gb] += (double_move)?(noLP_rate*Zi):Zi;
 	  if (do_microrates && b) {
 	    double rate,dg;
 	    dg = hpr->energy - hp->energy;

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2015-11-12 17:39:05 ivo> */
+/* Last changed Time-stamp: <2017-06-29 11:36:58 ivo> */
 /* main.c */
 
 #include <stdio.h>
@@ -234,6 +234,7 @@ static int decode_switches (int argc, char **argv)
   opt.rates = args_info.rates_given;
   opt.microrates = args_info.microrates_given;
   GRAPH = args_info.graph_arg;
+  opt.noLP_rate = (args_info.noLP_rate_given)?args_info.noLP_rate_arg:1.;
   if (args_info.moves_given) opt.MOVESET = args_info.moves_arg;
   if (args_info.temp_given) opt.kT = args_info.temp_arg;
   for (i = 0; i < args_info.path_given; ++i) {
