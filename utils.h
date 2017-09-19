@@ -24,8 +24,11 @@ extern char  *get_line(FILE *fp); /* read one (arbitrary length) line from fp */
 
 
 extern char *pack_structure(const char *struc);
+extern char *pack_structureB(const char *struc);
 /* pack secondary secondary structure, 5:1 compression using base 3 encoding */
+
 extern char *unpack_structure(const char *packed);
+extern char *unpack_structureB(const char *packed);
 /* unpack sec structure packed with pack_structure() */
 extern short *make_pair_table(const char *structure);
 /* returns a newly allocated table, such that:  table[i]=j if (i.j) pair or

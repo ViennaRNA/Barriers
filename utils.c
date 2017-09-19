@@ -4,14 +4,16 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2002-05-08 11:13:06 ivo> */
+/* Last changed Time-stamp: <2017-09-19 17:31:17 mtw> */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
 #include <string.h>
+#include <stdbool.h>
 #include "config.h"
+#include "utils.h"
 #ifdef WITH_DMALLOC
 #include "dmalloc.h"
 #endif
@@ -238,6 +240,8 @@ PUBLIC char *costring(char *string)
 
 
 /*-----------------------------------------------------------------*/
+/* TODO: separate allocation from packing, in order to make
+   pack_structureB efficient */
 
 PUBLIC char *pack_structure(const char *struc) {
   /* 5:1 compression using base 3 encoding */
@@ -246,7 +250,7 @@ PUBLIC char *pack_structure(const char *struc) {
   
   l = (int) strlen(struc);
   packed = (unsigned char *) space(((l+4)/5+1)*sizeof(unsigned char));
-  
+ 
   j=i=pi=0; 
   while (i<l) {
     register int p;
@@ -272,6 +276,62 @@ PUBLIC char *pack_structure(const char *struc) {
   packed[j] = '\0';      /* for str*() functions */
   return (char *) packed;
 }
+
+/*-----------------------------------------------------------------*/
+PUBLIC char *pack_structureB(const char *struc) {
+  bool isstar = false;
+  int len = strlen(struc);
+  char *key = NULL;
+  char *keydup = NULL;
+  char *s = NULL;
+
+  s = (char*)strdup(struc);
+  if (s[len-1] == '*'){ /* we have a binding competent structure */
+    isstar = true;
+    s[len-1] = '\0';
+  }
+  key = (char*)pack_structure(s);
+  free(s);
+  int lenkey = strlen(key);
+  if (isstar){
+    keydup = strdup(key);
+    key = (char*)xrealloc(key,(len+2)*sizeof(char));
+    strncpy(key,keydup,len);
+    key[lenkey] = '\377';
+    key[lenkey+1] = '\0';
+    free(keydup);
+  }
+  return(key);
+}
+
+/*-----------------------------------------------------------------*/
+PUBLIC char *unpack_structureB(const char *packed) {
+  bool isstar = false;
+  int lenkey = strlen(packed);
+  char *struc = NULL;
+  char *strucdup  = NULL;
+  char *p = NULL;
+
+  p = (char*)strdup(packed);
+  if (p[lenkey-1] == '\377'){ /* we have a binding competent structure */
+    isstar = true;
+    p[lenkey-1] = '\0';
+  }
+  struc = (char*)unpack_structure(p);
+  free(p);
+  int len = strlen(struc);
+  if(isstar){
+    strucdup = strdup(struc);
+    struc = (char*)xrealloc(struc,(len+2)*sizeof(char));
+    strncpy(struc,strucdup,len);
+    struc[len]='*';
+    struc[len+1]='\0';
+    free(strucdup);
+  }
+  return(struc);
+}
+
+
 
 PUBLIC char *unpack_structure(const char *packed) {
   /* 5:1 compression using base 3 encoding */
