@@ -1,9 +1,10 @@
-/* Last changed Time-stamp: <2017-06-26 11:15:45 ivo> */
+/* Last changed Time-stamp: <2017-09-21 15:12:18 mtw> */
 /* ringlist.c */
 
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<stdbool.h>
 /* #include"fold_vars.h" */
 #include"utils.h"
 #include"pair_mat.h"
@@ -38,6 +39,7 @@ static void ini_or_reset_rl(char *seq,char *struc);
 /* public functiones */
 void RNA_init(char *seq, int xtof, int noLP);
 void RNA_move_it(char *struc);
+void RNA_move_itB(char *struc);
 void RNA_free_rl(void);
 #ifdef HARDCORE_DEBUG
 void rl_status(void);
@@ -234,6 +236,59 @@ void RNA_move_it(char *form){
   }
 }
 
+void RNA_move_itB(char *form){
+  int i, formlen;
+  bool hasstar = false;
+
+  fprintf(stderr, "#%s\n", form);
+
+  formlen = strlen(form);
+  if(form[formlen-1] == '*')
+    hasstar = true;
+
+  ini_or_reset_rl(farbe, form);
+  if(hasstar == true){
+    form[formlen-1] = '*';
+    form[formlen] = '\0';
+  }
+
+  
+  if (noLP) { /* canonic neighbours only */
+    for ( i=0; i<poListop; i++) {
+      inb_nolp(poList[i]);
+      if ( i > 0 ) { /* virtual root should never be deleted or fliped */
+	dnb_nolp(poList[i]);
+	/*  if(xtof) fnb(poList[i]); */
+      }
+    }
+  } else { /* all neighbours */
+    for ( i=0; i<poListop; i++) {
+      inb(poList[i]);
+      if ( i > 0 ) { /* virtual root should never be deleted or fliped */
+	dnb(poList[i]);
+	if(xtof) fnb(poList[i]);
+      }
+    }
+  }
+  
+  if(hasstar == true){ /* for starred structure add unstarred neighbor */
+    form[formlen-1] = '\0';
+    fprintf(stderr, "-%s\n", form);
+    push(form);
+    form[formlen-1] = '*';
+    form[formlen] = '\0';
+  }
+  else { /* for an un-starred structure add a starred neighbor */
+    form[formlen] = '*';
+    form[formlen+1] = '\0';
+    fprintf(stderr, "+%s\n", form);
+    push(form);
+    form[formlen] = '\0';
+  }
+  
+}
+
+
 /* for a given ringlist, generate all inserte moves */
 static void inb(rlItem *root) {
 
@@ -247,6 +302,7 @@ static void inb(rlItem *root) {
       if(rlj->typ=='p') continue;
       if(pair[rli->base][rlj->base]){
         close_bp(rli,rlj);
+	fprintf(stderr, "i%s\n", form);
 	push(form);
         open_bp(rli);
       }
@@ -350,6 +406,7 @@ static void dnb(rlItem *rli){
 
   rlj=rli->down;
   open_bp(rli);
+  fprintf(stderr, "d%s\n", form);
   push(form);
   close_bp(rli,rlj);
 }

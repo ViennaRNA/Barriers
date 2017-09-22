@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-12-18 17:49:12 xtof> */
+/* Last changed Time-stamp: <2017-09-21 16:00:00 mtw> */
 /* treeplot.c */
 /* modified version from ViennaRNA-package */
 
@@ -139,6 +139,9 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "%% str => -\n"
 	  "  /Rotshow {\n"
 	  "    gsave\n"
+	  "      dup type () type eq\n"
+	  "      { 1 0 0 setrgbcolor }\n"
+	  "      { STR cvs }ifelse\n"
 	  "      cmtx setmatrix -90 rotate\n"
 	  "      Lo aload pop\n"
 	  "      rmoveto show\n"
@@ -161,7 +164,7 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
 	  "  /Drawlabels {\n"
 	  "   0 LEAF {\n"
 	  "      aload pop moveto\n"
-	  "      dup LABEL exch get STR cvs Rotshow\n"
+	  "      dup LABEL exch get Rotshow\n"
 	  "      1 add\n"
 	  "    } forall pop\n"
 	  "  } def\n"

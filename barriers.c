@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-06-29 11:39:21 ivo> */
+/* Last changed Time-stamp: <2017-09-21 16:31:41 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -121,10 +121,10 @@ void set_barrier_options(barrier_options opt) {
       IS_RNA=1;
       if (opt.kT<=-300) opt.kT=37;
       kT = 0.00198717*(273.15+opt.kT);   /* kT at 37C in kcal/mol */
-      move_it = RNA_move_it;
+      move_it = RNA_move_itB;
       free_move_it = RNA_free_rl;
-      pack_my_structure = pack_structure;
-      unpack_my_structure = unpack_structure;
+      pack_my_structure = pack_structureB;
+      unpack_my_structure = unpack_structureB;
       if (strstr(opt.GRAPH,   "noLP")) {
 	nolp=1;
 	noLP_rate = opt.noLP_rate;
@@ -282,7 +282,7 @@ loc_min *barriers(barrier_options opt) {
   lmin = (loc_min *) space((max_lmin + 1) * sizeof(loc_min));
   n_lmin = 0;
 
-  form = (char *) space((length+1)*sizeof(char));
+  form = (char *) space((length+2)*sizeof(char));
   comp = (struct comp *) space((max_comp+1) * sizeof(struct comp));
   truecomp = (int *) space((max_comp+1) * sizeof(int));
   if(opt.poset) {
@@ -297,6 +297,7 @@ loc_min *barriers(barrier_options opt) {
   }
 
   while (read_data(opt, &new_en,form,length,POV)) {
+    fprintf(stderr, "R%s\n", form);
     if (readl==0) mfe=energy=new_en;
     if (new_en<energy)
       nrerror("unsorted list!\n");
@@ -309,6 +310,7 @@ loc_min *barriers(barrier_options opt) {
     energy = new_en;
     readl++;
     move_it(form);       /* generate all neighbor of configuration */
+    fprintf(stderr, "M%s\n", form);
     check_neighbors();   /* flood the energy landscape */
     reset_stapel();
     if ((n_saddle+1 == max_print) && (!opt.rates))
@@ -550,6 +552,8 @@ void check_neighbors(void)
     free(pp);
   }
 
+  /* pack read structure from subopt for putting into the hash */
+  fprintf(stderr,"F%s\n",form);
   pform = pack_my_structure(form);
 
   if (ccomp==0) {
@@ -605,6 +609,7 @@ void check_neighbors(void)
       hp->POV = (int *) space(sizeof(int)*POV_size);
       for(i=0;i<POV_size;i++) hp->POV[i]=POV[i];
     }
+
     hp->structure = pform;
     hp->energy = energy;
     hp->basin = i_lmin;
@@ -614,8 +619,15 @@ void check_neighbors(void)
     hp->n = readl;
     lmin[gradmin].my_GradPool++;
     lmin[gradmin].Zg += Zi;
-    if (write_hash(hp))
+  
+    if (write_hash(hp)){
+      
+      hash_entry *foo = NULL;
+      foo=(hash_entry*)lookup_hash(hp);
+      fprintf(stderr,"%s\n",unpack_my_structure(foo->structure));
+      fprintf(stderr,"%s\n",unpack_my_structure(hp->structure));
       nrerror("duplicate structure");
+    }
   }
 
   if((is_min)&&(POV_size)) lmin[n_lmin].POV = hp->POV;
@@ -835,11 +847,19 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
 	nodes[s1-1].label = strdup(s);
       free(s);
     }
-    else if((POV_size)&&(Lmin[ii].global)) {
-      char *L;
+    else {
+      char *L=NULL, *s=NULL;
       L = (char *) space(sizeof(char)*10);
-      (void) sprintf(L,"%d *",s1);
-      nodes[s1-1].label = L;
+      s = unpack_my_structure(Lmin[ii].structure);
+      if(s[strlen(s)-1] == '*'){
+	(void) sprintf(L,"%d",s1);
+	nodes[s1-1].label = L;
+      }
+      if((POV_size)&&(Lmin[ii].global)) {
+	(void) sprintf(L,"%d *",s1);
+	nodes[s1-1].label = L;
+      }
+
     }
     i++;
   }
