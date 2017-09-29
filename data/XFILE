@@ -1,0 +1,23 @@
+barriers git:
+origin	git@krios.tbi.univie.ac.at:energy-landscapes/barriers.git
+* ligand
+  master
+  noLP
+
+Perl Barmap git:
+origin	git@krios.tbi.univie.ac.at:mtw/barmap.git
+
+treekin git:
+origin	git@krios.tbi.univie.ac.at:energy-landscapes/treekin.git (push)
+  autoconf
+* expokit
+  master
+  mtw
+
+
+
+./barriers --rates --saddle --bsize < data/d29.e20.subbS > data/d29.e20.bar
+
+~/C/treekin/treekin --p0 3=1 -m I --t0 0.001 < rates.out | xmgrace -log x -nxy - &
+
+

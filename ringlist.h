@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-09-21 14:36:13 mtw> */
+/* Last changed Time-stamp: <2017-09-29 16:59:17 mtw> */
 /* ringlist.h */
 
 #ifndef _ringlist_h
@@ -7,6 +7,8 @@
 extern void RNA_init(char *sequence, int shift, int nolp);
 extern void RNA_move_it(char *struc);
 extern void RNA_move_itB(char *struc);
+extern void RNA_move_itB_Rates(char *form);
+
 
 extern void RNA_free_rl(void);
 

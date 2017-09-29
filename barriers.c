@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-09-21 16:31:41 mtw> */
+/* Last changed Time-stamp: <2017-09-29 16:59:32 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -297,7 +297,7 @@ loc_min *barriers(barrier_options opt) {
   }
 
   while (read_data(opt, &new_en,form,length,POV)) {
-    fprintf(stderr, "R%s\n", form);
+    /* fprintf(stderr, "R%s\n", form); */
     if (readl==0) mfe=energy=new_en;
     if (new_en<energy)
       nrerror("unsorted list!\n");
@@ -310,7 +310,7 @@ loc_min *barriers(barrier_options opt) {
     energy = new_en;
     readl++;
     move_it(form);       /* generate all neighbor of configuration */
-    fprintf(stderr, "M%s\n", form);
+    /* fprintf(stderr, "M%s\n", form); */
     check_neighbors();   /* flood the energy landscape */
     reset_stapel();
     if ((n_saddle+1 == max_print) && (!opt.rates))
@@ -553,7 +553,7 @@ void check_neighbors(void)
   }
 
   /* pack read structure from subopt for putting into the hash */
-  fprintf(stderr,"F%s\n",form);
+  /* fprintf(stderr,"F%s\n",form); */
   pform = pack_my_structure(form);
 
   if (ccomp==0) {
@@ -1172,6 +1172,8 @@ void compute_rates(int *truemin, char *farbe) {
   double Zi;
   FILE *NEWSUB=NULL, *MR=NULL;;
 
+  /* if have_ligand */
+  move_it = RNA_move_itB_Rates;
   n = truemin[0];
   rate = (double **) space((n + 1) * sizeof(double *));
   dr   = (double  *) space((n + 1) * sizeof(double));
