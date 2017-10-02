@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-02 14:44:24 mtw> */
+/* Last changed Time-stamp: <2017-10-02 17:36:27 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -29,7 +29,6 @@ static loc_min *lmin;      /* array for local minima */
 
 static double **rate;      /* rate matrix between basins */
 static double  *dr;        /* increments to rate matrix  */
-/* "global" variables */
 
 static int n_lmin;
 static unsigned int max_lmin;
@@ -100,6 +99,7 @@ static int max_comp=1024, n_comp;
 static int do_rates=0;
 static int do_microrates=0;
 static double noLP_rate=1.;
+static int ligand = 0;
 
 #define HASHSIZE (((unsigned long) 1<<HASHBITS)-1)
 static hash_entry *hpool;
@@ -121,7 +121,7 @@ void set_barrier_options(barrier_options opt) {
       IS_RNA=1;
       if (opt.kT<=-300) opt.kT=37;
       kT = 0.00198717*(273.15+opt.kT);   /* kT at 37C in kcal/mol */
-      move_it = RNA_move_itB;
+      move_it = RNA_move_it;
       free_move_it = RNA_free_rl;
       pack_my_structure = pack_structure;
       unpack_my_structure = unpack_structure;
@@ -129,18 +129,29 @@ void set_barrier_options(barrier_options opt) {
 	nolp=1;
 	noLP_rate = opt.noLP_rate;
       }
-      if (strstr(opt.MOVESET, "noShift")) shift=0;
-      else if (strlen(opt.MOVESET)) {
-	fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
-	exit (EXIT_FAILURE);
-      }
+      if(strlen(opt.MOVESET) > 0)
+	switch(opt.MOVESET[0]){
+	case 'n': /* noShift */
+	  if(strncmp(opt.MOVESET,"noShift",7)==0)
+	    shift = 0;
+	  break;
+	case 'l': /* ligand */
+	  if(strncmp(opt.MOVESET,"ligand",6)==0){
+	    ligand = 1;
+	    move_it = RNA_move_itB;
+	  }
+	  break;
+	default:
+	  fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
+	  exit (EXIT_FAILURE);
+	}
       for (i=0; i < (int)strlen(opt.seq); i++){
 	if (opt.seq[i] == 'T')
 	  opt.seq[i] = 'U';
       }
       RNA_init(opt.seq, shift, nolp);
       if (verbose)
-	fprintf(stderr, "Graph is RNA with noLP=%d, Shift=%d\n", nolp, shift);
+	fprintf(stderr, "Graph is RNA with noLP=%d, Shift=%d, ligand=%d\n", nolp, shift,ligand);
     } else Sorry(opt.GRAPH);
     break;
   case 'Q' :    /* Haming graphs */
@@ -1172,8 +1183,8 @@ void compute_rates(int *truemin, char *farbe) {
   double Zi;
   FILE *NEWSUB=NULL, *MR=NULL;;
 
-  /* if have_ligand */
-  move_it = RNA_move_itB_Rates;
+  if(ligand==1)
+    move_it = RNA_move_itB_Rates;
   n = truemin[0];
   rate = (double **) space((n + 1) * sizeof(double *));
   dr   = (double  *) space((n + 1) * sizeof(double));

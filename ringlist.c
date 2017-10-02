@@ -1,11 +1,10 @@
-/* Last changed Time-stamp: <2017-09-29 17:00:30 mtw> */
+/* Last changed Time-stamp: <2017-10-02 17:05:14 mtw> */
 /* ringlist.c */
 
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
-/* #include"fold_vars.h" */
 #include"utils.h"
 #include"pair_mat.h"
 #include"stapel.h"

@@ -1,4 +1,4 @@
-# Last changed Time-stamp: <2017-06-29 11:47:27 ivo> 
+# Last changed Time-stamp: <2017-10-02 16:46:05 mtw> 
 # $Id: barriers.ggo,v 1.1 2008/01/10 14:40:01 ivo Exp $
 package "barriers"
 purpose "Compute local minima and energy barriers of a landscape"
@@ -28,6 +28,7 @@ Graph Types (-G graph) and Move Sets (-M mset)are:
   RNA             RNA secondary structures
   RNA-noLP        canonical RNA structures
       [no]Shift       with/out shift moves [default with]
+      ligand          RNA-ligand/protein interaction [default off]
   Q2              Spin Glass
       p               point mutation (default)
       c               flip 2nd half
