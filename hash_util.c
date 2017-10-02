@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2013-07-02 15:32:58 mtw> */
+/* Last changed Time-stamp: <2017-10-02 11:58:00 mtw> */
 /* hash_util.c */
 
 #include <stdio.h>
@@ -31,6 +31,7 @@ inline PRIVATE unsigned hash_f (void *x);
 #define HASHBITS 24
 #endif
 #define HASHSIZE (((unsigned long) 1<<HASHBITS)-1)
+/* on 64bit machines: unsigned long num = 1<<63; */
 
 /* #define HASHSIZE 67108864 -1 */ /* 2^26 -1   must be power of 2 -1 */
 /* #define HASHSIZE 33554432 -1 */ /* 2^25 -1   must be power of 2 -1 */
@@ -40,6 +41,9 @@ inline PRIVATE unsigned hash_f (void *x);
 PRIVATE void *hashtab[HASHSIZE+1];
 
 PUBLIC unsigned long collisions=0;
+
+static unsigned long hashfillmax=HASHSIZE*2./3.;
+
 
 /* ----------------------------------------------------------------- */
 
@@ -115,6 +119,12 @@ PUBLIC int write_hash (void *x)   /* returns 1 if x already was in the hash */
     if (hash_comp(x,hashtab[hashval])==0) return 1;
     hashval = ((hashval+1) & (HASHSIZE));
     collisions++;
+    if(collisions >= hashfillmax){ /* die if # of hash entries exceeds 0.75*HASHSIE */
+      char str[160];
+      sprintf(str, "# of hash collision  >= 3/4 of hashsize (%lu | %lu)\n",hashfillmax, HASHSIZE);
+      perror(str);
+      exit(EXIT_FAILURE);
+    }
   }
   hashtab[hashval]=x;
   return 0;
