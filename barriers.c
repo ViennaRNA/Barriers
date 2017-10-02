@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-09-29 16:59:32 mtw> */
+/* Last changed Time-stamp: <2017-10-02 14:44:24 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -123,8 +123,8 @@ void set_barrier_options(barrier_options opt) {
       kT = 0.00198717*(273.15+opt.kT);   /* kT at 37C in kcal/mol */
       move_it = RNA_move_itB;
       free_move_it = RNA_free_rl;
-      pack_my_structure = pack_structureB;
-      unpack_my_structure = unpack_structureB;
+      pack_my_structure = pack_structure;
+      unpack_my_structure = unpack_structure;
       if (strstr(opt.GRAPH,   "noLP")) {
 	nolp=1;
 	noLP_rate = opt.noLP_rate;
