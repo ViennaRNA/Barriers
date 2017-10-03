@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-02 17:05:14 mtw> */
+/* Last changed Time-stamp: <2017-10-03 16:35:59 mtw> */
 /* ringlist.c */
 
 #include<stdio.h>
@@ -38,8 +38,7 @@ static void ini_or_reset_rl(char *seq,char *struc);
 /* public functiones */
 void RNA_init(char *seq, int xtof, int noLP);
 void RNA_move_it(char *struc);
-void RNA_move_itB(char *struc);
-void RNA_move_itB_Rates(char *form);
+void RNA_move_it_rates(char *form);
 void RNA_free_rl(void);
 #ifdef HARDCORE_DEBUG
 void rl_status(void);
@@ -215,6 +214,10 @@ static void make_poList(rlItem *root){
 /* for a given tree, generate all neighbours according to the moveset */
 void RNA_move_it(char *form){
   int i;
+  /* ini_or_reset_rl() allocates (length(seq)+2) characters space for
+  the structure, hence the ringlist-based neighbor routines tolerate
+  one additional char at the end of the structure, as e.g. in ligand
+  case */
   ini_or_reset_rl(farbe, form);
   
   if (noLP) { /* canonic neighbours only */
@@ -236,79 +239,21 @@ void RNA_move_it(char *form){
   }
 }
 
-void RNA_move_itB(char *form){
+/* special version of RNA_move_it that does additional moves from
+   starred to unstarred and vice versa */
+void RNA_move_it_rates(char *form){
   int i, formlen;
   bool hasstar = false;
-
-  /* fprintf(stderr, "#%s\n", form); */
 
   formlen = strlen(form);
   if(form[formlen-1] == '*')
     hasstar = true;
 
-  ini_or_reset_rl(farbe, form);
-  if(hasstar == true){
-    form[formlen-1] = '*';
-    form[formlen] = '\0';
-  }
+  RNA_move_it(form); 
 
-  
-  if (noLP) { /* canonic neighbours only */
-    for ( i=0; i<poListop; i++) {
-      inb_nolp(poList[i]);
-      if ( i > 0 ) { /* virtual root should never be deleted or fliped */
-	dnb_nolp(poList[i]);
-	/*  if(xtof) fnb(poList[i]); */
-      }
-    }
-  } else { /* all neighbours */
-    for ( i=0; i<poListop; i++) {
-      inb(poList[i]);
-      if ( i > 0 ) { /* virtual root should never be deleted or fliped */
-	dnb(poList[i]);
-	if(xtof) fnb(poList[i]);
-      }
-    }
-  }  
-}
-
-void RNA_move_itB_Rates(char *form){
-  int i, formlen;
-  bool hasstar = false;
-
-  /* fprintf(stderr, "#%s\n", form); */
-
-  formlen = strlen(form);
-  if(form[formlen-1] == '*')
-    hasstar = true;
-
-  ini_or_reset_rl(farbe, form);
-  if(hasstar == true){
-    form[formlen-1] = '*';
-    form[formlen] = '\0';
-  }
-
-  if (noLP) { /* canonic neighbours only */
-    for ( i=0; i<poListop; i++) {
-      inb_nolp(poList[i]);
-      if ( i > 0 ) { /* virtual root should never be deleted or fliped */
-	dnb_nolp(poList[i]);
-	/*  if(xtof) fnb(poList[i]); */
-      }
-    }
-  } else { /* all neighbours */
-    for ( i=0; i<poListop; i++) {
-      inb(poList[i]);
-      if ( i > 0 ) { /* virtual root should never be deleted or fliped */
-	dnb(poList[i]);
-	if(xtof) fnb(poList[i]);
-      }
-    }
-  }
-  
+  /* now add special moves: starred -> unstarred and vice versa */
   if(hasstar == true){ /* for starred structure add unstarred neighbor */
     form[formlen-1] = '\0';
-    /* fprintf(stderr, "-%s\n", form); */
     push(form);
     form[formlen-1] = '*';
     form[formlen] = '\0';
@@ -316,13 +261,12 @@ void RNA_move_itB_Rates(char *form){
   else { /* for an un-starred structure add a starred neighbor */
     form[formlen] = '*';
     form[formlen+1] = '\0';
-    /* fprintf(stderr, "+%s\n", form); */
     push(form);
     form[formlen] = '\0';
   }
 }
 
-/* for a given ringlist, generate all inserte moves */
+/* for a given ringlist, generate all insert moves */
 static void inb(rlItem *root) {
 
   rlItem *stop,*rli,*rlj;
@@ -447,7 +391,7 @@ static void dnb(rlItem *rli){
 /* for a given ringlist, generate all canonic delete moves */
 static void dnb_nolp(rlItem *rli) {
   
-  rlItem *rlj;
+  rlItem *rlj  = NULL;
   rlItem *rlin = NULL; /* pointers to following pair in helix, if any */
   rlItem *rljn = NULL;
   rlItem *rlip = NULL; /* pointers to preceding pair in helix, if any */

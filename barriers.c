@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-03 13:32:15 mtw> */
+/* Last changed Time-stamp: <2017-10-03 16:31:52 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -143,7 +143,7 @@ void set_barrier_options(barrier_options opt) {
 	case 'l': /* ligand */
 	  if(strncmp(opt.MOVESET,"ligand",6)==0){
 	    ligand = 1;
-	    move_it = RNA_move_itB;
+	    /* move_it = RNA_move_it; */
 	  }
 	  break;
 	default:
@@ -1203,7 +1203,7 @@ void compute_rates(int *truemin, char *farbe) {
   FILE *NEWSUB=NULL, *MR=NULL;;
 
   if(ligand==1)
-    move_it = RNA_move_itB_Rates;
+    move_it = RNA_move_it_rates;
   n = truemin[0];
   rate = (double **) space((n + 1) * sizeof(double *));
   dr   = (double  *) space((n + 1) * sizeof(double));
