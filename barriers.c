@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-02 17:36:27 mtw> */
+/* Last changed Time-stamp: <2017-10-03 13:32:15 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -8,6 +8,7 @@
 #include <math.h>
 #include <limits.h>
 #include <float.h>
+#include <stdbool.h>
 #include "ringlist.h"
 #include "stapel.h"
 #include "utils.h"
@@ -117,7 +118,7 @@ void set_barrier_options(barrier_options opt) {
   switch(opt.GRAPH[0]) {
   case 'R' :    /* RNA secondary Structures */
     if (strncmp(opt.GRAPH, "RNA", 3)==0) {
-      int nolp=0, shift=1, i=0;
+      int nolp=0, shift=0, i=0;
       IS_RNA=1;
       if (opt.kT<=-300) opt.kT=37;
       kT = 0.00198717*(273.15+opt.kT);   /* kT at 37C in kcal/mol */
@@ -125,15 +126,19 @@ void set_barrier_options(barrier_options opt) {
       free_move_it = RNA_free_rl;
       pack_my_structure = pack_structure;
       unpack_my_structure = unpack_structure;
-      if (strstr(opt.GRAPH,   "noLP")) {
+      if (strstr(opt.GRAPH, "noLP")) {
 	nolp=1;
 	noLP_rate = opt.noLP_rate;
       }
       if(strlen(opt.MOVESET) > 0)
 	switch(opt.MOVESET[0]){
-	case 'n': /* noShift */
-	  if(strncmp(opt.MOVESET,"noShift",7)==0)
-	    shift = 0;
+	case 'S': /* Shift moves */
+	  if(strncmp(opt.MOVESET,"Shift",5)==0) 
+	    shift = 1;
+	  break;
+	case 's': /* Shift moves */
+	  if(strncmp(opt.MOVESET,"shift",5)==0)
+	    shift = 1;
 	  break;
 	case 'l': /* ligand */
 	  if(strncmp(opt.MOVESET,"ligand",6)==0){
@@ -744,8 +749,9 @@ void mark_global(loc_min *Lmin)
 void print_results(loc_min *Lmin, int *truemin, char *farbe)
 {
   int i,ii,j, n;
-  char *struc;
-  char *format;
+  char *struc=NULL;
+  char *format=NULL,*formatA=NULL,*formatB=NULL;
+  bool otherformat=false;
 
   if (POV_size) fprintf(stderr," POV_size = %d\n",POV_size);
   if (IS_arbitrary) {
@@ -753,12 +759,14 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     sprintf(tfor,"%%4d %%-%ds %%6.2f %%4d %%6.2f",maxlabellength);
     format = tfor;
   }
-  else if (IS_RNA)
-    format = "%4d %s %6.2f %4d %6.2f";
+  else if (IS_RNA){
+    formatA = "%4d %s %6.2f %4d %6.2f";
+    formatB = "%4d %s  %6.2f %4d %6.2f";
+    format=formatA;
+  }
   else
     format = "%4d %s %13.5f %4d %13.5f";
   if(verbose) printf("Using output format string '%s'\n",format);
-
 
   n_lmin = Lmin[0].fathers_pool;
 
@@ -775,6 +783,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     if(POV_size) {
       int jj;
       printf("%4d %s ", ii, struc);
+   
       if(IS_RNA) printf("%6.2f ", Lmin[i].energy);
       else printf("%13.5f ", Lmin[i].energy);
       for(jj=0;jj<POV_size;jj++) printf("%6d ",Lmin[i].POV[jj]);
@@ -787,8 +796,18 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
       else printf(" .");
     }
     else {
+      if(IS_RNA && (ligand == 1)){
+	if(strstr(struc,"*") == NULL){ 
+	  format=formatB;
+	  otherformat=true;
+	}
+      }
       printf(format, ii, struc, Lmin[i].energy, f,
 	     Lmin[i].E_saddle - Lmin[i].energy);
+      if(otherformat){
+	format=formatA;
+	otherformat=false;
+      }
     }
     free(struc);
 
