@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-06 14:48:21 mtw> */
+/* Last changed Time-stamp: <2017-10-06 16:27:13 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -87,6 +87,7 @@ static void merge_basins(void);
 void print_results(loc_min *L, int *tm, char *farbe);
 void ps_tree(loc_min *Lmin, int *truemin, int rates);
 void print_rates(int n, char *fname);
+char *strip(char *s);
 
 struct comp {
   Set *basins; /* set of basins connected by these saddles */
@@ -751,7 +752,7 @@ void mark_global(loc_min *Lmin)
 void print_results(loc_min *Lmin, int *truemin, char *farbe)
 {
   int i,ii,j, n;
-  char *struc=NULL;
+  char *struc=NULL,*laststruc=NULL;
   char *format=NULL,*formatA=NULL,*formatB=NULL;
   bool otherformat=false;
 
@@ -778,6 +779,13 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     if ((ii = truemin[i])==0) continue;
 
     struc = unpack_my_structure(Lmin[i].structure);
+    /* if(ligand){ */
+    /*   if(laststruc != NULL){ */
+    /* 	if (strncmp(laststruc,struc,strlen(struc))==0){ */
+    /* 	  1;  */
+    /* 	} */
+    /*   } */
+  
     if (cut_point > -1)
       struc = costring(struc);
     n = strlen(struc);
@@ -811,6 +819,8 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 	otherformat=false;
       }
     }
+    laststruc = strip(struc);
+    free(laststruc);
     free(struc);
 
     if (print_saddles) {
@@ -830,7 +840,21 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 	      Lmin[i].my_pool, Lmin[i].fathers_pool, mfe -kT*log(lmin[i].Z),
 	      Lmin[i].my_GradPool, mfe -kT*log(lmin[i].Zg));
     printf("\n");
+ 
   }
+}
+
+/*====================*/
+/* remove additional characters from structure, such as
+   '*','A','B',... */
+char *strip(char *s)
+{
+  char *p = strdup(s);
+  int l = strlen(p);
+  if(p[l-1] == '*') /* add more characters here is required */
+    p[l-1]='\0';
+  /* fprintf(stderr, "%s in \n%s out\n",s,p); */
+  return p;
 }
 
 void ps_tree(loc_min *Lmin, int *truemin, int rates)
