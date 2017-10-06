@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-06-29 11:36:58 ivo> */
+/* Last changed Time-stamp: <2017-10-06 12:46:55 mtw> */
 /* main.c */
 
 #include <stdio.h>
@@ -190,14 +190,19 @@ int main (int argc, char *argv[]) {
   }
 
   if (args_info.mapstruc_given) {
-    FILE *MAPF;
-    char *line, *token;
+    FILE *MAPF=NULL;
+    char *line=NULL, *token=NULL;
+   
     MAPF = fopen(args_info.mapstruc_arg, "r");
     if (MAPF == NULL) nrerror("couldn't open mapfile for reading");
 
     while (line=get_line(MAPF)) {
+      map_struc myms;
       token=strtok(line," \t");
-      print_struc(stderr, line, LM, tm);
+      myms = get_mapstruc(token, LM, tm);
+      fprintf(stderr, "%s %6d %6.2f %3d %3d %3d %3d\n", myms.structure, myms.n, myms.energy,
+	      myms.min, myms.truemin, myms.gradmin, myms.truegradmin);
+      free(myms.structure);
       free(line);
     }
     fclose(MAPF);

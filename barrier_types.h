@@ -42,3 +42,13 @@ typedef struct {
   char key[128];
   short num;
 } path_entry;
+
+typedef struct {
+  char *structure; /* unpacked structuture */
+  int n;           /* index in energy sorted list */
+  float energy;    /* energy of structure */
+  int min;         /* minimum */
+  int truemin;     /* truemin */
+  int gradmin;     /* gradient minimum */
+  int truegradmin; /* true gradient minimum */
+} map_struc;

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-03 16:31:52 mtw> */
+/* Last changed Time-stamp: <2017-10-06 14:48:21 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -104,6 +104,8 @@ static int ligand = 0;
 
 #define HASHSIZE (((unsigned long) 1<<HASHBITS)-1)
 static hash_entry *hpool;
+
+
 
 /* ----------------------------------------------------------- */
 
@@ -889,6 +891,7 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
 	(void) sprintf(L,"%d *",s1);
 	nodes[s1-1].label = L;
       }
+      free(s);
 
     }
     i++;
@@ -1118,18 +1121,19 @@ static void print_hash_entry(hash_entry *h) {
 	 h->energy, h->basin, h->GradientBasin, h->ccomp, down);
 }
 
-void print_struc(FILE *OUT, char *p, loc_min *LM, int *tm) {
+map_struc get_mapstruc(char *p, loc_min *LM, int *tm) {
   hash_entry *hp, h;
   char *pp, *struc;
   int min, gradmin, tmin, tgradmin;
+  map_struc ms;
   
   pp = pack_my_structure(p);
   h.structure = pp;
   hp = lookup_hash(&h);
 
   if (hp==NULL) {
-    fprintf(OUT, "not in hash\n");
-    return;
+    fprintf(stderr, "get_mapstruc: structure not in hash\n");
+    return ms;
   }
 	    
   min = hp->basin;
@@ -1142,16 +1146,19 @@ void print_struc(FILE *OUT, char *p, loc_min *LM, int *tm) {
   }
 
   if (gradmin == 0) {
-    fprintf(OUT, "not yet assigned\n");
-    return;
+    fprintf(stderr, "get_mapstruc: gradient minimum not yet assigned\n");
+    return ms;
   }
 
-  struc = unpack_my_structure(LM[gradmin].structure);
-  
-  fprintf(OUT, "%s %6d %6.2f %3d %3d %3d %3d\n", struc, hp->n, hp->energy,
-	  min, tm[min], gradmin, tm[gradmin]);
-
-  free(pp); free(struc);
+  ms.structure = unpack_my_structure(LM[gradmin].structure);
+  ms.n = hp->n;
+  ms.energy = hp->energy;
+  ms.min = min;
+  ms.truemin = tm[min];
+  ms.gradmin = gradmin;
+  ms.truegradmin =  tm[gradmin];
+  free(pp);
+  return (ms);
 }
 
 
