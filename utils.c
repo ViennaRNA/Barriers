@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2017-10-02 14:43:23 mtw> */
+/* Last changed Time-stamp: <2017-10-06 14:15:40 mtw> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -312,7 +312,7 @@ PUBLIC char *pack_structure(const char *struc) {
   char *s = NULL;
 
   len = strlen(struc);
-  key = (unsigned char *) space(((len+4)/5+1)*sizeof(unsigned char));
+  key = (unsigned char *) space(((len+4)/5+2)*sizeof(unsigned char));
   s = (char*)strdup(struc);
   if (s[len-1] == '*'){ /* we have a binding competent structure */
     isstar = true;
