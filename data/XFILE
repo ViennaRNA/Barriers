@@ -16,7 +16,7 @@ origin	git@krios.tbi.univie.ac.at:energy-landscapes/treekin.git (push)
 
 
 classify binding-competent structures in RNAsubopt file:
-subopt_b.pl -s d29.e20.noLP.sub -p "...........(.....)..........." -b 0. > d29.e20.noLP.subb
+subopt_b.pl -s d29.e20.noLP.sub -p "...........(.....)..........." -b -0. > d29.e20.noLP.subb
 cat d29.e20.noLP.subb | sort -k2,2n -k1,1r -T /tmp | gzip - > d29.e20.noLP.subbS.gz
 
 ./barriers --rates --saddle --bsize < data/d29.e20.subbS > data/d29.e20.bar
