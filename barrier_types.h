@@ -46,9 +46,13 @@ typedef struct {
 typedef struct {
   char *structure; /* unpacked structuture */
   int n;           /* index in energy sorted list */
-  float energy;    /* energy of structure */
   int min;         /* minimum */
   int truemin;     /* truemin */
   int gradmin;     /* gradient minimum */
   int truegradmin; /* true gradient minimum */
+  float energy;    /* energy of structure */
+  float min_energy;
+  float truemin_energy;
+  float gradmin_energy;
+  float truegradmin_energy;
 } map_struc;

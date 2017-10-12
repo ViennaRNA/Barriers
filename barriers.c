@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-06 16:27:13 mtw> */
+/* Last changed Time-stamp: <2017-10-11 16:14:34 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -87,7 +87,9 @@ static void merge_basins(void);
 void print_results(loc_min *L, int *tm, char *farbe);
 void ps_tree(loc_min *Lmin, int *truemin, int rates);
 void print_rates(int n, char *fname);
+map_struc get_mapstruc(char *p, loc_min *LM, int *tm);
 char *strip(char *s);
+bool is_bound(char *s);
 
 struct comp {
   Set *basins; /* set of basins connected by these saddles */
@@ -751,11 +753,11 @@ void mark_global(loc_min *Lmin)
 /*====================*/
 void print_results(loc_min *Lmin, int *truemin, char *farbe)
 {
-  int i,ii,j, n;
-  char *struc=NULL,*laststruc=NULL;
-  char *format=NULL,*formatA=NULL,*formatB=NULL;
+  int i,ii,j,k,n;
+  char *struc=NULL, *laststruc=NULL;;
+  char *format=NULL,*formatA=NULL,*formatB=NULL,**seen=NULL;
   bool otherformat=false;
-
+  
   if (POV_size) fprintf(stderr," POV_size = %d\n",POV_size);
   if (IS_arbitrary) {
     char tfor[100];
@@ -774,17 +776,10 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
   n_lmin = Lmin[0].fathers_pool;
 
   printf("     %s\n", farbe);
-  for (i = 1; i <= n_lmin; i++) {
+  for (i=1,k=0; i<=n_lmin; i++,k++) {
     int f;
     if ((ii = truemin[i])==0) continue;
-
     struc = unpack_my_structure(Lmin[i].structure);
-    /* if(ligand){ */
-    /*   if(laststruc != NULL){ */
-    /* 	if (strncmp(laststruc,struc,strlen(struc))==0){ */
-    /* 	  1;  */
-    /* 	} */
-    /*   } */
   
     if (cut_point > -1)
       struc = costring(struc);
@@ -819,29 +814,44 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 	otherformat=false;
       }
     }
-    laststruc = strip(struc);
-    free(laststruc);
-    free(struc);
 
     if (print_saddles) {
       if (Lmin[i].saddle)  {
-	struc = unpack_my_structure(Lmin[i].saddle);
-	printf(" %s", struc);
-	free(struc);
+	char *saddlestruc = unpack_my_structure(Lmin[i].saddle);
+	printf(" %s", saddlestruc);
+	free(saddlestruc);
       }
       else {
 	printf(" ");
 	for (j=0;j<n;j++) { printf("~"); }
       }
-
     }
+    
     if (bsize)
       printf (" %12ld %8ld %10.6f %8ld %10.6f",
 	      Lmin[i].my_pool, Lmin[i].fathers_pool, mfe -kT*log(lmin[i].Z),
 	      Lmin[i].my_GradPool, mfe -kT*log(lmin[i].Zg));
     printf("\n");
- 
-  }
+
+    {
+      /* check if ligand/protein bound structure is present in all worlds */
+      if(laststruc != NULL) { /* for all but the first structure */
+	char *last = strip(laststruc);
+	if(is_bound(laststruc) && (strcmp(last,struc) != 0)){
+	  map_struc m = get_mapstruc(last,Lmin,truemin);
+	  fprintf(stderr, "WARNING: %s -> %s deltaE: %6.2f\n", last,m.structure, (float)(m.energy-m.truegradmin_energy));
+	  /* fprintf(stderr, "%s %s %6d %6.2f %3d %3d %3d %3d\n", last, m.structure, m.n, m.energy, */
+	  /* 	  m.min, m.truemin, m.gradmin, m.truegradmin); */
+	  free(m.structure);
+	}
+	free(last);
+      }
+    }
+    if(laststruc != NULL) {free(laststruc);}
+    laststruc = strdup(struc);
+    free(struc);
+  } /* end for */
+  free(laststruc);
 }
 
 /*====================*/
@@ -850,11 +860,20 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 char *strip(char *s)
 {
   char *p = strdup(s);
-  int l = strlen(p);
-  if(p[l-1] == '*') /* add more characters here is required */
-    p[l-1]='\0';
-  /* fprintf(stderr, "%s in \n%s out\n",s,p); */
+  if(p[strlen(p)-1] == '*') /* add more characters here is required */
+    p[strlen(p)-1]='\0';
   return p;
+}
+
+/*====================*/
+/* check if a structure is marked ligand/protein-bound, ie it has an
+   extra char (eg '*') appended */
+bool is_bound(char *s)
+{
+  bool val=false;
+  if(s[strlen(s)-1] == '*') /* add more characters here is required */
+    val = true;
+  return val;
 }
 
 void ps_tree(loc_min *Lmin, int *truemin, int rates)
@@ -1176,11 +1195,15 @@ map_struc get_mapstruc(char *p, loc_min *LM, int *tm) {
 
   ms.structure = unpack_my_structure(LM[gradmin].structure);
   ms.n = hp->n;
-  ms.energy = hp->energy;
   ms.min = min;
   ms.truemin = tm[min];
   ms.gradmin = gradmin;
   ms.truegradmin =  tm[gradmin];
+  ms.energy = hp->energy;
+  ms.min_energy = LM[min].energy;
+  ms.truemin_energy = LM[tm[min]].energy;
+  ms.gradmin_energy = LM[gradmin].energy;
+  ms.truegradmin_energy = LM[tm[gradmin]].energy;
   free(pp);
   return (ms);
 }
