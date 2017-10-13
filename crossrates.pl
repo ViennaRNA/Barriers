@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-10-12 18:42:32 mtw>
+# Last changed Time-stamp: <2017-10-13 00:20:13 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -9,11 +9,11 @@ use File::Basename;
 use strict;
 use warnings;
 
-my ($sequence,$unbound,$bound,$fhu,$fhb);
+my ($sequence,$unbound,$bound,$fhu,$fhb,$fhra,$fhrb);
 my ($basename,$bardir,$suffix);
 my $bar=undef;
-my $rates=undef;
-my $binrates=undef;
+my $rates="rates.out";
+my $binrates="rates.bin";
 my %lmins_b = (); # indices of ligand-bound lmins
 my %lmins_u = (); # indices of unbound lmins
 my @bar_o   = (); # AoH holding the original bar file
@@ -21,13 +21,21 @@ my @bar_o   = (); # AoH holding the original bar file
 Getopt::Long::config('no_ignore_case');
 pod2usage(-verbose => 1) unless GetOptions(
 					   "b|bar=s"    => \$bar,
-					   "l|log=s"    => \&set_logfile,
+					   "rates=s"    => \$rates,
+					   "binrates=s" => \$binrates,
 					   "man"        => sub{pod2usage(-verbose => 2)},
                                            "h|help"     => sub{pod2usage(1)}
 					  );
-
+unless (-f $rates) {
+  warn "Could not find barriers ASCII rates file '$rates'";
+  pod2usage(-verbose => 0);
+}
+unless (-f $binrates) {
+  warn "Could not find barriers binary rates file '$binrates'";
+  pod2usage(-verbose => 0);
+}
 unless (-f $bar){
-  warn "Could not find input BARRIERS input file provided via -b|--bar option";
+  warn "Could not find barriers .bar file '$bar'";
   pod2usage(-verbose => 0);
 }
 if($bar =~ m/\.bar$/){
@@ -39,16 +47,24 @@ else{
   $bound = $bar.".bound";
   $unbound = $bar.".unbound";
 }
-open $fhu, ">", $unbound or die "Cannot open filehandle for unbound $!";
-open $fhb, ">", $bound or die "Cannot open filehandle for bound $!";
 
+open $fhu, ">", $unbound
+  or die "Cannot open filehandle for unbound: $!\n";
+open $fhb, ">", $bound
+  or die "Cannot open filehandle for bound: $!\n";
 parse_barfile($bar);
 consistify(\%lmins_u,$fhu);
 consistify(\%lmins_b,$fhb);
-
 close($fhu);
 close($fhb);
 
+open $fhra, "<", $rates
+  or die "Cannot open filehandle for ASCII rates file: $!\n";
+open $fhrb, "<:raw", $binrates
+  or die "Cannot open filehandle for binary rates file: $!\n";
+parse_binrates($fhrb);
+close($fhra);
+close($fhrb);
 
 sub consistify {
   my ($ref,$fh) = @_;
@@ -82,7 +98,8 @@ sub consistify {
 sub print_barline {
   my ($ref,$fh) = @_;
   my @b = @$ref;
-  printf($fh "%4d %s %6.2f %4d %6.2f %s %12ld %8ld %10.6f %8ld %10.6f\n", $b[0],$b[1],$b[2],$b[3],$b[4],$b[5],$b[6],$b[7],$b[8],$b[9],$b[10]);
+  printf($fh "%4d %s %6.2f %4d %6.2f %s %12ld %8ld %10.6f %8ld %10.6f\n",
+	 $b[0],$b[1],$b[2],$b[3],$b[4],$b[5],$b[6],$b[7],$b[8],$b[9],$b[10]);
   return;
 }
 
@@ -106,6 +123,16 @@ sub parse_barfile {
   }
   $fh->close;
   return;
+}
+
+sub parse_binrates {
+  my $fh = shift;
+#  my $bytes_read = read $fh, my $bytes, 32;
+ # die 'Got $bytes_read but expected 44' unless $bytes_read == 32;
+  #print "bytes_read=$bytes_read $bytes\n";
+   my( @m ) = unpack( "id*", <$fh>);
+ # print "dim is $dim\n";
+ print Dumper(\@m);
 }
 
 __END__
@@ -135,6 +162,13 @@ rates matrices produced by barriers.
 
 RNA energy landscape in Barriers format (.bar file)
 
+=item B<--binrates>
+
+Binary rates file (default: 'rates.bin')
+
+=item B<--rates>
+
+ASCII rates file (default: 'rates.out')
 
 =back
 
