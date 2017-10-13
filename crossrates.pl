@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-10-13 00:20:13 mtw>
+# Last changed Time-stamp: <2017-10-13 15:53:57 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -127,12 +127,19 @@ sub parse_barfile {
 
 sub parse_binrates {
   my $fh = shift;
-#  my $bytes_read = read $fh, my $bytes, 32;
- # die 'Got $bytes_read but expected 44' unless $bytes_read == 32;
-  #print "bytes_read=$bytes_read $bytes\n";
-   my( @m ) = unpack( "id*", <$fh>);
- # print "dim is $dim\n";
- print Dumper(\@m);
+  my @m=();
+  my $d;
+
+  undef $/;
+  @m = unpack("id*", <$fh>);
+  $d = shift @m;
+  print "$d\n";
+  for my $row (0..$d-1){
+    for my $col (0..$d-1){
+      printf (STDOUT "%10.4g ", $m[$d*$row+$col]);
+    }
+    printf (STDOUT "\n");
+  }
 }
 
 __END__
