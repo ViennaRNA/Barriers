@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-10-14 17:04:26 mtw>
+# Last changed Time-stamp: <2017-10-16 17:44:00 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 my ($sequence,$unbound,$bound,$fhu,$fhb,$fhra,$fhrb);
-my ($basename,$bardir,$suffix,$rates,$ratesr,$dim);
+my ($basename,$bardir,$suffix,$ratesr,$dim);
 my $bar=undef;
 my $rates="rates.out";
 my $binrates="rates.bin";
@@ -56,8 +56,8 @@ consistify(\%lmins_u,$fhu);
 consistify(\%lmins_b,$fhb);
 close($fhu);
 close($fhb);
-print Dumper(\%lmins_u);
-print Dumper(\%lmins_b);
+#print Dumper(\%lmins_u);
+#print Dumper(\%lmins_b);
 open $fhra, "<", $rates
   or die "Cannot open filehandle for ASCII rates file: $!\n";
 open $fhrb, "<:raw", $binrates
@@ -147,25 +147,43 @@ sub parse_binrates {
 
 sub reorder_matrix {
   my ($r,$lu,$lb,$d) = @_;
+  my $maxi=1;
+  my ($i,$j,$oi,$oj);
   my @n = ();
+  my %lm = (); # merged lmin map old id -> new id
+  my %lmr = ();
+
+  # initialize new, reordered rates matrix
   for(my $i=0;$i<$dim;$i++){
     for(my $j=0;$j<$dim;$j++){
       $n[$dim*$i+$j]=0.;
     }
   }
-  foreach my $old (sort {$a <=> $b} keys %$lu){ # unbound states
-    my $new = $$lu{$old};
-    print "u $old => $new\n";
-    for (my $j=0;$j<$d;$j++){
-      $n[$dim*$new+$j]=$$r[$dim*$old+$j];
-      $n[$dim*$j+$new]=$$r[$dim*$j+$old];
+
+  # merge lookup lmin hashes
+  foreach my $key (keys %$lu){ # unbound states
+    if($$lu{$key}>$maxi){$maxi =  $$lu{$key}}
+    $lm{$key} = $$lu{$key};
+  }
+  foreach my $key (keys %$lb){ # bound states
+    die "inconsistency if lmin hash: lmin $key already assigned\n"
+      if (exists $lm{$key});
+    $lm{$key} = $$lb{$key}+$maxi;
+  }
+  #print Dumper(\%lm);
+  %lmr = reverse %lm;
+  #print Dumper(\%lmr);
+  for($i=1;$i<=$dim;$i++){
+    $oi=$lmr{$i};
+    #print "oi=$oi\n";
+    $oi--;
+    for($j=1;$j<=$dim;$j++){
+      $oj=$lmr{$j}-1;
+      $n[$dim*($i-1)+($j-1)]=$$r[$dim*$oi+$oj];
     }
+#    print "\n";
   }
   dump_matrix(\@n,$dim);
-  foreach my $old (sort {$a <=> $b} keys %$lb){ # bound states
-    my $new = $$lb{$old};
-    print "b $old => $new\n";
-  }
 }
 
 sub dump_matrix {
