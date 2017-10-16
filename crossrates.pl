@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-10-13 15:53:57 mtw>
+# Last changed Time-stamp: <2017-10-14 17:04:26 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 my ($sequence,$unbound,$bound,$fhu,$fhb,$fhra,$fhrb);
-my ($basename,$bardir,$suffix);
+my ($basename,$bardir,$suffix,$rates,$ratesr,$dim);
 my $bar=undef;
 my $rates="rates.out";
 my $binrates="rates.bin";
@@ -47,52 +47,52 @@ else{
   $bound = $bar.".bound";
   $unbound = $bar.".unbound";
 }
-
 open $fhu, ">", $unbound
   or die "Cannot open filehandle for unbound: $!\n";
 open $fhb, ">", $bound
   or die "Cannot open filehandle for bound: $!\n";
-parse_barfile($bar);
+$dim = parse_barfile($bar);
 consistify(\%lmins_u,$fhu);
 consistify(\%lmins_b,$fhb);
 close($fhu);
 close($fhb);
-
+print Dumper(\%lmins_u);
+print Dumper(\%lmins_b);
 open $fhra, "<", $rates
   or die "Cannot open filehandle for ASCII rates file: $!\n";
 open $fhrb, "<:raw", $binrates
   or die "Cannot open filehandle for binary rates file: $!\n";
-parse_binrates($fhrb);
+$rates = parse_binrates($fhrb);
+$ratesr = reorder_matrix($rates,\%lmins_u,\%lmins_b,$dim);
 close($fhra);
 close($fhrb);
 
 sub consistify {
-  my ($ref,$fh) = @_;
-  my %basin = %$ref;
-  my $start = 1; # needed to check for first lmin
-  my $ii=1;
-  foreach my $i (sort {$a <=> $b} keys %basin){
+  my ($B,$fh) = @_;
+  my $start = 1;
+  my $ii = 1;
+
+  foreach my $i (sort {$a <=> $b} keys %$B){
     my $b_father = $bar_o[$i-1][3];
-    if($start == 1){
+    if($start == 1){ # for first lmin only
       printf($fh "     %s\n", $sequence);
-      if ($i > 1){ # this subtree doesnt start with lmin 1
+      if ($i > 1){   # this subtree doesnt start with lmin 1
 	$bar_o[$i-1][0] = $ii;
-	$basin{$i} = $ii;
+	$$B{$i} = $ii;
       }
       $start=0;
     }
     $bar_o[$i-1][0] = $ii; # assign new lmin number
-    $basin{$i}=$ii;        # map old lmin number -> new lmin number
+    $$B{$i}=$ii;           # map old lmin number -> new lmin number
     if($b_father == 0){    # adjust father
       $bar_o[$i-1][3] = 0;
     }
     else{
-      $bar_o[$i-1][3] = $basin{$b_father};
+      $bar_o[$i-1][3] = $$B{$b_father};
     }
     print_barline($bar_o[$i-1],$fh);
     $ii++;
   }
-
 }
 
 sub print_barline {
@@ -107,11 +107,13 @@ sub parse_barfile {
   my ($barfile) = @_;
   my $fh = new IO::File "< $barfile" or die "no file: $barfile found\n";
   my $firstline = <$fh>;
+  my $i = 0;
   $sequence = $1 if ($firstline =~ /(\S+)/);
 
   my $idx = 0;
   my ($mdx, $min_dist, $mstr);
   while(<$fh>) {
+    $i++;
     my @line = split;
     push @bar_o, \@line;
     if ($line[1] =~ /\*/){
@@ -122,7 +124,7 @@ sub parse_barfile {
     }
   }
   $fh->close;
-  return;
+  return $i;
 }
 
 sub parse_binrates {
@@ -136,9 +138,43 @@ sub parse_binrates {
   print "$d\n";
   for my $row (0..$d-1){
     for my $col (0..$d-1){
-      printf (STDOUT "%10.4g ", $m[$d*$row+$col]);
+   #   printf (STDOUT "%10.4g ", $m[$d*$row+$col]);
     }
-    printf (STDOUT "\n");
+#    printf (STDOUT "\n");
+  }
+  return \@m;
+}
+
+sub reorder_matrix {
+  my ($r,$lu,$lb,$d) = @_;
+  my @n = ();
+  for(my $i=0;$i<$dim;$i++){
+    for(my $j=0;$j<$dim;$j++){
+      $n[$dim*$i+$j]=0.;
+    }
+  }
+  foreach my $old (sort {$a <=> $b} keys %$lu){ # unbound states
+    my $new = $$lu{$old};
+    print "u $old => $new\n";
+    for (my $j=0;$j<$d;$j++){
+      $n[$dim*$new+$j]=$$r[$dim*$old+$j];
+      $n[$dim*$j+$new]=$$r[$dim*$j+$old];
+    }
+  }
+  dump_matrix(\@n,$dim);
+  foreach my $old (sort {$a <=> $b} keys %$lb){ # bound states
+    my $new = $$lb{$old};
+    print "b $old => $new\n";
+  }
+}
+
+sub dump_matrix {
+  my ($mx,$dim) = @_;
+  for(my $i=0;$i<$dim;$i++){
+    for(my $j=0;$j<$dim;$j++){
+      printf STDOUT "%10.4g ",$$mx[$dim*$i+$j];
+    }
+    print STDOUT "\n";
   }
 }
 
