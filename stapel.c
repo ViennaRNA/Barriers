@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-08 16:46:39 ivo> */
+/* Last changed Time-stamp: <2017-10-20 11:42:37 mtw> */
 /* stapel.c */
 
 #include<stdio.h>
@@ -25,7 +25,7 @@ void free_stapel(void);
 /**/
 void ini_stapel(int size) {
   int i;
-  len = size+2;
+  len = size+3;
   v = (char**) space(BASIS_SIZE * sizeof(char*));    
   for (i=0;i<BASIS_SIZE;i++) v[i] = (char*) space(len*sizeof(char));
   stapelTop=0;
