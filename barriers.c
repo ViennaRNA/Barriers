@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-11 16:14:34 mtw> */
+/* Last changed Time-stamp: <2017-10-20 14:03:39 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -318,7 +318,6 @@ loc_min *barriers(barrier_options opt) {
   }
 
   while (read_data(opt, &new_en,form,length,POV)) {
-    /* fprintf(stderr, "R%s\n", form); */
     if (readl==0) mfe=energy=new_en;
     if (new_en<energy)
       nrerror("unsorted list!\n");
@@ -930,6 +929,8 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
 	(void) sprintf(L,"%d",s1);
 	nodes[s1-1].label = L;
       }
+      else
+	free(L);
       if((POV_size)&&(Lmin[ii].global)) {
 	(void) sprintf(L,"%d *",s1);
 	nodes[s1-1].label = L;
@@ -943,6 +944,9 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
     PS_tree_plot(nodes, max_print, "treeR.ps");
   else
     PS_tree_plot(nodes, max_print, "tree.ps");
+  for(i=0;i<(max_print);i++)
+    if(nodes[i].label != NULL)
+      free(nodes[i].label);
   free(nodes);
 }
 
