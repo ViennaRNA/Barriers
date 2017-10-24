@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-10-24 14:16:23 mtw>
+# Last changed Time-stamp: <2017-10-24 14:31:48 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -42,7 +42,8 @@ pod2usage(-verbose => 1) unless GetOptions(
 					  );
 unless (-f $rates) {
   warn "Could not find barriers ASCII rates file '$rates'";
-  pod2usage(-verbose => 0);
+  warn " ... continuing with binary rates";
+  # pod2usage(-verbose => 0);
 }
 unless (-f $binrates) {
   warn "Could not find barriers binary rates file '$binrates'";
@@ -291,16 +292,24 @@ crossrates.pl - A barriers-ligand post-processor
 
 =head1 SYNOPSIS
 
-crossrates.pl [-b|--bar I<FILE>] [options]
+crossrates.pl [-b|--bar I<FILE>] [--binrates I<FILE>] [options]
 
 =head1 DESCRIPTION
 
 This script is a post-processing utility for "barriers -M ligand"
-calls.
+calls. It expects a bar file provided via the B<'--bar'> command line
+option as well as a I<binary> rates matrix provided via the
+B<'--binrates'> option.
 
 It deconvolutes ligand bound (aka 'starred') and unbound (regular)
-states into separate bar files, reorganizes barrier rates matrices and
-adjusts them for different ligand binding energies and concentrations.
+states into separate bar files, and produces a reorganized bar file
+where unbound states are listed first, followed by all bound
+states. It further reorganizes barriers rates matrices accordingly and
+adjusts the cross-terms (i.e. those holding k_on and k_off rates)
+for different ligand binding energies and concentrations. This
+reorganization is done primarily to facilitate post-processing by
+e.g. treekin or BarMap by grouping (and thereby separating) bound and
+unbound states.
 
 =head1 OPTIONS
 
