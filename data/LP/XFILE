@@ -1,0 +1,3 @@
+../../barriers -M ligand --saddle --bsize --rates < ../d29.e20.subbS > d29.e20.LP.bar
+../../crossrates.pl -b d29.e20.LP.bar
+

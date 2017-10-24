@@ -1,0 +1,1 @@
+~/Perl/Barmap/subopt_b.pl -s d29.e20.sub -p ".........(((.....)))........." -b 0. | sort -k2,2n -k1,1r -T /tmp > d29.e20.pattern2.subbS

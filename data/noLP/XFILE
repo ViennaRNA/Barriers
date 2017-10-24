@@ -1,0 +1,2 @@
+../../barriers -M ligand --saddle --bsize --rates -G RNA-noLP < ../d29.e30.noLP.subbS > d29.e30.noLP.bar
+../../crossrates.pl -b d29.e30.noLP.bar
