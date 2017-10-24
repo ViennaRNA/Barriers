@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-10-20 15:48:54 mtw>
+# Last changed Time-stamp: <2017-10-24 14:16:23 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -9,14 +9,17 @@ use File::Basename;
 use strict;
 use warnings;
 
-my ($sequence,$fnunbound,$fnbound,$fhu,$fhb,$fhra,$fhrb);
-my ($ratesr,$dim,$fnrbr,$fhrbr);
+my ($fnbu,$fnbb,$fnbr,$fhbu,$fhbb,$fhbr,$fhra,$fhrb,$fnrbr,$fhrbr);
+my ($sequence,$ratesr,$ratesra,$dim,$maxb);
 my $bar=undef;
 my $rates="rates.out";
 my $binrates="rates.bin";
-my %lmins_b = (); # indices of ligand-bound lmins
-my %lmins_u = (); # indices of unbound lmins
-my @bar_o   = (); # AoH holding the original bar file
+my %lminB    = (); # indices of ligand-bound lmins
+my %lminU    = (); # indices of unbound lmins
+my %lminMap  = (); # map old => new lmin numbers
+my %lminMapR = (); # map new => old lmin numbers
+my @bar_o    = (); # AoH holding the original bar file
+my @bar_b    = (); # AoH holding the original bar file (backup copy)
 my $T=37.;
 my $K0=-273.15;
 my $DuplexInit37=410;
@@ -51,50 +54,53 @@ unless (-f $bar){
 }
 if($bar =~ m/\.bar$/){
   my ($basename,$dir,$suffix) = fileparse($bar,qr/\.bar/);
-  $fnbound = $dir.$basename.".bound".$suffix;
-  $fnunbound = $dir.$basename.".unbound".$suffix;
+  $fnbb = $dir.$basename.".bound".$suffix;
+  $fnbu = $dir.$basename.".unbound".$suffix;
+  $fnbr = $dir.$basename.".r".$suffix;
 }
 else{
-  $fnbound = $bar.".bound";
-  $fnunbound = $bar.".unbound";
+  $fnbb = $bar.".bound";
+  $fnbu = $bar.".unbound";
+  $fnbr = $bar.".r";
 }
 if($binrates =~ m/\.bin$/){
   my ($basename,$dir,$suffix) = fileparse($binrates,qr/\.bin/);
   $fnrbr = $dir.$basename.".r".$suffix;
 }
-else{
-  $fnrbr = $binrates.".r";
-}
+else{$fnrbr = $binrates.".r"}
 
 scale_duplexInitiationEnergy($T);
 print "DuplexInit: $DuplexInit\n";
 my $kT = 0.00198717*($K0+$T);
 my $Beta = 1/$kT;
 
-open $fhu, ">", $fnunbound
+open $fhbu, ">", $fnbu
   or die "Cannot open filehandle for unbound bar file: $!\n";
-open $fhb, ">", $fnbound
+open $fhbb, ">", $fnbb
   or die "Cannot open filehandle for bound bar file: $!\n";
+open $fhbr, ">", $fnbr
+  or die "Cannot open filehandle for reordered bar file: $!\n";
 $dim = parse_barfile($bar);
-print "dim is $dim\n";
-consistify(\%lmins_u,$fhu);
-consistify(\%lmins_b,$fhb);
-close($fhu);
-close($fhb);
-#print Dumper(\%lmins_u);
-#print Dumper(\%lmins_b);
+consistify(\%lminU,$fhbu);
+consistify(\%lminB,$fhbb);
+$maxb = lmins_old2new(\%lminU,\%lminB);
+write_reordered_barfile(\%lminMap,\%lminMapR,$fhbr);
+close($fhbu);
+close($fhbb);
+close($fhbr);
+
 open $fhra, "<", $rates
   or die "Cannot open filehandle for ASCII rates file: $!\n";
 close($fhra);
-
 open $fhrb, "<:raw", $binrates
   or die "Cannot open filehandle for reading binary rates file: $!\n";
 open $fhrbr, ">:raw", $fnrbr
   or die "Cannot open filehandle for writing binary rates file: $!\n";
 $rates = parse_binrates($fhrb);
-$ratesr = reorder_matrix($rates,\%lmins_u,\%lmins_b,$dim);
-#dump_matrix($ratesr,$dim);
-write_binrates($ratesr,$fhrbr,$dim);
+$ratesr = reorder_matrix($rates,$dim); # re-order matrix, unbound states first
+$ratesra = adjust_crossterms($ratesr,$maxb,$dim);
+#dump_matrix($ratesra,$dim);
+write_binrates($ratesra,$fhrbr,$dim);
 close($fhrb);
 close($fhrbr);
 
@@ -102,7 +108,6 @@ sub consistify {
   my ($B,$fh) = @_;
   my $start = 1;
   my $ii = 1;
-
   foreach my $i (sort {$a <=> $b} keys %$B){
     my $b_father = $bar_o[$i-1][3];
     if($start == 1){ # for first lmin only
@@ -123,6 +128,23 @@ sub consistify {
     }
     print_barline($bar_o[$i-1],$fh);
     $ii++;
+  }
+}
+
+sub write_reordered_barfile {
+  my ($B,$BR,$fh) = @_;
+  printf($fh "     %s\n", $sequence);
+  foreach my $i (sort {$a <=> $b} keys %$BR){
+    my $olmin = $$BR{$i};
+    $bar_b[$olmin-1][0] = $i;
+    my $ofather =  $bar_b[$olmin-1][3];
+    if (defined $$B{$ofather}){
+      $bar_b[$olmin-1][3] = $$B{$ofather};
+    }
+    else{
+      $bar_b[$olmin-1][3] = 0;
+    }
+    print_barline($bar_b[$olmin-1],$fh);
   }
 }
 
@@ -148,13 +170,14 @@ sub parse_barfile {
     my @line = split;
     push @bar_o, \@line;
     if ($line[1] =~ /\*/){
-      $lmins_b{$line[0]}=1;
+      $lminB{$line[0]}=1;
     }
     else {
-      $lmins_u{$line[0]}=1;
+      $lminU{$line[0]}=1;
     }
   }
   $fh->close;
+  @bar_b = map { [@$_] } @bar_o; # deep copy bar_o
   return $i;
 }
 
@@ -180,75 +203,65 @@ sub write_binrates {
   }
 }
 
-sub reorder_matrix {
-  my ($r,$lu,$lb,$d) = @_;
+sub lmins_old2new {
+  my ($lu,$lb) = @_;
   my $maxi=1;
-  my ($i,$j,$oi,$oj);
-  my @n = ();
-  my %lm = (); # merged lmin map old id -> new id
-  my %lmr = ();
-
-  # initialize new, reordered rates matrix
-  for(my $i=0;$i<$dim;$i++){
-    for(my $j=0;$j<$dim;$j++){
-      $n[$dim*$i+$j]=0.;
-    }
-  }
-  
-  print "LU:\n";
-  print Dumper($lu);
-  print "LB:\n";
-  print Dumper($lb);
 
   # merge lookup lmin hashes
   foreach my $key (keys %$lu){ # unbound states
-    if($$lu{$key}>$maxi){$maxi =  $$lu{$key}}
-    $lm{$key} = $$lu{$key};
+    if($$lu{$key}>$maxi){$maxi = $$lu{$key}}
+    $lminMap{$key} = $$lu{$key};
   }
-  print "maxi=$maxi\n";
   foreach my $key (keys %$lb){ # bound states
     die "inconsistency in lmin hash: lmin $key already assigned\n"
-      if (exists $lm{$key});
-    $lm{$key} = $$lb{$key}+$maxi;
+      if (exists $lminMap{$key});
+    $lminMap{$key} = $$lb{$key}+$maxi;
   }
 
-  #print Dumper(\%lm);
-  %lmr = reverse %lm;
-  #print Dumper(\%lmr);
-  for($i=1;$i<=$dim;$i++){
-    $oi=$lmr{$i};
-    $oi--;
-    for($j=1;$j<=$dim;$j++){
-      $oj=$lmr{$j}-1;
-      $n[$dim*($i-1)+($j-1)]=$$r[$dim*$oi+$oj];
+  %lminMapR = reverse %lminMap;
+
+  # print "LU:\n"; print Dumper($lu); print "LB:\n"; print Dumper($lb);
+  # print "LM:\n"; print Dumper(\%lminMap);
+  # print "LMR:\n";  print Dumper(\%lminMapR);
+  return $maxi;
+}
+
+sub reorder_matrix {
+  my ($r,$d) = @_;
+  my ($i,$j,$oi,$oj);
+  my @n = ();
+
+  for($i=0;$i<$dim;$i++){
+    for($j=0;$j<$dim;$j++){
+      $n[$dim*$i+$j]=0.;  # initialize new, reordered rates matrix
     }
-#    print "\n";
   }
 
-  my $a = adjust_crossterms(\@n,$maxi,$dim);
-#  dump_matrix($a,$dim);
-
-  
-  return $a;
+  for($i=1;$i<=$dim;$i++){
+    $oi=$lminMapR{$i};
+    for($j=1;$j<=$dim;$j++){
+      $oj=$lminMapR{$j};
+      $n[$dim*($i-1)+($j-1)]=$$r[$dim*($oi-1)+($oj-1)];
+    }
+  }
+  return \@n;
 }
 
 sub  adjust_crossterms{
   my ($mx,$max,$dim) = @_;
+
   # dump_matrix($mx,$dim);
   for (my $i=0;$i<$max;$i++){ # ON rate
     for(my $j=$max;$j<$dim;$j++){
-      # $$mx[$dim*$i+$j] *= $Conc*$DuplexInit;
       $$mx[$dim*$j+$i] *= $Conc*$DuplexInit;
     }
   }
 
    for (my $i=$max;$i<$dim;$i++){ # OFF rate
     for(my $j=0;$j<$max;$j++){
-      # $$mx[$dim*$i+$j] *= $DuplexInit * exp(-$Beta*$BindingBonus);
       $$mx[$dim*$j+$i] *= $DuplexInit * exp(-$Beta*$BindingBonus);
     }
   }
-  # dump_matrix($mx,$dim);
   return $mx;
 }
 
@@ -287,7 +300,7 @@ calls.
 
 It deconvolutes ligand bound (aka 'starred') and unbound (regular)
 states into separate bar files, reorganizes barrier rates matrices and
-adjusts them for different ligand binding energies, concentrations.
+adjusts them for different ligand binding energies and concentrations.
 
 =head1 OPTIONS
 
@@ -296,6 +309,14 @@ adjusts them for different ligand binding energies, concentrations.
 =item B<-b|--bar>
 
 RNA energy landscape in Barriers format (.bar file)
+
+=item B<-C|--conc>
+
+Ligand concentration (default: 1.0)
+
+=item B<-E|--energy>
+
+Ligand binding (stabilization) energy in kcal/mol (default: 0.0)
 
 =item B<-T|--temp>
 
