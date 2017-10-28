@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-10-24 14:31:48 mtw>
+# Last changed Time-stamp: <2017-10-28 16:22:47 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -10,9 +10,9 @@ use strict;
 use warnings;
 
 my ($fnbu,$fnbb,$fnbr,$fhbu,$fhbb,$fhbr,$fhra,$fhrb,$fnrbr,$fhrbr);
-my ($sequence,$ratesr,$ratesra,$dim,$maxb);
+my ($sequence,$ratesr,$ratesra,$dim,$maxb,$rates);
 my $bar=undef;
-my $rates="rates.out";
+my $asciirates="rates.out";
 my $binrates="rates.bin";
 my %lminB    = (); # indices of ligand-bound lmins
 my %lminU    = (); # indices of unbound lmins
@@ -32,7 +32,7 @@ my $BindingBonus = 0.;
 Getopt::Long::config('no_ignore_case');
 pod2usage(-verbose => 1) unless GetOptions(
 					   "b|bar=s"    => \$bar,
-					   "rates=s"    => \$rates,
+				#	   "rates=s"    => \$asciirates,
 					   "binrates=s" => \$binrates,
 					   "T|temp=f"   => \$T,
 					   "C|conc=f"   => \$Conc,
@@ -40,11 +40,11 @@ pod2usage(-verbose => 1) unless GetOptions(
 					   "man"        => sub{pod2usage(-verbose => 2)},
                                            "h|help"     => sub{pod2usage(1)}
 					  );
-unless (-f $rates) {
-  warn "Could not find barriers ASCII rates file '$rates'";
-  warn " ... continuing with binary rates";
+#unless (-f $asciirates) {
+#  warn "Could not find barriers ASCII rates file '$rates'";
+#  warn " ... continuing with binary rates";
   # pod2usage(-verbose => 0);
-}
+#}
 unless (-f $binrates) {
   warn "Could not find barriers binary rates file '$binrates'";
   pod2usage(-verbose => 0);
@@ -55,13 +55,13 @@ unless (-f $bar){
 }
 if($bar =~ m/\.bar$/){
   my ($basename,$dir,$suffix) = fileparse($bar,qr/\.bar/);
-  $fnbb = $dir.$basename.".bound".$suffix;
-  $fnbu = $dir.$basename.".unbound".$suffix;
+  $fnbb = $dir.$basename.".b".$suffix;
+  $fnbu = $dir.$basename.".u".$suffix;
   $fnbr = $dir.$basename.".r".$suffix;
 }
 else{
-  $fnbb = $bar.".bound";
-  $fnbu = $bar.".unbound";
+  $fnbb = $bar.".b";
+  $fnbu = $bar.".u";
   $fnbr = $bar.".r";
 }
 if($binrates =~ m/\.bin$/){
@@ -90,9 +90,9 @@ close($fhbu);
 close($fhbb);
 close($fhbr);
 
-open $fhra, "<", $rates
-  or die "Cannot open filehandle for ASCII rates file: $!\n";
-close($fhra);
+#open $fhra, "<", $rates
+#  or die "Cannot open filehandle for ASCII rates file: $!\n";
+#close($fhra);
 open $fhrb, "<:raw", $binrates
   or die "Cannot open filehandle for reading binary rates file: $!\n";
 open $fhrbr, ">:raw", $fnrbr
@@ -334,10 +334,6 @@ Simulation temperature in Celsius (default: 37.0)
 =item B<--binrates>
 
 Binary rates file (default: 'rates.bin')
-
-=item B<--rates>
-
-ASCII rates file (default: 'rates.out')
 
 =back
 
