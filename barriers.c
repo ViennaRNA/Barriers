@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-20 14:03:39 mtw> */
+/* Last changed Time-stamp: <2017-10-30 12:49:18 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -832,6 +832,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 	      Lmin[i].my_GradPool, mfe -kT*log(lmin[i].Zg));
     printf("\n");
 
+#if 0
     {
       /* check if ligand/protein bound structure is present in all worlds */
       if(laststruc != NULL) { /* for all but the first structure */
@@ -846,6 +847,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
 	free(last);
       }
     }
+#endif
     if(laststruc != NULL) {free(laststruc);}
     laststruc = strdup(struc);
     free(struc);
