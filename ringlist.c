@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-20 11:26:32 mtw> */
+/* Last changed Time-stamp: <2017-10-30 14:22:26 mtw> */
 /* ringlist.c */
 
 #include<stdio.h>
@@ -222,7 +222,9 @@ void RNA_move_it(char *form){
   one additional char at the end of the structure, as e.g. in ligand
   case */
   ini_or_reset_rl(farbe, form);
-  /* fprintf(stderr, "m %s\n", form); */
+#ifdef DEBUG_NB
+  fprintf(stderr, "m %s\n", form);
+#endif
   if (noLP) { /* canonic neighbours only */
     for ( i=0; i<poListop; i++) {
       inb_nolp(poList[i]);
@@ -247,7 +249,9 @@ void RNA_move_it(char *form){
 void RNA_move_it_rates(char *form){
   int i, formlen;
   bool hasstar = false;
-  /* fprintf(stderr, "mR%s\n", form); */
+#ifdef DEBUG_NB
+  fprintf(stderr, "mR%s\n", form);
+#endif
   formlen = strlen(form);
   if(form[formlen-1] == '*')
     hasstar = true;
@@ -282,7 +286,9 @@ static void inb(rlItem *root) {
       if(rlj->typ=='p') continue;
       if(pair[rli->base][rlj->base]){
         close_bp(rli,rlj);
-	/* fprintf(stderr, "i%s\n", form); */
+#ifdef DEBUG_NB
+	fprintf(stderr, "i%s\n", form);
+#endif
 	push(form);
         open_bp(rli);
       }
@@ -305,7 +311,9 @@ static void inb_nolp(rlItem *root){
 	    (rli->next == rlj->prev)) {
 	  /* base pair extends helix */
 	  close_bp(rli,rlj);
-	  /* fprintf(stderr, "iS%s\n", form); */
+#ifdef DEBUG_NB
+	  fprintf(stderr, "iS%s\n", form);
+#endif
 	  push(form);
 	  open_bp(rli);
 	}
@@ -324,8 +332,14 @@ static void inb_nolp(rlItem *root){
 	    form[len]='D';
 	    form[len+1]='\0';
 	  }
-	  /* fprintf(stderr, "iD%s\n", form); */
+#ifdef DEBUG_NB
+	  fprintf(stderr, "iD%s\n", form);
+#endif
 	  push(form);
+	  if(form[len] == '*') /* reset inserted D */
+	    form[len+1]='\0';
+	  else
+	    form[len]='\0';
 	  /* form[len]='\0'; */
 	  open_bp(rli);
 	  open_bp(rli->next);
@@ -430,8 +444,14 @@ static void dnb_nolp(rlItem *rli) {
       form[len]='D';
       form[len+1]='\0';
     }
-    /* fprintf(stderr, "dD%s\n", form); */
+#ifdef DEBUG_NB
+    fprintf(stderr, "dD%s\n", form);
+#endif
     push(form);
+    if(form[len] == '*') /* reset inserted D */
+      form[len+1]='\0';
+    else
+      form[len]='\0';
     /* form[len]='\0'; */
     close_bp(rlin, rljn);
     close_bp(rli, rlj);
@@ -440,7 +460,9 @@ static void dnb_nolp(rlItem *rli) {
     if (rlip==NULL || (rlip->prev == rlip->next && rlip->prev->typ != 'x')) 
       if (rlin ==NULL || (rljn->next == rljn->prev)) {
 	open_bp(rli);
-	/* fprintf(stderr, "dS%s\n", form); */
+#ifdef DEBUG_NB
+	fprintf(stderr, "dS%s\n", form);
+#endif
 	push(form);
 	close_bp(rli, rlj);
       }
