@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-06 12:46:55 mtw> */
+/* Last changed Time-stamp: <2017-10-31 14:59:55 mtw> */
 /* main.c */
 
 #include <stdio.h>
@@ -34,7 +34,7 @@ int main (int argc, char *argv[]) {
   char *line;
   loc_min *LM;
   int *tm;
-  int i;
+  int i,errorcode=0;
   char signal[100]="", what[100]="", stuff[100]="";
 
   /* Parse command line */
@@ -190,22 +190,29 @@ int main (int argc, char *argv[]) {
   }
 
   if (args_info.mapstruc_given) {
-    FILE *MAPF=NULL;
-    char *line=NULL, *token=NULL;
+    FILE *MAPFIN=NULL, *MAPFOUT=NULL;
+    char *line=NULL, *token=NULL, *fname="mapstruc.out";
    
-    MAPF = fopen(args_info.mapstruc_arg, "r");
-    if (MAPF == NULL) nrerror("couldn't open mapfile for reading");
+    MAPFIN = fopen(args_info.mapstruc_arg, "r");
+    if (MAPFIN == NULL) nrerror("couldn't open mapfile for reading");
 
-    while (line=get_line(MAPF)) {
+    MAPFOUT = fopen(fname, "w");
+    if (!MAPFOUT) {
+      fprintf(stderr, "could not open mapstruc file %s for output\n", fname);
+      errorcode=101;
+    }
+    
+    while (line=get_line(MAPFIN)) {
       map_struc myms;
       token=strtok(line," \t");
       myms = get_mapstruc(token, LM, tm);
-      fprintf(stderr, "%s %6d %6.2f %3d %3d %3d %3d\n", myms.structure, myms.n, myms.energy,
+      fprintf(MAPFOUT, "%s %6d %6.2f %3d %3d %3d %3d\n", myms.structure, myms.n, myms.energy,
 	      myms.min, myms.truemin, myms.gradmin, myms.truegradmin);
       free(myms.structure);
       free(line);
     }
-    fclose(MAPF);
+    fclose(MAPFIN);
+    fclose(MAPFOUT);
   }
   
   /* memory cleanup */
@@ -216,7 +223,7 @@ int main (int argc, char *argv[]) {
   kill_hash(); /* freeing the hash takes unacceptably long */
 #endif
   cmdline_parser_free(&args_info);
-  exit(0);
+  exit(errorcode);
 }
 
 static int decode_switches (int argc, char **argv)
