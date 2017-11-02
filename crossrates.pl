@@ -1,15 +1,16 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-10-28 16:22:47 mtw>
+# Last changed Time-stamp: <2017-11-01 19:04:19 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
 use Pod::Usage;
 use File::Basename;
+use YAML::XS qw(LoadFile DumpFile);
 use strict;
 use warnings;
 
-my ($fnbu,$fnbb,$fnbr,$fhbu,$fhbb,$fhbr,$fhra,$fhrb,$fnrbr,$fhrbr);
+my ($fnbu,$fnbb,$fnbr,$fhbu,$fhbb,$fhbr,$fhra,$fhrb,$fnrbr,$fhrbr,$fnm);
 my ($sequence,$ratesr,$ratesra,$dim,$maxb,$rates);
 my $bar=undef;
 my $asciirates="rates.out";
@@ -24,10 +25,11 @@ my $T=37.;
 my $K0=-273.15;
 my $DuplexInit37=410;
 my $DuplexInitdH=360;
-my $DuplexInit = 0.;
-my $Conc = 1.;
-my $BindingBonus = 0.;
-
+my $DuplexInit=0.;
+my $Conc=1.;
+my $BindingBonus=0.;
+my $ymlminmap=undef;
+my $has_map=0;
 
 Getopt::Long::config('no_ignore_case');
 pod2usage(-verbose => 1) unless GetOptions(
@@ -37,9 +39,21 @@ pod2usage(-verbose => 1) unless GetOptions(
 					   "T|temp=f"   => \$T,
 					   "C|conc=f"   => \$Conc,
 					   "E|energy=f" => \$BindingBonus,
+					   "map"        => \$ymlminmap,
 					   "man"        => sub{pod2usage(-verbose => 2)},
                                            "h|help"     => sub{pod2usage(1)}
 					  );
+if (defined $ymlminmap){
+  unless (-f $ymlminmap) {
+    warn "Could not find YAML lmin map file '$ymlminmap'";
+    pod2usage(-verbose => 0);
+  }
+  $has_map=1;
+  my $lminMapRef = LoadFile($ymlminmap);
+  %lminMap = %$lminMapRef;
+  %lminMapR = reverse %lminMap;
+  $dim = sort { $b <=> $a } keys %lminMap; # dim = largest hash key
+}
 #unless (-f $asciirates) {
 #  warn "Could not find barriers ASCII rates file '$rates'";
 #  warn " ... continuing with binary rates";
@@ -58,11 +72,13 @@ if($bar =~ m/\.bar$/){
   $fnbb = $dir.$basename.".b".$suffix;
   $fnbu = $dir.$basename.".u".$suffix;
   $fnbr = $dir.$basename.".r".$suffix;
+  $fnm  = $dir.$basename.".r.yaml";
 }
 else{
   $fnbb = $bar.".b";
   $fnbu = $bar.".u";
   $fnbr = $bar.".r";
+  $fnm  = $bar.".r.yaml";
 }
 if($binrates =~ m/\.bin$/){
   my ($basename,$dir,$suffix) = fileparse($binrates,qr/\.bin/);
@@ -75,20 +91,22 @@ print "DuplexInit: $DuplexInit\n";
 my $kT = 0.00198717*($K0+$T);
 my $Beta = 1/$kT;
 
-open $fhbu, ">", $fnbu
-  or die "Cannot open filehandle for unbound bar file: $!\n";
-open $fhbb, ">", $fnbb
-  or die "Cannot open filehandle for bound bar file: $!\n";
-open $fhbr, ">", $fnbr
-  or die "Cannot open filehandle for reordered bar file: $!\n";
-$dim = parse_barfile($bar);
-consistify(\%lminU,$fhbu);
-consistify(\%lminB,$fhbb);
-$maxb = lmins_old2new(\%lminU,\%lminB);
-write_reordered_barfile(\%lminMap,\%lminMapR,$fhbr);
-close($fhbu);
-close($fhbb);
-close($fhbr);
+unless ($has_map == 1){ # if YAML lmin map was not provided
+  open $fhbu, ">", $fnbu
+    or die "Cannot open filehandle for unbound bar file: $!\n";
+  open $fhbb, ">", $fnbb
+    or die "Cannot open filehandle for bound bar file: $!\n";
+  open $fhbr, ">", $fnbr
+    or die "Cannot open filehandle for reordered bar file: $!\n";
+  $dim = parse_barfile($bar);
+  consistify(\%lminU,$fhbu);
+  consistify(\%lminB,$fhbb);
+  $maxb = lmins_old2new(\%lminU,\%lminB);
+  write_reordered_barfile(\%lminMap,\%lminMapR,$fhbr);
+  close($fhbu);
+  close($fhbb);
+  close($fhbr);
+}
 
 #open $fhra, "<", $rates
 #  or die "Cannot open filehandle for ASCII rates file: $!\n";
@@ -97,7 +115,9 @@ open $fhrb, "<:raw", $binrates
   or die "Cannot open filehandle for reading binary rates file: $!\n";
 open $fhrbr, ">:raw", $fnrbr
   or die "Cannot open filehandle for writing binary rates file: $!\n";
-$rates = parse_binrates($fhrb);
+($dimr,$rates) = parse_binrates($fhrb);
+die "dimension mismatch: $dim from YAML file != $dimr from rates file $!\n"
+  unless ($dim == $dimr);
 $ratesr = reorder_matrix($rates,$dim); # re-order matrix, unbound states first
 $ratesra = adjust_crossterms($ratesr,$maxb,$dim);
 #dump_matrix($ratesra,$dim);
@@ -191,7 +211,7 @@ sub parse_binrates {
   @m = unpack("id*", <$fh>);
   $d = shift @m;
   print "$d\n";
-  return \@m;
+  return ($d, \@m);
 }
 
 sub write_binrates {
@@ -221,6 +241,11 @@ sub lmins_old2new {
 
   %lminMapR = reverse %lminMap;
 
+  my %lminH = {unbound => $maxi,
+	       map => \%lminMap}
+
+  DumpFile($fnm, \%lminH);
+  
   # print "LU:\n"; print Dumper($lu); print "LB:\n"; print Dumper($lb);
   # print "LM:\n"; print Dumper(\%lminMap);
   # print "LMR:\n";  print Dumper(\%lminMapR);
