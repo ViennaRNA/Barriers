@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-11-01 19:04:19 mtw>
+# Last changed Time-stamp: <2017-11-02 16:01:42 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -11,7 +11,7 @@ use strict;
 use warnings;
 
 my ($fnbu,$fnbb,$fnbr,$fhbu,$fhbb,$fhbr,$fhra,$fhrb,$fnrbr,$fhrbr,$fnm);
-my ($sequence,$ratesr,$ratesra,$dim,$maxb,$rates);
+my ($sequence,$ratesr,$ratesra,$dim,$dimr,$maxb,$rates);
 my $bar=undef;
 my $asciirates="rates.out";
 my $binrates="rates.bin";
@@ -30,29 +30,38 @@ my $Conc=1.;
 my $BindingBonus=0.;
 my $ymlminmap=undef;
 my $has_map=0;
+my $Aa=600;  # assiciation/dissociation rate
 
 Getopt::Long::config('no_ignore_case');
 pod2usage(-verbose => 1) unless GetOptions(
-					   "b|bar=s"    => \$bar,
-				#	   "rates=s"    => \$asciirates,
-					   "binrates=s" => \$binrates,
-					   "T|temp=f"   => \$T,
-					   "C|conc=f"   => \$Conc,
-					   "E|energy=f" => \$BindingBonus,
-					   "map"        => \$ymlminmap,
-					   "man"        => sub{pod2usage(-verbose => 2)},
-                                           "h|help"     => sub{pod2usage(1)}
+					   "a|assrate=f" => \$Aa,
+					   "b|bar=s"     => \$bar,
+				#	   "rates=s"     => \$asciirates,
+					   "binrates=s"  => \$binrates,
+					   "T|temp=f"    => \$T,
+					   "C|conc=f"    => \$Conc,
+					   "E|energy=f"  => \$BindingBonus,
+					   "map=s"       => \$ymlminmap,
+					   "man"         => sub{pod2usage(-verbose => 2)},
+                                           "h|help"      => sub{pod2usage(1)}
 					  );
-if (defined $ymlminmap){
+
+if (defined $ymlminmap){ # don't process bar file; read lmin map from YAML instead
   unless (-f $ymlminmap) {
     warn "Could not find YAML lmin map file '$ymlminmap'";
     pod2usage(-verbose => 0);
   }
   $has_map=1;
   my $lminMapRef = LoadFile($ymlminmap);
-  %lminMap = %$lminMapRef;
+#  print Dumper($lminMapRef);
+  my $xref = $$lminMapRef{map};
+  %lminMap = %$xref;
   %lminMapR = reverse %lminMap;
-  $dim = sort { $b <=> $a } keys %lminMap; # dim = largest hash key
+  $maxb = %$lminMapRef{unbound};
+  $dim = %$lminMapRef{dim};
+#  print Dumper(\%lminMap);
+#  print Dumper($unbound);
+#  die;
 }
 #unless (-f $asciirates) {
 #  warn "Could not find barriers ASCII rates file '$rates'";
@@ -87,7 +96,7 @@ if($binrates =~ m/\.bin$/){
 else{$fnrbr = $binrates.".r"}
 
 scale_duplexInitiationEnergy($T);
-print "DuplexInit: $DuplexInit\n";
+#print "* crossrates.pl: DuplexInit=$DuplexInit\n";
 my $kT = 0.00198717*($K0+$T);
 my $Beta = 1/$kT;
 
@@ -101,7 +110,7 @@ unless ($has_map == 1){ # if YAML lmin map was not provided
   $dim = parse_barfile($bar);
   consistify(\%lminU,$fhbu);
   consistify(\%lminB,$fhbb);
-  $maxb = lmins_old2new(\%lminU,\%lminB);
+  $maxb = lmins_old2new(\%lminU,\%lminB,$dim);
   write_reordered_barfile(\%lminMap,\%lminMapR,$fhbr);
   close($fhbu);
   close($fhbb);
@@ -210,7 +219,7 @@ sub parse_binrates {
   undef $/;
   @m = unpack("id*", <$fh>);
   $d = shift @m;
-  print "$d\n";
+ # print "$d\n";
   return ($d, \@m);
 }
 
@@ -225,7 +234,7 @@ sub write_binrates {
 }
 
 sub lmins_old2new {
-  my ($lu,$lb) = @_;
+  my ($lu,$lb,$d) = @_;
   my $maxi=1;
 
   # merge lookup lmin hashes
@@ -241,11 +250,12 @@ sub lmins_old2new {
 
   %lminMapR = reverse %lminMap;
 
-  my %lminH = {unbound => $maxi,
-	       map => \%lminMap}
+  my %lminH = (unbound => $maxi,
+	       dim     => $d,
+	       map     => \%lminMap);
 
   DumpFile($fnm, \%lminH);
-  
+
   # print "LU:\n"; print Dumper($lu); print "LB:\n"; print Dumper($lb);
   # print "LM:\n"; print Dumper(\%lminMap);
   # print "LMR:\n";  print Dumper(\%lminMapR);
@@ -279,13 +289,13 @@ sub  adjust_crossterms{
   # dump_matrix($mx,$dim);
   for (my $i=0;$i<$max;$i++){ # ON rate
     for(my $j=$max;$j<$dim;$j++){
-      $$mx[$dim*$j+$i] *= $Conc*$DuplexInit;
+      $$mx[$dim*$j+$i] *= $Conc*$Aa;
     }
   }
 
    for (my $i=$max;$i<$dim;$i++){ # OFF rate
     for(my $j=0;$j<$max;$j++){
-      $$mx[$dim*$j+$i] *= $DuplexInit * exp(-$Beta*$BindingBonus);
+      $$mx[$dim*$j+$i] *= $Aa * exp(-$Beta*$BindingBonus);
     }
   }
   return $mx;
@@ -336,9 +346,20 @@ reorganization is done primarily to facilitate post-processing by
 e.g. treekin or BarMap by grouping (and thereby separating) bound and
 unbound states.
 
+This script also creates a YAML file that contains mapping information
+on lmin reorganization. When called with the B<--map> option, such a
+YAML file is expected and no bar / rates file reorganization is
+performed. This is espeically useful for adjusting the rates matrix'
+cross terms for different ligand concentration and binding bonus
+energies I<without> repleatedly performing the lmin reorganization.
+
 =head1 OPTIONS
 
 =over
+
+=item B<-a|--assrate>
+
+Association/dissociation rate (default: 600)
 
 =item B<-b|--bar>
 
