@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2017-10-06 14:15:40 mtw> */
+/* Last changed Time-stamp: <2017-11-03 13:33:55 mtw> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -370,7 +370,8 @@ PUBLIC char *unpack_structure(const char *packed) {
     struc = (char *) space((len*5+2)*sizeof(char));
   }
   else
-    struc = (char *) space((len*5+1)*sizeof(char));   /* up to 4 byte extra */
+    struc = (char *) space((len*5+2)*sizeof(char));
+  /* +2 above is 'cause we will eventually append a * in compute_rates() */
   struc_endofstr = unpack51(p,struc,len);
   free(p);
   if(isstar){
