@@ -27,6 +27,7 @@ typedef struct {
   double kT;
   int want_quiet;
   int want_verbose;
+  int want_connected;
   char *GRAPH, *MOVESET;
   FILE *INFILE;
   char *seq;

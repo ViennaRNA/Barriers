@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-30 12:49:18 mtw> */
+/* Last changed Time-stamp: <2017-11-04 18:28:17 mtw> */
 /* barriers.c */
 
 #include <stdio.h>
@@ -84,7 +84,7 @@ loc_min  *barriers(barrier_options opt);
 static int  compare(const void *a, const void *b);
 void check_neighbors(void);
 static void merge_basins(void);
-void print_results(loc_min *L, int *tm, char *farbe);
+int print_results(loc_min *L, int *tm, char *farbe);
 void ps_tree(loc_min *Lmin, int *truemin, int rates);
 void print_rates(int n, char *fname);
 map_struc get_mapstruc(char *p, loc_min *LM, int *tm);
@@ -750,9 +750,9 @@ void mark_global(loc_min *Lmin)
 }
 
 /*====================*/
-void print_results(loc_min *Lmin, int *truemin, char *farbe)
+int print_results(loc_min *Lmin, int *truemin, char *farbe)
 {
-  int i,ii,j,k,n;
+  int i,ii,j,k,n,connected=1,ncu=0,ncb=0;
   char *struc=NULL, *laststruc=NULL;;
   char *format=NULL,*formatA=NULL,*formatB=NULL,**seen=NULL;
   bool otherformat=false;
@@ -783,7 +783,23 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     if (cut_point > -1)
       struc = costring(struc);
     n = strlen(struc);
-    f = Lmin[i].father; if (f>0) f = truemin[f];
+    f = Lmin[i].father;
+    if (f>0) f = truemin[f];
+    else {  /* father == 0 */
+      if(connected==0) break; /* skip checks if we're already disconnected */
+      if(ligand == 1){
+	if(struc[strlen(struc)-1] == '*'){
+	  ncb++;    /* increase not connected bound */
+	}
+	else
+	  ncu++; /* increase not connected unbound */
+	if( ncb > 1 || ncu > 1) connected=0;
+      }
+      else{
+	if (ii>1) connected=0;
+      }
+    }
+    
     if(POV_size) {
       int jj;
       printf("%4d %s ", ii, struc);
@@ -853,6 +869,7 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
     free(struc);
   } /* end for */
   free(laststruc);
+  return connected;
 }
 
 /*====================*/

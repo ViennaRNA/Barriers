@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-10-31 14:59:55 mtw> */
+/* Last changed Time-stamp: <2017-11-04 18:28:37 mtw> */
 /* main.c */
 
 #include <stdio.h>
@@ -21,6 +21,7 @@ static  char *GRAPH;
 
 static   struct gengetopt_args_info args_info;
 static int decode_switches (int argc, char **argv);
+static void cleanup(char*,loc_min*, int*);
 
 extern int cut_point;
 extern int MYTURN;
@@ -34,7 +35,7 @@ int main (int argc, char *argv[]) {
   char *line;
   loc_min *LM;
   int *tm;
-  int i,errorcode=0;
+  int c,i,errorcode=0;
   char signal[100]="", what[100]="", stuff[100]="";
 
   /* Parse command line */
@@ -156,10 +157,17 @@ int main (int argc, char *argv[]) {
 
   if (cut_point > -1)
     opt.seq = costring(opt.seq);
-  print_results(LM,tm,opt.seq);
+  c = print_results(LM,tm,opt.seq);
   fflush(stdout);
 
   if (!opt.want_quiet) ps_tree(LM,tm,0);
+  
+  printf (" want_connected is %d\n",opt.want_connected);
+  if(opt.want_connected && c==0){
+    fprintf(stderr, "WARNING: landscape is not connected, skipping rates computation\n");
+    cleanup(opt.seq,LM,tm);
+    exit(102);
+  }  
 
   if (opt.rates || opt.microrates) {
     compute_rates(tm,opt.seq);
@@ -215,16 +223,22 @@ int main (int argc, char *argv[]) {
     fclose(MAPFOUT);
   }
   
+  cleanup(opt.seq,LM,tm);
+  exit(errorcode);
+}
+
+static void cleanup (char* seq ,loc_min* L, int* t)
+{
   /* memory cleanup */
-  free(opt.seq);
-  free(LM);
-  free(tm);
+  free(seq);
+  free(L);
+  free(t);
 #if WITH_DMALLOC
   kill_hash(); /* freeing the hash takes unacceptably long */
 #endif
   cmdline_parser_free(&args_info);
-  exit(errorcode);
 }
+
 
 static int decode_switches (int argc, char **argv)
 {
@@ -240,6 +254,7 @@ static int decode_switches (int argc, char **argv)
   opt.poset = args_info.poset_arg;
   opt.want_quiet = args_info.quiet_given;
   opt.want_verbose = args_info.verbose_given;
+  opt.want_connected = args_info.connected_given;
   opt.bsize = args_info.bsize_given;
   opt.ssize = args_info.ssize_given;
   opt.print_saddles = args_info.saddle_given;

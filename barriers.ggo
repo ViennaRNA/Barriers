@@ -1,10 +1,10 @@
-# Last changed Time-stamp: <2017-10-03 12:52:01 mtw> 
-# $Id: barriers.ggo,v 1.1 2008/01/10 14:40:01 ivo Exp $
+# Last changed Time-stamp: <2017-11-04 18:10:18 mtw> 
 package "barriers"
 purpose "Compute local minima and energy barriers of a landscape"
 args    "--default-optional --unamed-opts=[FILE] --include-getopt"
 
 option "quiet"    q  "be quiet, inhibit PS output"  flag off
+option "connected" c "check if landscape is conntected; skip rates computation if not" flag off
 option "verbose"  v  "print more information" flag off
 option "graph"    G  "define graph type" string default="RNA" string typestr="Graph"
 option "moves"    M  "select move-set (if Graph allows several different ones)" string 
