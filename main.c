@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-11-04 18:28:37 mtw> */
+/* Last changed Time-stamp: <2017-11-07 11:16:26 mtw> */
 /* main.c */
 
 #include <stdio.h>
@@ -162,7 +162,7 @@ int main (int argc, char *argv[]) {
 
   if (!opt.want_quiet) ps_tree(LM,tm,0);
   
-  printf (" want_connected is %d\n",opt.want_connected);
+  fprintf (stderr, "want_connected is %d\n",opt.want_connected);
   if(opt.want_connected && c==0){
     fprintf(stderr, "WARNING: landscape is not connected, skipping rates computation\n");
     cleanup(opt.seq,LM,tm);
