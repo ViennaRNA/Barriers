@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-11-02 16:01:42 mtw>
+# Last changed Time-stamp: <2017-11-07 11:11:46 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -30,24 +30,25 @@ my $Conc=1.;
 my $BindingBonus=0.;
 my $ymlminmap=undef;
 my $has_map=0;
-my $Aa=600;  # assiciation/dissociation rate
+my $Aa=600;  # association/dissociation rate
 
 Getopt::Long::config('no_ignore_case');
-pod2usage(-verbose => 1) unless GetOptions(
-					   "a|assrate=f" => \$Aa,
-					   "b|bar=s"     => \$bar,
-				#	   "rates=s"     => \$asciirates,
-					   "binrates=s"  => \$binrates,
-					   "T|temp=f"    => \$T,
-					   "C|conc=f"    => \$Conc,
-					   "E|energy=f"  => \$BindingBonus,
-					   "map=s"       => \$ymlminmap,
-					   "man"         => sub{pod2usage(-verbose => 2)},
-                                           "h|help"      => sub{pod2usage(1)}
-					  );
+pod2usage(-verbose => 1)
+  unless GetOptions(
+		    "a|assrate=f" => \$Aa,
+		    "b|bar=s"     => \$bar,
+		    # "rates=s"     => \$asciirates,
+		    "binrates=s"  => \$binrates,
+		    "T|temp=f"    => \$T,
+		    "C|conc=f"    => \$Conc,
+		    "E|energy=f"  => \$BindingBonus,
+		    "map=s"       => \$ymlminmap,
+		    "man"         => sub{pod2usage(-verbose => 2)},
+		    "h|help"      => sub{pod2usage(1)}
+		   );
 
-if (defined $ymlminmap){ # don't process bar file; read lmin map from YAML instead
-  unless (-f $ymlminmap) {
+if (defined $ymlminmap){    # don't process bar file
+  unless (-f $ymlminmap) {  # read lmin map from YAML instead
     warn "Could not find YAML lmin map file '$ymlminmap'";
     pod2usage(-verbose => 0);
   }
