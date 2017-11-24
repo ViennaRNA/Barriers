@@ -1,9 +1,10 @@
 Revision history for barriers
 
-1.7.0	2017-11-23	Michael T. Wolfinger <mtw@tbi.univie.ac.at>
+1.7.0	2017-11-24	Michael T. Wolfinger <mtw@tbi.univie.ac.at>
 	* Disable Shift moves by default
 	* Added noLP-rate functionality
 	* Added ligand binding functionality
+	* Added /scripts/crossrates.pl for post-processing ligand data
 
 0.01	2001-03-08	Ivo L. Hofacker, Christoph Flamm, Peter F. Stadler  <ivo@tbi.univie.ac.at>
 	* barriers: initial version.
