@@ -13,6 +13,10 @@ noinst_HEADERS = barrier_types.h barriers.h hash.h hash_util.h pair_mat.h \
         ringlist.h stapel.h tree_types.h trees.h utils.h treeplot.h \
 	simple_set.h compress.h cmdline.h
 
+bin_SCRIPTS = scripts/crossrates.pl scripts/get_hashbits.pl
+scripts/crossrates.pl: scripts/crossrates.pl
+scripts/get_hashbits.pl: scripts/get_hashbits.pl
+
 #  uncomment the following if barriers requires the math library
 if BUILD_SECIS_EXT
 barriers_LDADD= -LSECIS -lSECIS -L@ac_VRNA_lib@ -lRNA -lm -lstdc++
