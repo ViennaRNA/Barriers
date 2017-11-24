@@ -20,7 +20,8 @@ else
 barriers_LDADD= -lm 
 endif
 
-EXTRA_DIST=barriers.lsm.in barriers.texinfo barriers.1 barriers.ggo VERSION.txt scripts/crossrates.pl
+EXTRA_DIST=barriers.lsm.in barriers.texinfo barriers.1 barriers.ggo \
+	VERSION.txt scripts/crossrates.pl scripts/get_hashbits.pl
 
 #  if you write a self-test script named `chk', uncomment the
 #  following and add `chk' to the EXTRA_DIST list
