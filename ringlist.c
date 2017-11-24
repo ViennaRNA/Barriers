@@ -1,10 +1,10 @@
-/* Last changed Time-stamp: <2001-03-08 17:32:40 ivo> */
+/* Last changed Time-stamp: <2017-10-30 14:22:26 mtw> */
 /* ringlist.c */
 
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-/* #include"fold_vars.h" */
+#include<stdbool.h>
 #include"utils.h"
 #include"pair_mat.h"
 #include"stapel.h"
@@ -38,6 +38,7 @@ static void ini_or_reset_rl(char *seq,char *struc);
 /* public functiones */
 void RNA_init(char *seq, int xtof, int noLP);
 void RNA_move_it(char *struc);
+void RNA_move_it_rates(char *form);
 void RNA_free_rl(void);
 #ifdef HARDCORE_DEBUG
 void rl_status(void);
@@ -68,6 +69,11 @@ static void ini_or_reset_rl(char *seq,char *struc){
   len=strlen(seq);
   if(wurzl==NULL){
     form  = strdup(struc);
+    form = (char *) xrealloc(form, (strlen(struc)+3)*sizeof(char));
+    /* form[len+1] = '\0'; */
+    form[strlen(struc)] = '\0';
+    form[strlen(struc)+1] = '\0';
+    form[strlen(struc)+2] = '\0';
     farbe = strdup(seq);
 /*      update_fold_params(); */
     make_pair_matrix();
@@ -211,8 +217,14 @@ static void make_poList(rlItem *root){
 /* for a given tree, generate all neighbours according to the moveset */
 void RNA_move_it(char *form){
   int i;
+  /* ini_or_reset_rl() allocates (length(seq)+2) characters space for
+  the structure, hence the ringlist-based neighbor routines tolerate
+  one additional char at the end of the structure, as e.g. in ligand
+  case */
   ini_or_reset_rl(farbe, form);
-  
+#ifdef DEBUG_NB
+  fprintf(stderr, "m %s\n", form);
+#endif
   if (noLP) { /* canonic neighbours only */
     for ( i=0; i<poListop; i++) {
       inb_nolp(poList[i]);
@@ -232,7 +244,36 @@ void RNA_move_it(char *form){
   }
 }
 
-/* for a given ringlist, generate all inserte moves */
+/* special version of RNA_move_it that does additional moves from
+   starred to unstarred and vice versa */
+void RNA_move_it_rates(char *form){
+  int i, formlen;
+  bool hasstar = false;
+#ifdef DEBUG_NB
+  fprintf(stderr, "mR%s\n", form);
+#endif
+  formlen = strlen(form);
+  if(form[formlen-1] == '*')
+    hasstar = true;
+
+  RNA_move_it(form); 
+
+  /* now add special moves: starred -> unstarred and vice versa */
+  if(hasstar == true){ /* for starred structure add unstarred neighbor */
+    form[formlen-1] = '\0';
+    push(form);
+    form[formlen-1] = '*';
+    form[formlen] = '\0';
+  }
+  else { /* for an un-starred structure add a starred neighbor */
+    form[formlen] = '*';
+    form[formlen+1] = '\0';
+    push(form);
+    form[formlen] = '\0';
+  }
+}
+
+/* for a given ringlist, generate all insert moves */
 static void inb(rlItem *root) {
 
   rlItem *stop,*rli,*rlj;
@@ -245,6 +286,9 @@ static void inb(rlItem *root) {
       if(rlj->typ=='p') continue;
       if(pair[rli->base][rlj->base]){
         close_bp(rli,rlj);
+#ifdef DEBUG_NB
+	fprintf(stderr, "i%s\n", form);
+#endif
 	push(form);
         open_bp(rli);
       }
@@ -267,6 +311,9 @@ static void inb_nolp(rlItem *root){
 	    (rli->next == rlj->prev)) {
 	  /* base pair extends helix */
 	  close_bp(rli,rlj);
+#ifdef DEBUG_NB
+	  fprintf(stderr, "iS%s\n", form);
+#endif
 	  push(form);
 	  open_bp(rli);
 	}
@@ -277,7 +324,23 @@ static void inb_nolp(rlItem *root){
 	  /* double insert */
 	  close_bp(rli->next, rlj->prev);
 	  close_bp(rli, rlj);
+	  if(form[len] == '*'){
+	    form[len+1]= 'D';
+	    form[len+2]= '\0';
+	  }
+	  else{
+	    form[len]='D';
+	    form[len+1]='\0';
+	  }
+#ifdef DEBUG_NB
+	  fprintf(stderr, "iD%s\n", form);
+#endif
 	  push(form);
+	  if(form[len] == '*') /* reset inserted D */
+	    form[len+1]='\0';
+	  else
+	    form[len]='\0';
+	  /* form[len]='\0'; */
 	  open_bp(rli);
 	  open_bp(rli->next);
 	}
@@ -346,6 +409,7 @@ static void dnb(rlItem *rli){
 
   rlj=rli->down;
   open_bp(rli);
+  /* fprintf(stderr, "d%s\n", form); */
   push(form);
   close_bp(rli,rlj);
 }
@@ -353,7 +417,7 @@ static void dnb(rlItem *rli){
 /* for a given ringlist, generate all canonic delete moves */
 static void dnb_nolp(rlItem *rli) {
   
-  rlItem *rlj;
+  rlItem *rlj  = NULL;
   rlItem *rlin = NULL; /* pointers to following pair in helix, if any */
   rlItem *rljn = NULL;
   rlItem *rlip = NULL; /* pointers to preceding pair in helix, if any */
@@ -372,7 +436,23 @@ static void dnb_nolp(rlItem *rli) {
   if (rlip==NULL && rlin && rljn->next != rljn->prev ) {     /* doubledelete */
     open_bp(rli);
     open_bp(rlin);
+    if(form[len] == '*'){
+      form[len+1]='D';
+      form[len+2]='\0';
+    }
+    else{
+      form[len]='D';
+      form[len+1]='\0';
+    }
+#ifdef DEBUG_NB
+    fprintf(stderr, "dD%s\n", form);
+#endif
     push(form);
+    if(form[len] == '*') /* reset inserted D */
+      form[len+1]='\0';
+    else
+      form[len]='\0';
+    /* form[len]='\0'; */
     close_bp(rlin, rljn);
     close_bp(rli, rlj);
   } else {
@@ -380,6 +460,9 @@ static void dnb_nolp(rlItem *rli) {
     if (rlip==NULL || (rlip->prev == rlip->next && rlip->prev->typ != 'x')) 
       if (rlin ==NULL || (rljn->next == rljn->prev)) {
 	open_bp(rli);
+#ifdef DEBUG_NB
+	fprintf(stderr, "dS%s\n", form);
+#endif
 	push(form);
 	close_bp(rli, rlj);
       }

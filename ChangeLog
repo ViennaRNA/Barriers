@@ -1,4 +1,9 @@
-2001-03-08  Ivo Hofacker, Christoph Flamm, Peter Stadler  <ivo@tbi.univie.ac.at>
+Revision history for barriers
 
+1.7.0	2017-11-23	Michael T. Wolfinger <mtw@tbi.univie.ac.at>
+	* Disable Shift moves by default
+	* Added noLP-rate functionality
+	* Added ligand binding functionality
+
+0.01	2001-03-08	Ivo L. Hofacker, Christoph Flamm, Peter F. Stadler  <ivo@tbi.univie.ac.at>
 	* barriers: initial version.
-

@@ -27,12 +27,14 @@ typedef struct {
   double kT;
   int want_quiet;
   int want_verbose;
+  int want_connected;
   char *GRAPH, *MOVESET;
   FILE *INFILE;
   char *seq;
   int poset;
   int label;
   int rates;
+  double noLP_rate;
   int microrates;
 } barrier_options;
 
@@ -41,3 +43,17 @@ typedef struct {
   char key[128];
   short num;
 } path_entry;
+
+typedef struct {
+  char *structure; /* unpacked structuture */
+  int n;           /* index in energy sorted list */
+  int min;         /* minimum */
+  int truemin;     /* truemin */
+  int gradmin;     /* gradient minimum */
+  int truegradmin; /* true gradient minimum */
+  float energy;    /* energy of structure */
+  float min_energy;
+  float truemin_energy;
+  float gradmin_energy;
+  float truegradmin_energy;
+} map_struc;

@@ -4,14 +4,16 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2002-05-08 11:13:06 ivo> */
+/* Last changed Time-stamp: <2017-11-23 17:16:11 mtw> */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
 #include <string.h>
+#include <stdbool.h>
 #include "config.h"
+#include "utils.h"
 #ifdef WITH_DMALLOC
 #include "dmalloc.h"
 #endif
@@ -235,55 +237,66 @@ PUBLIC char *costring(char *string)
   return ctmp;
 }
 
-
-
-/*-----------------------------------------------------------------*/
-
-PUBLIC char *pack_structure(const char *struc) {
-  /* 5:1 compression using base 3 encoding */
-  int i,j,l,pi;
-  unsigned char *packed;
-  
-  l = (int) strlen(struc);
-  packed = (unsigned char *) space(((l+4)/5+1)*sizeof(unsigned char));
-  
-  j=i=pi=0; 
-  while (i<l) {
-    register int p;
-    for (p=pi=0; pi<5; pi++) {
-      p *= 3;
-      switch (struc[i]) {
-      case '(':
-      case '\0':
-        break;
-      case '.':
-        p++;
-        break;
-      case ')':
-        p += 2;
-        break;
-      default: nrerror("pack_structure: illegal character in structure");
-      }
-      if (i<l) i++;
-    }
-    packed[j++] = (unsigned char) (p+1); /* never use 0, so we can use
-                                            strcmp()  etc. */
-  }
-  packed[j] = '\0';      /* for str*() functions */
-  return (char *) packed;
+static int pack51(const char *struc, char *packed, int l){
+   int i,j,pi;
+   
+   j=i=pi=0; 
+   while (i<l) {
+     register int p;
+     for (p=pi=0; pi<5; pi++) {
+       p *= 3;
+       switch (struc[i]) {
+       case '(':
+       case '\0':
+	 break;
+       case '.':
+	 p++;
+	 break;
+       case ')':
+	 p += 2;
+	 break;
+       default: nrerror("pack_structure: illegal character in structure");
+       }
+       if (i<l) i++;
+     }
+     packed[j++] = (unsigned char) (p+1); /* never use 0, so we can use
+					     strcmp()  etc. */
+   }
+   packed[j] = '\0';      /* for str*() functions */
+   return j; /* position of \0 */
 }
 
-PUBLIC char *unpack_structure(const char *packed) {
-  /* 5:1 compression using base 3 encoding */
-  int i,j,l;
-  char *struc;
+PUBLIC char *pack_structure(const char *struc) {
+  bool isstar = false;
+  int key_endofstr,len;
+  char *key = NULL;
+  char *s = NULL;
+
+  len = strlen(struc);
+  key = (unsigned char *) space(((len+4)/5+2)*sizeof(unsigned char));
+  s = (char*)strdup(struc);
+  if (s[len-1] == '*'){ /* we have a binding competent structure */
+    isstar = true;
+    len = len-1;
+    s[len] = '\0';
+  }
+  key_endofstr = pack51(s,key,len);
+  free(s);
+
+  if (isstar){
+    key[key_endofstr] = '\377';
+    key[key_endofstr+1] = '\0';
+  }
+  return(key);
+}
+
+static int unpack51(const char *packed, char *struc,int l){
   unsigned const char *pp;
   char code[3] = {'(', '.', ')'};
-
-  l = (int) strlen(packed);
+  int i,j;
+  
   pp = (const unsigned char *) packed;
-  struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
-
+   
   for (i=j=0; i<l; i++) {
     register int p, c, k;
     
@@ -298,9 +311,53 @@ PUBLIC char *unpack_structure(const char *packed) {
   struc[j--] = '\0';
   while (struc[j] == '(') /* strip trailing ( */
     struc[j--] = '\0';
-  
-  return struc;
+  return j+1;
 }
+
+/*-----------------------------------------------------------------*/
+PUBLIC char *unpack_structure(const char *packed) {
+  bool isstar = false;
+  int struc_endofstr,len;
+  char *struc = NULL;
+  char *strucdup  = NULL;
+  char *p = NULL;
+
+  p = (char*)strdup(packed);
+  len = strlen(packed);
+  if (p[len-1] == '\377'){ /* we have a binding competent structure */
+    isstar = true;
+    len = len-1;
+    p[len] = '\0';
+    struc = (char *) space((len*5+2)*sizeof(char));
+  }
+  else
+    struc = (char *) space((len*5+2)*sizeof(char));
+  /* +2 above is 'cause we will eventually append a * in compute_rates() */
+  struc_endofstr = unpack51(p,struc,len);
+  free(p);
+  if(isstar){
+  
+    struc[struc_endofstr]='*';
+    struc[struc_endofstr+1]='\0';
+  }
+  return(struc);
+}
+
+
+
+/* PUBLIC char *unpack_structure(const char *packed) { */
+/*   /\* 5:1 compression using base 3 encoding *\/ */
+/*   int i,j,l; */
+/*   char *struc; */
+/*   unsigned const char *pp; */
+/*   char code[3] = {'(', '.', ')'}; */
+
+/*   l = (int) strlen(packed); */
+/*   pp = (const unsigned char *) packed; */
+/*   struc = (char *) space((l*5+1)*sizeof(char));   /\* up to 4 byte extra *\/ */
+
+/*   return struc; */
+/* } */
 				   
 /*---------------------------------------------------------------------------*/ 
 

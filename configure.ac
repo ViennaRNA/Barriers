@@ -1,7 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl define package name and version
-AC_INIT([barriers],1.6.0,[{ivo,xtof}@tbi.univie.ac.at],[Barriers], [https://www.tbi.univie.ac.at/RNA/Barriers])
+AC_INIT([barriers],
+	m4_esyscmd_s([cat VERSION.txt]),
+	[{ivo,xtof,mtw}@tbi.univie.ac.at],[Barriers], [https://www.tbi.univie.ac.at/RNA/Barriers])
 
 AM_INIT_AUTOMAKE
 
@@ -107,8 +109,8 @@ Configure successful with the following options:
 
   SECIS Extension:               ${with_secis:-yes}
   Dependency to ViennaRNA        ${with_secis:-yes}
-  Expecte ViennaRNA headers in:  $ac_VRNA_includes 
-  Expecte ViennaRNA library in:  $ac_VRNA_lib
+  Expect ViennaRNA headers in:   $ac_VRNA_includes
+  Expect ViennaRNA library in:   $ac_VRNA_lib
 
 If the ViennaRNA headers and library are in a different location on
 your system, please set the appropriate absolute paths with the

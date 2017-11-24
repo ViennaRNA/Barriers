@@ -1,9 +1,11 @@
+# Last changed Time-stamp: <2017-11-23 17:32:20 mtw> 
 package "barriers"
 purpose "Compute local minima and energy barriers of a landscape"
-version "1.6.0"
+version "1.7.0"
 args    "--default-optional --unamed-opts=[FILE] --include-getopt"
 
 option "quiet"    q  "be quiet, inhibit PS output"  flag off
+option "connected" c "check if landscape is conntected; skip rates computation if not" flag off
 option "verbose"  v  "print more information" flag off
 option "graph"    G  "define graph type" string default="RNA" string typestr="Graph"
 option "moves"    M  "select move-set (if Graph allows several different ones)" string 
@@ -13,18 +15,12 @@ option "max"      -  "compute only the lowest <num> local minima" int default="1
 option "minh"     -  "print only minima with barrier > dE" double default="0.000001"
 option "saddle"   -  "print saddle point structures" flag off 
 option "rates"    -  "compute rates between macro states (basins)" flag off
+option "noLP-rate"  - "scale rates of double moves for RNA-noLP (e.g. 0.01)" double default="1.0"
 option "microrates" - "compute microscopic rates between connected states" flag off hidden
 option "poset"    -  "input is a poset from n objective functions" int default="0"
 option "path"     P  "backtrack path between lmins l2 and l1 (l1 < l2),\
        can be specified multiple times" typestr="<l1>=<l2>" string multiple
 option "mapstruc"  -  "map conformations to minima in the tree" typestr="filename" string 
-option "mapstruc-output"  -
-"output file for printing structure mapping requested by --mapstruc parameter"
-typestr="filename"
-string 
-dependon="mapstruc"
-default="stderr"
-
 option "temp"     T  "temperature for Boltzmann factor" double hidden
 
 section "Graph Types (-G graph) and Move Sets (-M mset)"
@@ -32,7 +28,8 @@ text "\n
 Graph Types (-G graph) and Move Sets (-M mset)are:
   RNA             RNA secondary structures
   RNA-noLP        canonical RNA structures
-      [no]Shift       with/out shift moves [default with]
+      Shift           turn on shift moves [default off]
+      ligand          RNA-ligand/protein interaction [default off]
   Q2              Spin Glass
       p               point mutation (default)
       c               flip 2nd half

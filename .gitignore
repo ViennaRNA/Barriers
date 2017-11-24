@@ -1,21 +1,21 @@
-# ignore autotools managed files
-.deps
+*.o
+*~
 *.in
-Makefile
-
-m4
-stamp-h1
-missing
+.deps/
+aclocal.m4
+autom4te.cache/
+barriers
+barriers.lsm
+barriers.spec
+cmdline.c
+cmdline.h
 compile
-config.h*
-config.log
-config.status
-config
+config.*
 configure
 depcomp
 install-sh
-aclocal.m4
-autom4te.cache
-
-# ignore other auto generated files
-*.o
+INSTALL
+Makefile
+missing
+PoHo/genPoHoLandscape
+stamp-h1

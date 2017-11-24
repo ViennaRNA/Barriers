@@ -1,3 +1,4 @@
+/* Last changed Time-stamp: <2017-11-23 17:41:25 mtw> */
 /* barriers.c */
 
 #include "config.h"
@@ -9,7 +10,7 @@
 #include <math.h>
 #include <limits.h>
 #include <float.h>
-
+#include <stdbool.h>
 #include "ringlist.h"
 #include "stapel.h"
 #include "utils.h"
@@ -31,7 +32,6 @@ static loc_min *lmin;      /* array for local minima */
 
 static double **rate;      /* rate matrix between basins */
 static double  *dr;        /* increments to rate matrix  */
-/* "global" variables */
 
 static int n_lmin;
 static unsigned int max_lmin;
@@ -86,9 +86,12 @@ loc_min  *barriers(barrier_options opt);
 static int  compare(const void *a, const void *b);
 void check_neighbors(void);
 static void merge_basins(void);
-void print_results(loc_min *L, int *tm, char *farbe);
+int print_results(loc_min *L, int *tm, char *farbe);
 void ps_tree(loc_min *Lmin, int *truemin, int rates);
 void print_rates(int n, char *fname);
+map_struc get_mapstruc(char *p, loc_min *LM, int *tm);
+char *strip(char *s);
+bool is_bound(char *s);
 
 struct comp {
   Set *basins; /* set of basins connected by these saddles */
@@ -101,9 +104,13 @@ static struct comp *comp;
 static int max_comp=1024, n_comp;
 static int do_rates=0;
 static int do_microrates=0;
+static double noLP_rate=1.;
+static int ligand = 0;
 
 #define HASHSIZE (((unsigned long) 1<<HASHBITS)-1)
 static hash_entry *hpool;
+
+
 
 /* ----------------------------------------------------------- */
 
@@ -118,7 +125,7 @@ void set_barrier_options(barrier_options opt) {
   switch(opt.GRAPH[0]) {
   case 'R' :    /* RNA secondary Structures */
     if (strncmp(opt.GRAPH, "RNA", 3)==0) {
-      int nolp=0, shift=1, i=0;
+      int nolp=0, shift=0, i=0;
       IS_RNA=1;
       if (opt.kT<=-300) opt.kT=37;
       kT = 0.00198717*(273.15+opt.kT);   /* kT at 37C in kcal/mol */
@@ -126,19 +133,37 @@ void set_barrier_options(barrier_options opt) {
       free_move_it = RNA_free_rl;
       pack_my_structure = pack_structure;
       unpack_my_structure = unpack_structure;
-      if (strstr(opt.GRAPH,   "noLP")) nolp=1;
-      if (strstr(opt.MOVESET, "noShift")) shift=0;
-      else if (strlen(opt.MOVESET)) {
-	fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
-	exit (EXIT_FAILURE);
+      if (strstr(opt.GRAPH, "noLP")) {
+	nolp=1;
+	noLP_rate = opt.noLP_rate;
       }
+      if(strlen(opt.MOVESET) > 0)
+	switch(opt.MOVESET[0]){
+	case 'S': /* Shift moves */
+	  if(strncmp(opt.MOVESET,"Shift",5)==0) 
+	    shift = 1;
+	  break;
+	case 's': /* Shift moves */
+	  if(strncmp(opt.MOVESET,"shift",5)==0)
+	    shift = 1;
+	  break;
+	case 'l': /* ligand */
+	  if(strncmp(opt.MOVESET,"ligand",6)==0){
+	    ligand = 1;
+	    /* move_it = RNA_move_it; */
+	  }
+	  break;
+	default:
+	  fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
+	  exit (EXIT_FAILURE);
+	}
       for (i=0; i < (int)strlen(opt.seq); i++){
 	if (opt.seq[i] == 'T')
 	  opt.seq[i] = 'U';
       }
       RNA_init(opt.seq, shift, nolp);
       if (verbose)
-	fprintf(stderr, "Graph is RNA with noLP=%d, Shift=%d\n", nolp, shift);
+	fprintf(stderr, "Graph is RNA with noLP=%d, Shift=%d, ligand=%d\n", nolp, shift,ligand);
     } else Sorry(opt.GRAPH);
     break;
   case 'Q' :    /* Haming graphs */
@@ -280,7 +305,7 @@ loc_min *barriers(barrier_options opt) {
   lmin = (loc_min *) space((max_lmin + 1) * sizeof(loc_min));
   n_lmin = 0;
 
-  form = (char *) space((length+1)*sizeof(char));
+  form = (char *) space((length+2)*sizeof(char));
   comp = (struct comp *) space((max_comp+1) * sizeof(struct comp));
   truecomp = (int *) space((max_comp+1) * sizeof(int));
   if(opt.poset) {
@@ -307,6 +332,7 @@ loc_min *barriers(barrier_options opt) {
     energy = new_en;
     readl++;
     move_it(form);       /* generate all neighbor of configuration */
+    /* fprintf(stderr, "M%s\n", form); */
     check_neighbors();   /* flood the energy landscape */
     reset_stapel();
     if ((n_saddle+1 == max_print) && (!opt.rates))
@@ -489,6 +515,10 @@ void check_neighbors(void)
 
   /* foreach neighbor structure of configuration "Structure" */
   while ((p = pop())) {
+    if (IS_RNA)
+      if (p[strlen(p)-1] == 'D')
+	p[strlen(p)-1] = '\0';
+	  
     pp = pack_my_structure(p);
     h.structure = pp;
 
@@ -544,6 +574,8 @@ void check_neighbors(void)
     free(pp);
   }
 
+  /* pack read structure from subopt for putting into the hash */
+  /* fprintf(stderr,"F%s\n",form); */
   pform = pack_my_structure(form);
 
   if (ccomp==0) {
@@ -599,6 +631,7 @@ void check_neighbors(void)
       hp->POV = (int *) space(sizeof(int)*POV_size);
       for(i=0;i<POV_size;i++) hp->POV[i]=POV[i];
     }
+
     hp->structure = pform;
     hp->energy = energy;
     hp->basin = i_lmin;
@@ -608,8 +641,15 @@ void check_neighbors(void)
     hp->n = readl;
     lmin[gradmin].my_GradPool++;
     lmin[gradmin].Zg += Zi;
-    if (write_hash(hp))
+  
+    if (write_hash(hp)){
+      
+      hash_entry *foo = NULL;
+      foo=(hash_entry*)lookup_hash(hp);
+      fprintf(stderr,"%s\n",unpack_my_structure(foo->structure));
+      fprintf(stderr,"%s\n",unpack_my_structure(hp->structure));
       nrerror("duplicate structure");
+    }
   }
 
   if((is_min)&&(POV_size)) lmin[n_lmin].POV = hp->POV;
@@ -712,40 +752,59 @@ void mark_global(loc_min *Lmin)
 }
 
 /*====================*/
-void print_results(loc_min *Lmin, int *truemin, char *farbe)
+int print_results(loc_min *Lmin, int *truemin, char *farbe)
 {
-  int i,ii,j, n;
-  char *struc;
-  char *format;
-
+  int i,ii,j,k,n,connected=1,ncu=0,ncb=0;
+  char *struc=NULL, *laststruc=NULL;;
+  char *format=NULL,*formatA=NULL,*formatB=NULL,**seen=NULL;
+  bool otherformat=false;
+  
   if (POV_size) fprintf(stderr," POV_size = %d\n",POV_size);
   if (IS_arbitrary) {
     char tfor[100];
     sprintf(tfor,"%%4d %%-%ds %%6.2f %%4d %%6.2f",maxlabellength);
     format = tfor;
   }
-  else if (IS_RNA)
-    format = "%4d %s %6.2f %4d %6.2f";
+  else if (IS_RNA){
+    formatA = "%4d %s %6.2f %4d %6.2f";
+    formatB = "%4d %s  %6.2f %4d %6.2f";
+    format=formatA;
+  }
   else
     format = "%4d %s %13.5f %4d %13.5f";
   if(verbose) printf("Using output format string '%s'\n",format);
 
-
   n_lmin = Lmin[0].fathers_pool;
 
   printf("     %s\n", farbe);
-  for (i = 1; i <= n_lmin; i++) {
+  for (i=1,k=0; i<=n_lmin; i++,k++) {
     int f;
     if ((ii = truemin[i])==0) continue;
-
     struc = unpack_my_structure(Lmin[i].structure);
     if (cut_point > -1)
       struc = costring(struc);
     n = strlen(struc);
-    f = Lmin[i].father; if (f>0) f = truemin[f];
+    f = Lmin[i].father;
+    if (f>0) f = truemin[f];
+    else {  /* father == 0 */
+      if(connected==0) break; /* skip checks if we're already disconnected */
+      if(ligand == 1){
+	if(struc[strlen(struc)-1] == '*'){
+	  ncb++;    /* increase not connected bound */
+	}
+	else
+	  ncu++; /* increase not connected unbound */
+	if( ncb > 1 || ncu > 1) connected=0;
+      }
+      else{
+	if (ii>1) connected=0;
+      }
+    }
+    
     if(POV_size) {
       int jj;
       printf("%4d %s ", ii, struc);
+   
       if(IS_RNA) printf("%6.2f ", Lmin[i].energy);
       else printf("%13.5f ", Lmin[i].energy);
       for(jj=0;jj<POV_size;jj++) printf("%6d ",Lmin[i].POV[jj]);
@@ -758,29 +817,82 @@ void print_results(loc_min *Lmin, int *truemin, char *farbe)
       else printf(" .");
     }
     else {
+      if(IS_RNA && (ligand == 1)){
+	if(strstr(struc,"*") == NULL){ 
+	  format=formatB;
+	  otherformat=true;
+	}
+      }
       printf(format, ii, struc, Lmin[i].energy, f,
 	     Lmin[i].E_saddle - Lmin[i].energy);
+      if(otherformat){
+	format=formatA;
+	otherformat=false;
+      }
     }
-    free(struc);
 
     if (print_saddles) {
       if (Lmin[i].saddle)  {
-	struc = unpack_my_structure(Lmin[i].saddle);
-	printf(" %s", struc);
-	free(struc);
+	char *saddlestruc = unpack_my_structure(Lmin[i].saddle);
+	printf(" %s", saddlestruc);
+	free(saddlestruc);
       }
       else {
 	printf(" ");
 	for (j=0;j<n;j++) { printf("~"); }
       }
-
     }
+    
     if (bsize)
       printf (" %12ld %8ld %10.6f %8ld %10.6f",
 	      Lmin[i].my_pool, Lmin[i].fathers_pool, mfe -kT*log(lmin[i].Z),
 	      Lmin[i].my_GradPool, mfe -kT*log(lmin[i].Zg));
     printf("\n");
-  }
+
+#if 0
+    {
+      /* check if ligand/protein bound structure is present in all worlds */
+      if(laststruc != NULL) { /* for all but the first structure */
+	char *last = strip(laststruc);
+	if(is_bound(laststruc) && (strcmp(last,struc) != 0)){
+	  map_struc m = get_mapstruc(last,Lmin,truemin);
+	  fprintf(stderr, "WARNING: %s -> %s deltaE: %6.2f\n", last,m.structure, (float)(m.energy-m.truegradmin_energy));
+	  /* fprintf(stderr, "%s %s %6d %6.2f %3d %3d %3d %3d\n", last, m.structure, m.n, m.energy, */
+	  /* 	  m.min, m.truemin, m.gradmin, m.truegradmin); */
+	  free(m.structure);
+	}
+	free(last);
+      }
+    }
+#endif
+    if(laststruc != NULL) {free(laststruc);}
+    laststruc = strdup(struc);
+    free(struc);
+  } /* end for */
+  free(laststruc);
+  return connected;
+}
+
+/*====================*/
+/* remove additional characters from structure, such as
+   '*','A','B',... */
+char *strip(char *s)
+{
+  char *p = strdup(s);
+  if(p[strlen(p)-1] == '*') /* add more characters here is required */
+    p[strlen(p)-1]='\0';
+  return p;
+}
+
+/*====================*/
+/* check if a structure is marked ligand/protein-bound, ie it has an
+   extra char (eg '*') appended */
+bool is_bound(char *s)
+{
+  bool val=false;
+  if(s[strlen(s)-1] == '*') /* add more characters here is required */
+    val = true;
+  return val;
 }
 
 void ps_tree(loc_min *Lmin, int *truemin, int rates)
@@ -829,11 +941,22 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
 	nodes[s1-1].label = strdup(s);
       free(s);
     }
-    else if((POV_size)&&(Lmin[ii].global)) {
-      char *L;
+    else {
+      char *L=NULL, *s=NULL;
       L = (char *) space(sizeof(char)*10);
-      (void) sprintf(L,"%d *",s1);
-      nodes[s1-1].label = L;
+      s = unpack_my_structure(Lmin[ii].structure);
+      if(s[strlen(s)-1] == '*'){
+	(void) sprintf(L,"%d",s1);
+	nodes[s1-1].label = L;
+      }
+      else
+	free(L);
+      if((POV_size)&&(Lmin[ii].global)) {
+	(void) sprintf(L,"%d *",s1);
+	nodes[s1-1].label = L;
+      }
+      free(s);
+
     }
     i++;
   }
@@ -841,6 +964,9 @@ void ps_tree(loc_min *Lmin, int *truemin, int rates)
     PS_tree_plot(nodes, max_print, "treeR.ps");
   else
     PS_tree_plot(nodes, max_print, "tree.ps");
+  for(i=0;i<(max_print);i++)
+    if(nodes[i].label != NULL)
+      free(nodes[i].label);
   free(nodes);
 }
 
@@ -1062,18 +1188,19 @@ static void print_hash_entry(hash_entry *h) {
 	 h->energy, h->basin, h->GradientBasin, h->ccomp, down);
 }
 
-void print_struc(FILE *OUT, char *p, loc_min *LM, int *tm) {
+map_struc get_mapstruc(char *p, loc_min *LM, int *tm) {
   hash_entry *hp, h;
   char *pp, *struc;
   int min, gradmin, tmin, tgradmin;
+  map_struc ms;
   
   pp = pack_my_structure(p);
   h.structure = pp;
   hp = lookup_hash(&h);
 
   if (hp==NULL) {
-    fprintf(OUT, "not in hash\n");
-    return;
+    fprintf(stderr, "get_mapstruc: structure not in hash\n");
+    return ms;
   }
 	    
   min = hp->basin;
@@ -1086,16 +1213,23 @@ void print_struc(FILE *OUT, char *p, loc_min *LM, int *tm) {
   }
 
   if (gradmin == 0) {
-    fprintf(OUT, "not yet assigned\n");
-    return;
+    fprintf(stderr, "get_mapstruc: gradient minimum not yet assigned\n");
+    return ms;
   }
 
-  struc = unpack_my_structure(LM[gradmin].structure);
-  
-  fprintf(OUT, "%s %6d %6.2f %3d %3d %3d %3d\n", struc, hp->n, hp->energy,
-	  min, tm[min], gradmin, tm[gradmin]);
-
-  free(pp); free(struc);
+  ms.structure = unpack_my_structure(LM[gradmin].structure);
+  ms.n = hp->n;
+  ms.min = min;
+  ms.truemin = tm[min];
+  ms.gradmin = gradmin;
+  ms.truegradmin =  tm[gradmin];
+  ms.energy = hp->energy;
+  ms.min_energy = LM[min].energy;
+  ms.truemin_energy = LM[tm[min]].energy;
+  ms.gradmin_energy = LM[gradmin].energy;
+  ms.truegradmin_energy = LM[tm[gradmin]].energy;
+  free(pp);
+  return (ms);
 }
 
 
@@ -1146,6 +1280,8 @@ void compute_rates(int *truemin, char *farbe) {
   double Zi;
   FILE *NEWSUB=NULL, *MR=NULL;;
 
+  if(ligand==1)
+    move_it = RNA_move_it_rates;
   n = truemin[0];
   rate = (double **) space((n + 1) * sizeof(double *));
   dr   = (double  *) space((n + 1) * sizeof(double));
@@ -1163,8 +1299,8 @@ void compute_rates(int *truemin, char *farbe) {
   for (rc=1, r=0; r<readl; r++) {
     int b;
     hpr= &hpool[r];
-    gradmin = hpr->GradientBasin;
     Zi = exp((mfe-hpr->energy)/kT);
+    gradmin = hpr->GradientBasin;
     while (truemin[gradmin]==0) gradmin = lmin[gradmin].father;
     gradmin=truemin[gradmin];
     if (gradmin>n) continue;
@@ -1174,15 +1310,26 @@ void compute_rates(int *truemin, char *farbe) {
 
     for (i=0; i<=n; i++) dr[i]=0;
     while ((p = pop())) {
+      int double_move = 0;
+      if (IS_RNA) {
+	if (p[strlen(p)-1]=='D') {
+	  double_move = 1;
+	  p[strlen(p)-1]='\0';
+	}
+	else
+	  double_move=0;
+      }
+	  
       pp = pack_my_structure(p);
       h.structure = pp;
       /* check whether we've seen the structure before */
       if ((hp = lookup_hash(&h)))
-	if (hp->n<=r) {
+	if (hp->n <=r ) {
 	  gb = hp->GradientBasin;
 	  while (truemin[gb]==0) gb = lmin[gb].father;
 	  gb = truemin[gb];
-	  if (gb<=n) dr[gb] += Zi;
+	  if (gb<=n)
+	    dr[gb] += (double_move)?(noLP_rate*Zi):Zi;
 	  if (do_microrates && b) {
 	    double rate,dg;
 	    dg = hpr->energy - hp->energy;

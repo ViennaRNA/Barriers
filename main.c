@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2015-11-12 17:39:05 ivo> */
+/* Last changed Time-stamp: <2017-11-23 17:27:02 mtw> */
 /* main.c */
 
 #include "config.h"
@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-/* #include <sys/types.h> */
 #include <math.h>
 #include "barrier_types.h"
 #include "utils.h"
@@ -15,12 +14,12 @@
 #include "cmdline.h"
 
 /* PRIVATE FUNCTIONS */
-static char UNUSED rcsid[] = "$Id: main.c,v 1.22 2008/01/10 14:40:03 ivo Exp $";
 static barrier_options opt;
 static  char *GRAPH;
 
 static   struct gengetopt_args_info args_info;
 static int decode_switches (int argc, char **argv);
+static void cleanup(char*,loc_min*, int*);
 
 extern int cut_point;
 extern int MYTURN;
@@ -34,7 +33,7 @@ int main (int argc, char *argv[]) {
   char *line;
   loc_min *LM;
   int *tm;
-  int i;
+  int c,i,errorcode=0;
   char signal[100]="", what[100]="", stuff[100]="";
 
   /* Parse command line */
@@ -156,10 +155,17 @@ int main (int argc, char *argv[]) {
 
   if (cut_point > -1)
     opt.seq = costring(opt.seq);
-  print_results(LM,tm,opt.seq);
+  c = print_results(LM,tm,opt.seq);
   fflush(stdout);
 
   if (!opt.want_quiet) ps_tree(LM,tm,0);
+  
+  fprintf (stderr, "want_connected is %d\n",opt.want_connected);
+  if(opt.want_connected && c==0){
+    fprintf(stderr, "WARNING: landscape is not connected, skipping rates computation\n");
+    cleanup(opt.seq,LM,tm);
+    exit(102);
+  }  
 
   if (opt.rates || opt.microrates) {
     compute_rates(tm,opt.seq);
@@ -190,40 +196,47 @@ int main (int argc, char *argv[]) {
   }
 
   if (args_info.mapstruc_given) {
-    FILE *MAPF, *out;
-    int  outfile;
-    char *line, *token;
-    outfile = 0;
-    MAPF = fopen(args_info.mapstruc_arg, "r");
-    if (MAPF == NULL) nrerror("couldn't open mapfile for reading");
-    if(args_info.mapstruc_output_given){
-      out = fopen(args_info.mapstruc_output_arg, "w");
-      if(out == NULL) nrerror("couldn't open mapping output file for writing");
-      outfile = 1;
-    } else {
-      out = stderr;
-    }
+    FILE *MAPFIN=NULL, *MAPFOUT=NULL;
+    char *line=NULL, *token=NULL, *fname="mapstruc.out";
+   
+    MAPFIN = fopen(args_info.mapstruc_arg, "r");
+    if (MAPFIN == NULL) nrerror("couldn't open mapfile for reading");
 
-    while (line=get_line(MAPF)) {
+    MAPFOUT = fopen(fname, "w");
+    if (!MAPFOUT) {
+      fprintf(stderr, "could not open mapstruc file %s for output\n", fname);
+      errorcode=101;
+    }
+    
+    while (line=get_line(MAPFIN)) {
+      map_struc myms;
       token=strtok(line," \t");
-      print_struc(out, line, LM, tm);
+      myms = get_mapstruc(token, LM, tm);
+      fprintf(MAPFOUT, "%s %6d %6.2f %3d %3d %3d %3d\n", myms.structure, myms.n, myms.energy,
+	      myms.min, myms.truemin, myms.gradmin, myms.truegradmin);
+      free(myms.structure);
       free(line);
     }
-
-    fclose(MAPF);
-    if(outfile != 0) fclose(out);
+    fclose(MAPFIN);
+    fclose(MAPFOUT);
   }
   
+  cleanup(opt.seq,LM,tm);
+  exit(errorcode);
+}
+
+static void cleanup (char* seq ,loc_min* L, int* t)
+{
   /* memory cleanup */
-  free(opt.seq);
-  free(LM);
-  free(tm);
+  free(seq);
+  free(L);
+  free(t);
 #if WITH_DMALLOC
   kill_hash(); /* freeing the hash takes unacceptably long */
 #endif
   cmdline_parser_free(&args_info);
-  exit(0);
 }
+
 
 static int decode_switches (int argc, char **argv)
 {
@@ -239,12 +252,14 @@ static int decode_switches (int argc, char **argv)
   opt.poset = args_info.poset_arg;
   opt.want_quiet = args_info.quiet_given;
   opt.want_verbose = args_info.verbose_given;
+  opt.want_connected = args_info.connected_given;
   opt.bsize = args_info.bsize_given;
   opt.ssize = args_info.ssize_given;
   opt.print_saddles = args_info.saddle_given;
   opt.rates = args_info.rates_given;
   opt.microrates = args_info.microrates_given;
   GRAPH = args_info.graph_arg;
+  opt.noLP_rate = (args_info.noLP_rate_given)?args_info.noLP_rate_arg:1.;
   if (args_info.moves_given) opt.MOVESET = args_info.moves_arg;
   if (args_info.temp_given) opt.kT = args_info.temp_arg;
   for (i = 0; i < args_info.path_given; ++i) {
