@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2017-11-23 17:41:25 mtw> */
+/* Last changed Time-stamp: <2017-11-26 17:22:20 mtw> */
 /* barriers.c */
 
 #include "config.h"
@@ -109,8 +109,6 @@ static int ligand = 0;
 
 #define HASHSIZE (((unsigned long) 1<<HASHBITS)-1)
 static hash_entry *hpool;
-
-
 
 /* ----------------------------------------------------------- */
 
@@ -297,6 +295,7 @@ loc_min *barriers(barrier_options opt) {
   int length;
   double new_en=0;
 
+  fprintf(stderr, "hashbits = %d\n", (int)HASHBITS);
   hpool = (hash_entry *) space((HASHSIZE+1)*sizeof(hash_entry));
   set_barrier_options(opt);
 

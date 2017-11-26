@@ -18,12 +18,12 @@ AC_CANONICAL_HOST
 
 dnl configure options
 AM_WITH_DMALLOC
-hashbits=24
+hashbits=27
 AC_ARG_WITH(hash-bits,
 [  --with-hash-bits=ARG    use hashtable with 2^ARG entries (<32, default 24)],
 [
   hashbits=$withval
-  if test $hashbits -ge 32; then
+  if test $hashbits -ge 35; then
     AC_MSG_WARN([Hash table size too large, setting to default size=24])
     hashbits=24
   else
