@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-11-23 23:06:48 mtw>
+# Last changed Time-stamp: <2017-12-20 09:56:40 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -22,7 +22,7 @@ my %lminMapR = (); # map new => old lmin numbers
 my @bar_o    = (); # AoH holding the original bar file
 my @bar_b    = (); # AoH holding the original bar file (backup copy)
 my $T=37.;
-my $K0=-273.15;
+my $K0=273.15;
 my $DuplexInit37=410;
 my $DuplexInitdH=360;
 my $DuplexInit=0.;
