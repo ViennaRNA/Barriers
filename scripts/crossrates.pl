@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # -*-CPerl-*-
-# Last changed Time-stamp: <2017-12-20 09:58:51 mtw>
+# Last changed Time-stamp: <2018-01-30 18:54:15 mtw>
 
 use Getopt::Long;
 use Data::Dumper;
@@ -30,7 +30,8 @@ my $Conc=1.;
 my $BindingBonus=0.;
 my $ymlminmap=undef;
 my $has_map=0;
-my $Aa=600;  # association/dissociation rate
+my $Aa=170000;  # association/dissociation rate sensu Jucker-2003
+                # (k_2 in table 1 and eq 5)
 
 Getopt::Long::config('no_ignore_case');
 pod2usage(-verbose => 1)
