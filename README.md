@@ -34,13 +34,13 @@ For an explanation of the algorithm, please see
 
 Ch. Flamm, I.L. Hofacker, P.F. Stadler, M.T. Wolfinger.
 Barrier trees of degenerate landscapes. 
-Z. Phys. Chem., 216:155–173, 2002. (doi)[https://doi.org/10.1524/zpch.2002.216.2.155]
+Z. Phys. Chem., 216:155–173, 2002. [doi](https://doi.org/10.1524/zpch.2002.216.2.155)
 
 Ligand support has been added with version 1.7.0, see
 
 M.T. Wolfinger, Ch. Flamm, I.L. Hofacker
 Efficient computation of cotranscriptional RNA-ligand interaction dynamics
-Methods, 2018 (doi)[https://doi.org/10.1016/j.ymeth.2018.04.036]
+Methods, 2018 [doi](https://doi.org/10.1016/j.ymeth.2018.04.036)
 
 
 ## COPYRIGHT AND LICENCE
