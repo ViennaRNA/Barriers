@@ -10,7 +10,7 @@ Typically, `barriers` in installed like this:
  ./make install
 ```
 
-The barriers program uses a large static array for the hash table at the
+The `barriers` program uses a large static array for the hash table at the
 heart of the method. The size of this hash and therefore the maximum size
 of the landscape you can analyse is set at compile time using the
 `--with-hash-bits` option of the configure script, e.g.:
@@ -48,7 +48,7 @@ Methods, 2018 (doi)[https://doi.org/10.1016/j.ymeth.2018.04.036]
 Copyright (C) 2001 Ivo Hofacker, Christoph Flamm, Peter Stadler, Michael
 T. Wolfinger
 
-barriers is free software; you can redistribute it and/or modify it under
+`barriers` is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 2 of the License, or (at your option)
 any later version.
