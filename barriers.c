@@ -19,6 +19,7 @@
 #include "compress.h"
 #include "treeplot.h"
 #include "simple_set.h"
+#include "rnamoves.h"   /* FK */
 #if HAVE_SECIS_EXTENSION
 #include "SECIS/secis_neighbors.h"
 #endif
@@ -113,6 +114,7 @@ static hash_entry *hpool;
 /* ----------------------------------------------------------- */
 
 void set_barrier_options(barrier_options opt) {
+  int isRNA2 = 0;
   print_saddles = opt.print_saddles;
   bsize = opt.bsize;
   shut_up = opt.want_quiet;
@@ -127,8 +129,17 @@ void set_barrier_options(barrier_options opt) {
       IS_RNA=1;
       if (opt.kT<=-300) opt.kT=37;
       kT = 0.00198717*(273.15+opt.kT);   /* kT at 37C in kcal/mol */
+      isRNA2 = !strncmp(opt.GRAPH, "RNA2", 4);     /* FK */
+      if( isRNA2)
+      {
+          move_it = RNA2_move_it;
+          free_move_it = RNA2_free;
+      }
+      else
+      {
       move_it = RNA_move_it;
       free_move_it = RNA_free_rl;
+      }
       pack_my_structure = pack_structure;
       unpack_my_structure = unpack_structure;
       if (strstr(opt.GRAPH, "noLP")) {
@@ -159,6 +170,9 @@ void set_barrier_options(barrier_options opt) {
 	if (opt.seq[i] == 'T')
 	  opt.seq[i] = 'U';
       }
+      if( isRNA2)
+          RNA2_init( opt.seq, shift, nolp);
+      else
       RNA_init(opt.seq, shift, nolp);
       if (verbose)
 	fprintf(stderr, "Graph is RNA with noLP=%d, Shift=%d, ligand=%d\n", nolp, shift,ligand);
