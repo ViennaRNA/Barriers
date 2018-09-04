@@ -10,9 +10,9 @@
 #include "stapel.h"
 
 
-const int MYTURN = 3;   /**< minimum loop length */
-const int UNPRD = -1;   /**< value assigned to unpaired bases in pairtable */
-const int VERB = 0;     /**< be verbose? */
+extern int MYTURN;       /**< minimum loop length */
+const  int UNPRD = -1;   /**< value assigned to unpaired bases in pairtable */
+const  int VERB = 0;     /**< be verbose? */
 
 
 /** flag to track initialization state of RNA2_data_t structure object */

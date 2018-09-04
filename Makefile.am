@@ -18,7 +18,7 @@ noinst_HEADERS = barrier_types.h barriers.h hash.h hash_util.h pair_mat.h \
 if CHECK_FOUND
 TESTS = check_rnamoves
 check_PROGRAMS = check_rnamoves
-check_rnamoves_SOURCES = check_rnamoves.c stapel.c utils.c # rnamoves.c 
+check_rnamoves_SOURCES = check_rnamoves.c stapel.c utils.c ringlist.c
 check_rnamoves_CFLAGS = @CHECK_CFLAGS@
 check_rnamoves_LDADD = @CHECK_LIBS@
 endif
