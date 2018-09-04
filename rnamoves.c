@@ -12,7 +12,7 @@
 
 const int MYTURN = 3;   /**< minimum loop length */
 const int UNPRD = -1;   /**< value assigned to unpaired bases in pairtable */
-const int VERB = 0; 	/**< be verbose? */
+const int VERB = 0;     /**< be verbose? */
 
 
 /** flag to track initialization state of RNA2_data_t structure object */
@@ -24,13 +24,13 @@ int isInitialized = 0;
  */
 typedef struct RNA2_data {
     char *seq;      /**< sequence RNA sequence */
-    int shift;      /**< shift flag, turn on generation of shift moves */         
+    int shift;      /**< shift flag, turn on generation of shift moves */
     int noLP;       /**< noLP flag, turn on move generation for noLP structures */
 
-    unsigned int len; /**< length of sequence */ 
-    
+    unsigned int len; /**< length of sequence */
+
     char *form; /**< dot bracket structure for neighbors */
-    
+
     /** pairing array for efficient traversal and checks
      *
      * Invariant:
@@ -44,7 +44,7 @@ typedef struct RNA2_data {
     int *pt;        /**< pairtable, i.e. pt[i]==j iff base i pairs with base j
 
     /** local stack for structure parser */
-    int *stack;    
+    int *stack;
 } RNA2_data_t;
 
 /** global variables of move generator */
@@ -59,7 +59,7 @@ RNA2_data_t *r2d;
  * @return 1 if basepair is valid, 0 if not
  */
 int valid_bp_char( char const a, char const b)
-{    
+{
     if(
             a == 'A' && b == 'U' ||
             a == 'U' && b == 'A' ||
@@ -117,7 +117,7 @@ void normalize_seq()
  */
 inline int valid_bp( int const i, int const j)
 {
-	return valid_bp_char( r2d->seq[i], r2d->seq[j]);
+    return valid_bp_char( r2d->seq[i], r2d->seq[j]);
 }
 
 void RNA2_init(char const * const sequence, int const shift, int const noLP)
@@ -252,7 +252,7 @@ inline int outGrowLonely( int i, int j)
  *  UNPRD if no such k exists
  */
 int RNA2_move_nxt_val_bp_right( int i, int j)
-{    
+{
     do /* jump over inner base pairs of current loop */
     {
         j++;
@@ -356,14 +356,14 @@ void RNA2_move_noLP_bpshift() {
         if( r2d->form[i] == '(')        /* Handle each pair only once */
         {
             j = r2d->pt[i];
-            open_bp( i, j);            
+            open_bp( i, j);
             if( r2d->pt[i+1]==j-1 && !isInsLonely( i+1, j-1)) /* Outside & cross moves */
             {
                 if( j < r2d->len-1)
                 {
                     k = r2d->pt[j+1];   /* i -- check only two possible pair (k+1,j)/(j,k+1) [cross] */
                     if( k>=0 && k<r2d->len-1 && k!=i-1 && r2d->form[k+1]=='.' && valid_bp( k+1,j))
-                    {                        
+                    {
                         if( k<j)        /* Shift i to left */
                         {
                             close_bp( k+1, j);
@@ -402,7 +402,7 @@ void RNA2_move_noLP_bpshift() {
                             if(VERB)
                                 fprintf( stderr, "pushing sjc %s\n", r2d->form);
                         }
-                        push( r2d->form);                        
+                        push( r2d->form);
                         if( i<k)
                             open_bp( i, k-1);
                         else
@@ -415,7 +415,7 @@ void RNA2_move_noLP_bpshift() {
             {
                 k = r2d->pt[j-1];  /* i -- check only possible pair (k-1,j) */
                 if( k>i+1 && r2d->form[k-1]=='.' && valid_bp( k-1, j)) /* Shift i to right */
-                {                    
+                {
                     close_bp( k-1, j);
                     push( r2d->form);
                     if(VERB)
@@ -450,7 +450,7 @@ void RNA2_move_bpins_to_right(int i, int avoid_end)
 {
     int j;
     for (j=i+1;j<r2d->len; j++) {
-        
+
         /* jump over inner base pairs of current loop */
         while(j<r2d->len && r2d->form[j]=='(') {
             j=r2d->pt[j]+1;
@@ -464,7 +464,7 @@ void RNA2_move_bpins_to_right(int i, int avoid_end)
             if ( j-i > MYTURN && j!=avoid_end && valid_bp(i,j)) {
                 close_bp(i,j);
                 if(VERB)
-                	fprintf( stderr, "pushing %s %s\n", i==avoid_end ? "ins" : "shr", r2d->form);
+                    fprintf( stderr, "pushing %s %s\n", i==avoid_end ? "ins" : "shr", r2d->form);
                 push(r2d->form);
                 open_bp(i,j);
             }
@@ -484,7 +484,7 @@ void RNA2_move_bpins_to_left(int i, int avoid_end) {
                 return;
             j--;
         }
-        
+
         if (r2d->form[j]=='(') {
             break;
         } else {
@@ -493,7 +493,7 @@ void RNA2_move_bpins_to_left(int i, int avoid_end) {
             if ( i-j > MYTURN && j!=avoid_end && valid_bp(j,i)) {
                 close_bp(j,i);
                 if(VERB)
-                	fprintf( stderr, "pushing %s %s\n", i==avoid_end ? "ins" : "shl",r2d->form);
+                    fprintf( stderr, "pushing %s %s\n", i==avoid_end ? "ins" : "shl",r2d->form);
                 push(r2d->form);
                 open_bp(j,i);
             }
@@ -508,7 +508,7 @@ void RNA2_move_bpins_to_left(int i, int avoid_end) {
  */
 void RNA2_move_std() {
     unsigned int i;
-    unsigned int j;  	
+    unsigned int j;
 
     /* generate base pair deletions */
     for (i=0; i<r2d->len; i++) {
@@ -516,7 +516,7 @@ void RNA2_move_std() {
             j = r2d->pt[i];
             open_bp(i,j);
             if( VERB)
-            	fprintf( stderr, "pushing del %s\n", r2d->form);
+                fprintf( stderr, "pushing del %s\n", r2d->form);
             push(r2d->form);
             close_bp(i,j);
         }
@@ -528,18 +528,18 @@ void RNA2_move_std() {
             RNA2_move_bpins_to_right(i,i);
     }
 
-    /* generate base pair shifts */	
+    /* generate base pair shifts */
     if (r2d->shift) {
         int other_end;
         for (i=0; i<r2d->len; i++) {
             if (r2d->form[i]=='(' || r2d->form[i]==')') {
                 other_end=r2d->pt[i];
-                
+
                 open_bp(i,other_end);
 
                 /* generate shifts to the right*/
                 RNA2_move_bpins_to_right(i,other_end);
-                
+
                 /* generate shifts to the left */
                 RNA2_move_bpins_to_left(i,other_end);
 
@@ -562,7 +562,7 @@ void parse_structure()
 {
     int i;
     int siz=-1;
-    
+
     for (i=0; i<r2d->len; i++) {
         if (r2d->form[i]=='(') {
             r2d->stack[++siz]=i;
@@ -598,7 +598,7 @@ void RNA2_move_it(char * structure) {
     strcpy( r2d->form, structure);
     parse_structure();  /* update pairtable */
     reset_stapel();     /* Clear global structure stack */
-            
+
 /*    if( VERB)
         fprintf( stderr, "                      1         2         3         4         5\n"
                      "            012345678901234567890123456789012345678901234567890\n"
