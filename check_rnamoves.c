@@ -184,7 +184,7 @@ START_TEST( test_parse_structure )
 }
 END_TEST
 
-/* Test loneliness tests like isLonely(), isInsLonely(), insGrowLonely() etc */
+/* Test loneliness tests like isLonely(), is_ins_lonely(), insGrowLonely() etc */
 START_TEST( test_loneliness_tests)
 {
     char* seq = "GGGGGUGCCCCC";
@@ -206,8 +206,8 @@ START_TEST( test_loneliness_tests)
     {
         r2d->form = str[i];
         parse_structure();
-        ck_assert_int_eq( isInsLonely(2, 9), insIsLone[i]);
-        ck_assert_int_eq( isOutLonely(2, 9), outIsLone[i]);
+        ck_assert_int_eq( is_ins_lonely(2, 9), insIsLone[i]);
+        ck_assert_int_eq( is_out_lonely(2, 9), outIsLone[i]);
         ck_assert_int_eq( isLonely(2, 9), isLone[i]);
         ck_assert_int_eq( insGrowLonely(2, 9), insGrowLone[i]);
         ck_assert_int_eq( outGrowLonely(2, 9), outGrowLone[i]);
@@ -219,7 +219,7 @@ END_TEST
 
 /* Test generation of neighbor structures, without shift moves, with lonely pairs */
 START_TEST( test_rnamoves_noshift_lp)
-{    
+{
     int noLP = 0;
     int shift = 0;
 
@@ -236,7 +236,7 @@ START_TEST( test_rnamoves_noshift_lp)
     seq = "GGUUUCC";
     str = ".......";
     nb_size = 5;                /* Number of passed neighbors */
-    test_RNA2_move_it( seq, str, shift, noLP, nb_size,                       
+    test_RNA2_move_it( seq, str, shift, noLP, nb_size,
                        ".(....)",
                        ".(...).",
                        "(.....)",
@@ -248,7 +248,7 @@ END_TEST
 
 /* Test generation of neighbor structures, with shift moves, with lonely pairs */
 START_TEST( test_rnamoves_shift_lp)
-{    
+{
     int shift = 1;
     int noLP = 0;
 
@@ -257,17 +257,17 @@ START_TEST( test_rnamoves_shift_lp)
 
     int nb_size = 40;
     test_RNA2_move_it( seq, str, shift, noLP, nb_size,
-				".(((...((((.....))))...))).", ".(((.(..(((.....)))..).))).", 
-				"((((....(((.....)))....))))", ".(((....((((...))))....))).", 
-				"..((....(((.....)))....))..", ".(((.....((.....)).....))).", 
-				".(((....((.......))....))).", ".(((..(.(((.....))).)..))).", 
-				".((.....(((.....))).....)).", ".(.(....(((.....)))....).).", 
-				".(((....(.(.....).)....))).", ".(((....(((....).))....))).", 
-				".(((.(..(((.....))).)..))).", ".(((..(.(((.....)))..).))).", 
-				".(((....((.(....)))....))).", ".(((..(.(((.....))))...))).", 
-				".(((...((((.....))).)..))).", ".(((....(((.....)))....)).)", 
-				".((.(...(((.....)))....))).", ".(((...(.((.....)))....))).", 
-				".(((....(((.....)).)...))).", "(.((....(((.....)))....))).", 
+				".(((...((((.....))))...))).", ".(((.(..(((.....)))..).))).",
+				"((((....(((.....)))....))))", ".(((....((((...))))....))).",
+				"..((....(((.....)))....))..", ".(((.....((.....)).....))).",
+				".(((....((.......))....))).", ".(((..(.(((.....))).)..))).",
+				".((.....(((.....))).....)).", ".(.(....(((.....)))....).).",
+				".(((....(.(.....).)....))).", ".(((....(((....).))....))).",
+				".(((.(..(((.....))).)..))).", ".(((..(.(((.....)))..).))).",
+				".(((....((.(....)))....))).", ".(((..(.(((.....))))...))).",
+				".(((...((((.....))).)..))).", ".(((....(((.....)))....)).)",
+				".((.(...(((.....)))....))).", ".(((...(.((.....)))....))).",
+				".(((....(((.....)).)...))).", "(.((....(((.....)))....))).",
 				".((((...(((.....)))..).))).", ".((((...(((.....))).)..))).",
 				".(((.(..(((.....))))...))).", ".(((...((((.....)))..).))).",
 				".(((....((..(...)))....))).", ".((..(..(((.....)))....))).",
@@ -390,9 +390,9 @@ void test_RNA2_move_it( char* seq, char* str, int shift, int noLP, int nb_size, 
     RNA2_move_it( str);
     gen_nb = pop_stapel( &gen_nb_size);    /* Collect neighbors from stapel */
     sort_str( gen_nb, gen_nb_size);         /* Sort generated neighbors */
-    /*fprintf( stderr, "\"%s\" (input)\n", str); */
-    /* for(i = 0; i<gen_nb_size; i++)      /* Output generated neighbors */
-        /* fprintf( stderr, "\"%s\",\n", gen_nb[i]); */
+    fprintf( stderr, "\"%s\" (input)\n", str);
+    for(i = 0; i<gen_nb_size; i++)      /* Output generated neighbors */
+         fprintf( stderr, "\"%s\",\n", gen_nb[i]);
     deep_eq_str_ary( gen_nb, gen_nb_size, nb, nb_size);
 
     free( gen_nb);
