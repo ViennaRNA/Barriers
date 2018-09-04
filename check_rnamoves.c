@@ -129,6 +129,13 @@ START_TEST( test_sort_str )
 }
 END_TEST
 
+/* Check for correct value of external MYTURN variable */
+START_TEST ( test_myturn_val )
+{
+    ck_assert_int_eq( MYTURN, 4);
+}
+END_TEST
+
 /* Test the rnamoves_struct data structure */
 START_TEST ( test_rnamoves_struct)
 {
@@ -495,23 +502,10 @@ void assign_str( char** array, int nparam, ...)
 
 
 /************************************************************
- * QuickSort stolen from
+ * QuickSort takenfrom
  * http://www.comp.dit.ie/rlawlor/Alg_DS/sorting/quickSort.c
  * Adapted to sort string arrays, core dumps fixed.
  ************************************************************/
-
-void quickSort( char* a[], int l, int r)
-{
-    int j;
-
-    if( l < r )
-    {
-        // divide and conquer
-        j = partition( a, l, r);
-        quickSort( a, l, j-1);
-        quickSort( a, j+1, r);
-    }
-}
 
 int partition( char* a[], int l, int r) {
     int i, j;
@@ -529,6 +523,19 @@ int partition( char* a[], int l, int r) {
     }
     t = a[l]; a[l] = a[j]; a[j] = t;
     return j;
+}
+
+void quickSort( char* a[], int l, int r)
+{
+    int j;
+
+    if( l < r )
+    {
+        // divide and conquer
+        j = partition( a, l, r);
+        quickSort( a, l, j-1);
+        quickSort( a, j+1, r);
+    }
 }
 
 /***************************************
@@ -556,6 +563,7 @@ Suite* rnamoves_suite(void)
     /* tcase_add_test(tc_core, <test_name> ); */
 
     tcase_add_test(tc_core, test_sort_str);
+    tcase_add_test(tc_core, test_myturn_val);
     tcase_add_test(tc_core, test_rnamoves_struct);
     tcase_add_test(tc_core, test_parse_structure);
     tcase_add_test(tc_core, test_loneliness_tests);
