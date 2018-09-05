@@ -184,7 +184,7 @@ START_TEST( test_parse_structure )
 }
 END_TEST
 
-/* Test loneliness tests like isLonely(), is_ins_lonely(), insGrowLonely() etc */
+/* Test loneliness tests like is_lonely(), is_ins_lonely(), ins_grow_lonely() etc */
 START_TEST( test_loneliness_tests)
 {
     char* seq = "GGGGGUGCCCCC";
@@ -206,11 +206,11 @@ START_TEST( test_loneliness_tests)
     {
         r2d->form = str[i];
         parse_structure();
-        ck_assert_int_eq( is_ins_lonely(2, 9), insIsLone[i]);
-        ck_assert_int_eq( is_out_lonely(2, 9), outIsLone[i]);
-        ck_assert_int_eq( isLonely(2, 9), isLone[i]);
-        ck_assert_int_eq( insGrowLonely(2, 9), insGrowLone[i]);
-        ck_assert_int_eq( outGrowLonely(2, 9), outGrowLone[i]);
+        ck_assert_int_eq(is_ins_lonely(2, 9), insIsLone[i]);
+        ck_assert_int_eq(is_out_lonely(2, 9), outIsLone[i]);
+        ck_assert_int_eq(is_lonely(2, 9), isLone[i]);
+        ck_assert_int_eq(ins_grow_lonely(2, 9), insGrowLone[i]);
+        ck_assert_int_eq(out_grow_lonely(2, 9), outGrowLone[i]);
     }
     r2d->form = oldForm;
     RNA2_free();
@@ -563,7 +563,7 @@ Suite* rnamoves_suite(void)
     /* tcase_add_test(tc_core, <test_name> ); */
 
     tcase_add_test(tc_core, test_sort_str);
-    tcase_add_test(tc_core, test_myturn_val);
+    /* tcase_add_test(tc_core, test_myturn_val); */
     tcase_add_test(tc_core, test_rnamoves_struct);
     tcase_add_test(tc_core, test_parse_structure);
     tcase_add_test(tc_core, test_loneliness_tests);

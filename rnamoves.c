@@ -16,7 +16,7 @@ const  int VERB  =  1;   /**< be verbose? */
 
 
 /** flag to track initialization state of RNA2_data_t structure object */
-int isInitialized = 0;
+int is_initialized = 0;
 
 
 /**
@@ -41,7 +41,7 @@ typedef struct RNA2_data {
      *
      * The pairtable is zero-based, i.e. pt[0] is the pairing partner of first base
      */
-    int *pt;        /**< pairtable, i.e. pt[i]==j iff base i pairs with base j
+    int *pt;        /**< pairtable, i.e. pt[i]==j iff base i pairs with base j */
 
     /** local stack for structure parser */
     int *stack;
@@ -54,22 +54,20 @@ RNA2_data_t *r2d;
 
 /**
  * @brief Check whether (a,b) is a valid basepair. Valid basepairs are the
- *  canonical pairs AU and GC and also the wobble pair GU (and their respective
- *  symmetrical counterparts UA, CG, UG).
- * @param a First base
- * @param b Second base
+ *  canonical / Watson-Crick pairs AU and GC and also the wobble pair GU (and
+ *  their respective symmetric counterparts UA, CG, UG).
+ * @param a first base
+ * @param b second base
  * @return 1 if basepair is valid, 0 if not
  */
-int valid_bp_char( char const a, char const b)
+int valid_bp_char(char const a, char const b)
 {
     if(
-            a == 'A' && b == 'U' ||
-            a == 'U' && b == 'A' ||
-            a == 'G' && b == 'C' ||
-            a == 'C' && b == 'G' ||
-            a == 'G' && b == 'U' ||
-            a == 'U' && b == 'G'
-            )
+           a == 'A' &&  b == 'U'
+        || a == 'C' &&  b == 'G'
+        || a == 'U' && (b == 'A' || b == 'G')
+        || a == 'G' && (b == 'C' || b == 'U')
+      )
         return 1;
     else
         return 0;
@@ -78,34 +76,36 @@ int valid_bp_char( char const a, char const b)
 
 /**
  * @brief Check the sequence for validity, convert it to upper case and
- *  substitute Ts for Us. Exits if sequence contains invalid characters.
+ * substitute Ts for Us. Exits with an error if sequence contains invalid
+ * characters.
  */
 void normalize_seq()
 {
     int i;
-    for( i=0; i < r2d->len; i++)
-        switch( r2d->seq[i])
+    for(i=0; i < r2d->len; i++)
+        switch(r2d->seq[i])
         {
-        case 't':
-        case 'T':
-            r2d->seq[i] = 'U';
-            break;
-        case 'a':
-        case 'u':
-        case 'g':
-        case 'c':
-            r2d->seq[i] += 'A'-'a';    /* convert to upper case */
-            break;
-        case 'A':
-        case 'U':
-        case 'G':
-        case 'C':
-            break;                                  /* valid, do nothing */
-        default:
-            fprintf( stderr, "ERROR: normalize_seq(): invalid base '%c' at "
-                             "position %d of sequence: \n%s\n",
-                     r2d->seq[i], i, r2d->seq);
-            exit(1);                                /* invalid, return error */
+            case 't':
+            case 'T':
+                r2d->seq[i] = 'U';
+                break;
+            case 'a':
+            case 'u':
+            case 'g':
+            case 'c':
+                r2d->seq[i] += 'A'-'a';         /* convert to upper case */
+                break;
+            case 'A':
+            case 'U':
+            case 'G':
+            case 'C':
+                break;                          /* valid, do nothing */
+            default:
+                fprintf(stderr, "ERROR: normalize_seq(): invalid base '%c' at"
+                                " position %d of sequence: \n%s\n",
+                        r2d->seq[i], i, r2d->seq
+                );
+                exit(1);                        /* invalid, return error */
         }
     return;
 }
@@ -114,28 +114,35 @@ void normalize_seq()
 /**
  * @brief Check whether (i,j) is a valid basepair in the stored sequence,
  *  c.f. valid_bp_char(). It is assumed that i and j are less than the sequence
- *  length.
+ *  length. Minimal loop length is NOT checked, cf. has_min_loop_length()
  * @param i First index of stored sequence. i<r2d->len is assumed.
  * @param j Second index of stored sequence. j<r2d->len is assumed.
  * @return 1 if basepair is valid, 0 if not
  */
-inline int valid_bp( int const i, int const j)
+inline int valid_bp(int const i, int const j)
 {
-    return valid_bp_char( r2d->seq[i], r2d->seq[j]);
+    return valid_bp_char(r2d->seq[i], r2d->seq[j]);
 }
 
 
+/**
+ * @brief Initialize the global r2d data structure. Call RNA2_free to
+ *  deallocate resources after using.
+ * @param sequence the RNA sequence
+ * @param shift flag, allow shift moves?
+ * @param noLP flag, allow noLP moves?
+ */
 void RNA2_init(char const * const sequence, int const shift, int const noLP)
 {
     int i;
-    if ( isInitialized)     /* do not leak anything if already intialized */
+    if (is_initialized)     /* do not leak anything if already intialized */
         RNA2_free();
-    isInitialized = 1;
-    r2d = (RNA2_data_t *) malloc( sizeof(RNA2_data_t));
+    is_initialized = 1;
+    r2d = (RNA2_data_t *) malloc(sizeof(RNA2_data_t));
 
     r2d->len = strlen(sequence);
-    r2d->seq = (char*) malloc( (r2d->len+1)*sizeof(char));
-    strcpy( r2d->seq, sequence);
+    r2d->seq = (char*) malloc((r2d->len+1)*sizeof(char));
+    strcpy(r2d->seq, sequence);
     normalize_seq();   /* make uppercase, convert T to U */
 
     r2d->shift=shift;
@@ -146,7 +153,7 @@ void RNA2_init(char const * const sequence, int const shift, int const noLP)
     r2d->pt = (unsigned int *)malloc((r2d->len+1)*sizeof(unsigned int));
     r2d->stack = (unsigned int*)malloc(r2d->len*sizeof(unsigned int));
 
-    for( i=0; i<r2d->len; i++) /* initialize with open structure */
+    for(i=0; i<r2d->len; i++) /* initialize with open structure */
     {
         r2d->form[i] = '.';
         r2d->pt[i] = UNPRD;
@@ -158,11 +165,13 @@ void RNA2_init(char const * const sequence, int const shift, int const noLP)
 
 
 /**
-  @brief write parenthesis into form, adjust pairtable. Well-formedness of
-   basepair (i,j) is assumed (non-crossing, valid basepair).
-  @param i left end
-  @param i right end
-*/
+ * @brief Add the base pair (i,j), i<j,  to the current seconday structure.
+ *  This consists of writing parenthesis into the form string, and adjusting
+ *  the pairtable. Well-formedness of basepair (i,j) is assumed (non-crossing,
+ *  valid basepair).
+ * @param i left index
+ * @param i right index
+ */
 inline void close_bp(const unsigned int i, const unsigned int j) {
     r2d->form[i]='(';
     r2d->form[j]=')';
@@ -173,10 +182,10 @@ inline void close_bp(const unsigned int i, const unsigned int j) {
 
 
 /**
-  @brief make base pair ends unpaired in form, adjust pairtable
-  @param i left end
-  @param i right end
-*/
+ * @brief make base pair ends unpaired in form, adjust pairtable
+ * @param i left end
+ * @param i right end
+ */
 inline void open_bp(const unsigned int i, const unsigned int j) {
     r2d->form[i] = r2d->form[j] = '.';
     r2d->pt[i] = r2d->pt[j] = UNPRD;
@@ -184,48 +193,95 @@ inline void open_bp(const unsigned int i, const unsigned int j) {
 }
 
 
+/**
+ * @brief The 1-based sequence length of the currently considered RNA.
+ * @param i left end
+ * @param i right end
+ */
 inline int seq_len()
 {
     return r2d->len;
 }
 
 
+/**
+ * @brief Returns the dot-bracket string notation of the current secondary
+ *  structure.
+ * @return dot-bracket string notation of the current secondary structure
+ */
 inline char* dot_bracket_str()
 {
     return r2d->form;
 }
 
 
+/**
+ * @brief Checks whether i participates in any (closed) base pair (i,j).
+ * @param i index to check
+ * @return 1 if i participates in any (closed) base pair (i,j), 0 if not
+ */
 inline int is_paired(int i)
 {
     return r2d->form[i] != '.';
 }
 
 
+/**
+ * @brief Checks whether there is a base pair (i,j) with i<j, i.e. whether i
+ *  opens a base pair.
+ * @param i left index
+ * @return 1 if there is a closed base-pair (i,j) with i<j, 0 if not
+ */
 inline int is_opening_bp(int i)
 {
     return r2d->form[i] == '(';
 }
 
 
+/**
+ * @brief Checks whether there is a base pair (j,i) with j<i, i.e. whether i
+ *  closes a base pair.
+ * @param i index to check
+ * @return 1 if there is a closed base-pair (j,i) with j<i, 0 if not
+ */
 inline int is_closing_bp(int i)
 {
     return r2d->form[i] == ')';
 }
 
 
+/**
+ * @brief If i participates in a base pair (i,j), returns its pairing partner
+ *  j. Otherwise, reports that i is unpaired.
+ * @param i index to check
+ * @return j if (i,j) is a closed base pair, UNPRD otherwise
+ */
 inline int pairs_with(int i)
 {
     return r2d->pt[i];
 }
 
 
+/**
+ * @brief Checks whether (i,j) is a (closed) base pair in the current
+ *  structure.
+ * @param i first index
+ * @param j second index
+ * @return 1 if (i,j) is a closed base pair, 0 if not
+ */
 inline int is_bp(int i, int j)
 {
     return r2d->pt[i] == j;
 }
 
 
+/**
+ * @brief Checks whether base pair (i,j) encloses enough base pairs to form a
+ *  loop.
+ * @param i left index
+ * @param j right index
+ * @return 1 if (i,j) has the minimal loop length, 0 if not.
+ */
 inline int has_min_loop_length (int i, int j)
 {
     return j-i >= MYTURN;
@@ -239,7 +295,7 @@ inline int has_min_loop_length (int i, int j)
  * @param j right index
  * @return 1 if (i,j) is outside-lonely, 0 if not
  */
-inline int is_out_lonely( int i, int j)
+inline int is_out_lonely(int i, int j)
 {
     return i==0 || !is_bp(i-1, j+1);
 }
@@ -252,7 +308,7 @@ inline int is_out_lonely( int i, int j)
  * @param j right index
  * @return 1 if (i,j) is inside-lonely, 0 if not
  */
-inline int is_ins_lonely( int i, int j)
+inline int is_ins_lonely(int i, int j)
 {
     return !is_bp(i+1, j-1);
 }
@@ -265,9 +321,9 @@ inline int is_ins_lonely( int i, int j)
  * @param j right index
  * @return 1 if (i,j) is lonely, 0 if not
  */
-inline int isLonely( int i, int j)
+inline int is_lonely(int i, int j)
 {
-    return is_out_lonely( i, j) && is_ins_lonely( i, j);
+    return is_out_lonely(i, j) && is_ins_lonely(i, j);
 }
 
 
@@ -280,7 +336,7 @@ inline int isLonely( int i, int j)
  * @return 1 if (i+1,j-1) is a basepair in the current structure and grows lonely
  *  when removing (i,j), 0 if not
  */
-inline int insGrowLonely( int i, int j)
+inline int ins_grow_lonely(int i, int j)
 {
     return is_bp(i+1, j-1) && is_ins_lonely(i+1, j-1);
 }
@@ -295,24 +351,24 @@ inline int insGrowLonely( int i, int j)
  * @return 1 if (i-1,j+1) is a basepair in the current structure and grows lonely
  *  when removing (i,j), 0 if not
  */
-inline int outGrowLonely( int i, int j)
+inline int out_grow_lonely(int i, int j)
 {
     return i!=0 && is_bp(i-1, j+1) && is_out_lonely(i-1, j+1);
 }
 
 
 /**
- * @brief Given an unpaired index i, find the first index j with i<j such that (i,j)
- *  is a valid basepair in the current sequence and structure. To get all such
- *  positions j, repeatedly call this function passing the index j returned by
- *  the last call.
+ * @brief Given an unpaired index i, find the first index j with i<j such that
+ *  (i,j) is a valid basepair in the current sequence and structure. To get
+ *  all such positions j, repeatedly call this function passing the index j
+ *  returned by the last call.
  * @param i Left index, assumed to be unpaired
  * @param j Last index such that (i,j) is a valid basepair. To get the first
  *  such j, pass j=i. i<=j is assumed.
  * @return next index k with i<=j<k such that (i,k) is a valid basepair, or
  *  UNPRD if no such k exists
  */
-int RNA2_move_nxt_val_bp_right( int i, int j)
+int RNA2_move_nxt_val_bp_right(int i, int j)
 {
     do /* jump over inner base pairs of current loop */
     {
@@ -321,7 +377,7 @@ int RNA2_move_nxt_val_bp_right( int i, int j)
             j = pairs_with(j)+1;
         if(j>=seq_len() || is_closing_bp(j))  /* here, the current loop ends */
             return UNPRD;
-    } while( !has_min_loop_length(i, j) || !valid_bp(i,j));
+    } while(!has_min_loop_length(i, j) || !valid_bp(i,j));
 
     return j;
 }
@@ -335,36 +391,36 @@ int RNA2_move_nxt_val_bp_right( int i, int j)
  */
 void RNA2_move_noLP_bpins() {
     int i,j;
-    for( i=0; i<seq_len(); i++)
-        if( !is_paired(i))
+    for(i=0; i<seq_len(); i++)
+        if(!is_paired(i))
         {
             j=i;
-            while( (j = RNA2_move_nxt_val_bp_right(i, j)) != UNPRD)
+            while((j = RNA2_move_nxt_val_bp_right(i, j)) != UNPRD)
             {
-                close_bp( i, j);
-                if( isLonely( i, j))
+                close_bp(i, j);
+                if(is_lonely(i, j))
                 {
-                    if( has_min_loop_length(i+1, j-1)
+                    if(has_min_loop_length(i+1, j-1)
                         && !is_paired(i+1)
                         && !is_paired(j-1)
                         && valid_bp(i+1, j-1)
                         && is_ins_lonely(i+1, j-1)
                     )
                     {   /* insert lonely stack */
-                        close_bp( i+1, j-1);
+                        close_bp(i+1, j-1);
                         if(VERB)
-                            fprintf( stderr, "pushing lsi %s\n", dot_bracket_str());
+                            fprintf(stderr, "pushing lsi %s\n", dot_bracket_str());
                         push(dot_bracket_str());
-                        open_bp( i+1, j-1);
+                        open_bp(i+1, j-1);
                     }
                 }
                 else    /* bp not lonely, insert*/
                 {
                     if(VERB)
-                        fprintf( stderr, "pushing lpi %s\n", dot_bracket_str());
+                        fprintf(stderr, "pushing lpi %s\n", dot_bracket_str());
                     push(dot_bracket_str());
                 }
-                open_bp( i, j);
+                open_bp(i, j);
             }
         }
     return;
@@ -379,30 +435,30 @@ void RNA2_move_noLP_bpins() {
  */
 void RNA2_move_noLP_bpdel() {
     int i,j, ilg;
-    for( i=0; i<seq_len(); i++)
+    for(i=0; i<seq_len(); i++)
         if(is_opening_bp(i))
         {
             j = pairs_with(i);
-            open_bp( i, j);
-            ilg = insGrowLonely( i, j);     /* is structure inside-lonely-growing? */
-            if( ilg || outGrowLonely( i,j))
+            open_bp(i, j);
+            ilg = ins_grow_lonely(i, j);        /* is structure inside-lonely-growing? */
+            if(ilg || out_grow_lonely(i,j))
             {
-                if( ilg && is_out_lonely(i, j) ) /* only delete lonely stack on the inside */
+                if(ilg && is_out_lonely(i, j) ) /* only delete lonely stack on the inside */
                 {
-                    open_bp( i+1, j-1);
+                    open_bp(i+1, j-1);
                     if(VERB)
-                        fprintf( stderr, "pushing lsd %s\n", dot_bracket_str());
+                        fprintf(stderr, "pushing lsd %s\n", dot_bracket_str());
                     push(dot_bracket_str());
-                    close_bp( i+1, j-1);
+                    close_bp(i+1, j-1);
                 }
             }
-            else    /* no lonely pairs arise */
+            else                                 /* no lonely pairs arise */
             {
                 if(VERB)
-                    fprintf( stderr, "pushing lpd %s\n", dot_bracket_str());
+                    fprintf(stderr, "pushing lpd %s\n", dot_bracket_str());
                 push(dot_bracket_str());
             }
-            close_bp( i, j);
+            close_bp(i, j);
         }
     return;
 }
@@ -417,93 +473,104 @@ void RNA2_move_noLP_bpdel() {
 void RNA2_move_noLP_bpshift() {
     /* Outside: shift i to left or j to right */
     int i, j, k;
-    for( i=0; i<seq_len(); i++)
-        if( is_opening_bp(i))        /* Handle each pair only once */
+    for(i=0; i<seq_len(); i++)
+        if(is_opening_bp(i))        /* Handle each pair only once */
         {
             j = pairs_with(i);
-            open_bp( i, j);
-            if(is_bp(i+1, j-1) && !is_ins_lonely(i+1, j-1)) /* Outside & cross moves */
-            {
-                if( j < seq_len()-1)
+            open_bp(i, j);
+            if(is_bp(i+1, j-1) && !is_ins_lonely(i+1, j-1))
+            {   /* Outside & cross moves */
+                if(j < seq_len()-1)
                 {
-                    k = pairs_with(j+1);   /* i -- check only two possible pair (k+1,j)/(j,k+1) [cross] */
-                    if( k >= 0
+                    /* i -- check only two possible pair (k+1,j)/(j,k+1) [cross] */
+                    k = pairs_with(j+1);
+                    if(k >= 0
                         && k < seq_len()-1
                         && k != i-1
                         && !is_paired(k+1)
                         && valid_bp(k+1,j)
                     )
                     {
-                        if( k<j)        /* Shift i to left */
+                        if(k<j)        /* Shift i to left */
                         {
-                            close_bp( k+1, j);
+                            close_bp(k+1, j);
                             if(VERB)
-                                fprintf( stderr, "pushing sil %s\n", dot_bracket_str());
+                                fprintf(stderr, "pushing sil %s\n", dot_bracket_str());
                         }
                         else            /* Cross i to right side */
                         {
-                            close_bp( j, k+1);
+                            close_bp(j, k+1);
                             if(VERB)
-                                fprintf( stderr, "pushing sic %s j=%d k+1=%d\n", dot_bracket_str(), j, k+1);
+                                fprintf(stderr, "pushing sic %s j=%d k+1=%d\n",
+                                         dot_bracket_str(), j, k+1
+                                );
                         }
                         push(dot_bracket_str());
 
-                        if( k<j)
-                            open_bp( k+1, j);
+                        if(k<j)
+                            open_bp(k+1, j);
                         else
-                            open_bp( j, k+1);
+                            open_bp(j, k+1);
                     }
                 }
-                if( i > 0)
+                if(i > 0)
                 {
-                    k = pairs_with(i-1);  /* j -- check only two possible pair (i,k-1)/(k-1,i) [cross] */
-                    if( k>0 && k!=j+1 && !is_paired(k-1) && valid_bp( i,k-1))
+                    /* j -- check only two possible pair (i,k-1)/(k-1,i) [cross] */
+                    k = pairs_with(i-1);
+                    if(k>0 && k!=j+1 && !is_paired(k-1) && valid_bp(i,k-1))
                     {
                         /*say "Shift j to right / cross: found candidate";*/
-                        if( i<k)
+                        if(i < k)
                         {
-                            close_bp( i, k-1);
+                            close_bp(i, k-1);
                             if(VERB)
-                                fprintf( stderr, "pushing sjr %s\n", dot_bracket_str());
+                                fprintf(stderr, "pushing sjr %s\n",
+                                        dot_bracket_str()
+                                );
                         }
                         else
                         {
-                            close_bp( k-1, i);
+                            close_bp(k-1, i);
                             if(VERB)
-                                fprintf( stderr, "pushing sjc %s\n", dot_bracket_str());
+                                fprintf(stderr, "pushing sjc %s\n",
+                                        dot_bracket_str()
+                                );
                         }
                         push(dot_bracket_str());
-                        if( i<k)
-                            open_bp( i, k-1);
+                        if(i < k)
+                            open_bp(i, k-1);
                         else
-                            open_bp( k-1, i);
+                            open_bp(k-1, i);
                     }
                 }
             }
             /* Inside: shift i to right or j to left */
-            if( i>0 && is_bp(i-1, j+1) && !is_out_lonely( i-1, j+1))
+            if(i>0 && is_bp(i-1, j+1) && !is_out_lonely(i-1, j+1))
             {
-                k = pairs_with(j-1);  /* i -- check only possible pair (k-1,j) */
-                if( k>i+1 && !is_paired(k-1) && valid_bp( k-1, j)) /* Shift i to right */
+                /* i -- check only possible pair (k-1,j) */
+                k = pairs_with(j-1);
+                if(k>i+1 && !is_paired(k-1) && valid_bp(k-1, j))
                 {
-                    close_bp( k-1, j);
+                    /* Shift i to right */
+                    close_bp(k-1, j);
                     push(dot_bracket_str());
                     if(VERB)
-                        fprintf( stderr, "pushing sir %s\n", dot_bracket_str());
-                    open_bp( k-1, j);
+                        fprintf(stderr, "pushing sir %s\n", dot_bracket_str());
+                    open_bp(k-1, j);
                 }
-                k = pairs_with(i+1); /* j -- check only possible pair (i,k+1) */
-                if( k>=0 && k<j-1 && !is_paired(k+1) && valid_bp(i,k+1))
+                /* j -- check only possible pair (i,k+1) */
+                k = pairs_with(i+1);
+                if(k>=0 && k<j-1 && !is_paired(k+1) && valid_bp(i,k+1))
                 {
                     /* say "Shift j to left: found candidate"; */
-                    close_bp( i, k+1);
+                    close_bp(i, k+1);
                     push(dot_bracket_str());
                     if(VERB)
-                        fprintf( stderr, "pushing sjl %s\n", dot_bracket_str());
-                    open_bp( i, k+1);
+                        fprintf(stderr, "pushing sjl %s\n", dot_bracket_str());
+                    open_bp(i, k+1);
                 }
             }
-            close_bp( i, j);
+            close_bp(i, j);
         }
 }
 
@@ -532,10 +599,13 @@ void RNA2_move_bpins_to_right(int i, int avoid_end)
         } else {
             /* j unpaired,
                register neighbor */
-            if ( j-i>=MYTURN && j!=avoid_end && valid_bp(i,j)) {
+            if (has_min_loop_len(i,j) && j!=avoid_end && valid_bp(i,j)) {
                 close_bp(i,j);
                 if(VERB)
-                    fprintf( stderr, "pushing %s %s\n", i==avoid_end ? "ins" : "shr", dot_bracket_str());
+                    fprintf(stderr, "pushing %s %s\n",
+                            i==avoid_end ? "ins" : "shr",
+                            dot_bracket_str()
+                    );
                 push(dot_bracket_str());
                 open_bp(i,j);
             }
@@ -562,10 +632,10 @@ void RNA2_move_bpins_to_left(int i, int avoid_end) {
         } else {
             /* j unpaired,
                register neighbor */
-            if ( i-j>=MYTURN && j!=avoid_end && valid_bp(j,i)) {
+            if (has_min_loop_len(j,i) && j!=avoid_end && valid_bp(j,i)) {
                 close_bp(j,i);
                 if(VERB)
-                    fprintf( stderr, "pushing %s %s\n",
+                    fprintf(stderr, "pushing %s %s\n",
                              i==avoid_end ? "ins" : "shl", dot_bracket_str());
                 push(dot_bracket_str());
                 open_bp(j,i);
@@ -589,8 +659,8 @@ void RNA2_move_std() {
         if (is_opening_bp(i)) {
             j = pairs_with(i);
             open_bp(i,j);
-            if( VERB)
-                fprintf( stderr, "pushing del %s\n", dot_bracket_str());
+            if(VERB)
+                fprintf(stderr, "pushing del %s\n", dot_bracket_str());
             push(dot_bracket_str());
             close_bp(i,j);
         }
@@ -642,9 +712,9 @@ void parse_structure()
         if (is_opening_bp(i)) {
             r2d->stack[++siz]=i;
         } else if (is_closing_bp(i)) {
-            if( !valid_bp( i, r2d->stack[siz]))
+            if(!valid_bp(i, r2d->stack[siz]))
             {
-                fprintf( stderr, "ERROR: invalid basepair (%c,%c) in"
+                fprintf(stderr, "ERROR: invalid basepair (%c,%c) in"
                                  " parse_structure()\n",
                          r2d->seq[i], r2d->seq[r2d->stack[siz]]);
                 exit(1);
@@ -664,8 +734,9 @@ void parse_structure()
  * and 'noLP' of the r2d structure are taken into account.
  * @param structure Structure for which to generate neighbors
  */
-void RNA2_move_it(char * structure) {
-    if( strlen(structure) != seq_len() )
+void RNA2_move_it(char * structure)
+{
+    if(strlen(structure) != seq_len() )
     {
         fprintf(stderr, "ERROR: length of sequence and passed structure "
                          "differ in RNA2_move_it()\n");
@@ -675,11 +746,13 @@ void RNA2_move_it(char * structure) {
     parse_structure();  /* update pairtable */
     reset_stapel();     /* Clear global structure stack */
 
-/*    if( VERB)
-        fprintf( stderr, "                      1         2         3         4         5\n"
-                     "            012345678901234567890123456789012345678901234567890\n"
-                     "            %s shift=%d noLP=%d\n",
-                 dot_bracket_str(), r2d->shift, r2d->noLP);
+/*    if(VERB)
+          fprintf(stderr,
+                  "                      1         2         3         4         5\n"
+                  "            012345678901234567890123456789012345678901234567890\n"
+                  "            %s shift=%d noLP=%d\n",
+                  dot_bracket_str(), r2d->shift, r2d->noLP
+          );
  */
     if (r2d->noLP) {
         RNA2_move_noLP_bpins();
@@ -695,10 +768,14 @@ void RNA2_move_it(char * structure) {
 }
 
 
-void RNA2_free(void) {
-    if(isInitialized)
+/**
+ * @brief Free all resources allocated by the RNA2_init call.
+ */
+void RNA2_free()
+{
+    if(is_initialized)
     {
-        isInitialized = 0;
+        is_initialized = 0;
 
         free(r2d->seq);
         free(r2d->form);
@@ -717,9 +794,9 @@ char const* RNA2_get_seq()
 }
 
 
-const char *RNA2_get_form()
+const char* RNA2_get_form()
 {
-    return r2d->form;
+    return dot_bracket_str();
 }
 
 
