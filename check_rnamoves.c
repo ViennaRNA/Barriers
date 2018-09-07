@@ -464,7 +464,7 @@ char** pop_stapel( int* size)
     int seqLen = seq_len();
     char** structs = (char**) malloc( 3*seqLen*seqLen*sizeof(char*));
     *size = 0;
-    while( cur = pop())
+    while( (cur = pop()) )
         structs[(*size)++] = cur;
 
     return structs;
