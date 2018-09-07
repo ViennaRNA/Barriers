@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>  /* to implement assign() */
+#include <stdarg.h>     /* to implement assign() */
 
 #include <check.h>
 
@@ -29,6 +29,7 @@
  */
 void deep_eq_str_ary( char** a, int size_a, char** b, int size_b);
 
+
 /**
  * @brief Check two arrays of integers for deep equality
  *          using Check assertions.
@@ -39,6 +40,7 @@ void deep_eq_str_ary( char** a, int size_a, char** b, int size_b);
  */
 void deep_eq_int_ary( int* a, int size_a, int* b, int size_b);
 
+
 /**
  * @brief Pop all structures off the global structure stack into an array
  * @param size Pointer to an integer in which the number of structures found
@@ -48,6 +50,7 @@ void deep_eq_int_ary( int* a, int size_a, int* b, int size_b);
  */
 char** pop_stapel( int* size);
 
+
 /**
  * @brief Assign the passed values to the passed array.
  * @param Integer array
@@ -56,6 +59,7 @@ char** pop_stapel( int* size);
  */
 void assign_int( int* array, int nparam, ...);
 
+
 /**
  * @brief Assign the passed values to the passed array.
  * @param Array for strings, i.e. zero-terminated char arrays
@@ -63,6 +67,7 @@ void assign_int( int* array, int nparam, ...);
  * @param ... Values to assign to the array
  */
 void assign_str( char** array, int nparam, ...);
+
 
 /**
  * @brief Test RNA2_move_it by comparing the structures it generates with a
@@ -75,7 +80,9 @@ void assign_str( char** array, int nparam, ...);
  * @param ... neighbor structures in the order they are created by RNA2_move_it
  */
 void test_RNA2_move_it( char* seq, char* str, int shift, int noLP,
-                        int nb_size, ...);
+                        int nb_size, ...
+);
+
 
 /**
  * @brief A simple in-situ QuickSort implementation for C strings. Use
@@ -85,7 +92,10 @@ void test_RNA2_move_it( char* seq, char* str, int shift, int noLP,
  * @param r Right index of range to sort
  */
 
+
 void quickSort( char* a[], int l, int r);
+
+
 /**
  * @brief QuickSort an array of zero-terminated strings
  * @param ary Array of strings (i.e. array of char*)
@@ -143,8 +153,8 @@ START_TEST ( test_rnamoves_struct)
     char* str = "............";
     int shift = 1, noLP = 0;
     RNA2_init( seq, shift, noLP);
-    ck_assert_str_eq( RNA2_get_seq(), seq);
-    ck_assert_str_eq( RNA2_get_form(), str);
+    ck_assert_str_eq( r2d->seq, seq);
+    ck_assert_str_eq( dot_bracket_str(), str);
     ck_assert_int_eq( r2d->shift, shift);
     ck_assert_int_eq( r2d->noLP, noLP);
     /*ck_assert_int_eq( 1, 0);    /* THOU SHALL FAIL! */
@@ -390,9 +400,9 @@ void test_RNA2_move_it( char* seq, char* str, int shift, int noLP, int nb_size, 
     RNA2_move_it( str);
     gen_nb = pop_stapel( &gen_nb_size);    /* Collect neighbors from stapel */
     sort_str( gen_nb, gen_nb_size);         /* Sort generated neighbors */
-    fprintf( stderr, "\"%s\" (input)\n", str);
-    for(i = 0; i<gen_nb_size; i++)      /* Output generated neighbors */
-         fprintf( stderr, "\"%s\",\n", gen_nb[i]);
+    // fprintf( stderr, "\"%s\" (input)\n", str);
+    // for(i = 0; i<gen_nb_size; i++)      /* Output generated neighbors */
+        //      fprintf( stderr, "\"%s\",\n", gen_nb[i]);
     deep_eq_str_ary( gen_nb, gen_nb_size, nb, nb_size);
 
     free( gen_nb);
@@ -451,7 +461,7 @@ void deep_eq_int_ary( int* a, int size_a, int* b, int size_b)
 char** pop_stapel( int* size)
 {
     char* cur = NULL;
-    int seqLen = RNA2_get_len();
+    int seqLen = seq_len();
     char** structs = (char**) malloc( 3*seqLen*seqLen*sizeof(char*));
     *size = 0;
     while( cur = pop())
@@ -502,7 +512,7 @@ void assign_str( char** array, int nparam, ...)
 
 
 /************************************************************
- * QuickSort takenfrom
+ * QuickSort taken from
  * http://www.comp.dit.ie/rlawlor/Alg_DS/sorting/quickSort.c
  * Adapted to sort string arrays, core dumps fixed.
  ************************************************************/
@@ -525,6 +535,7 @@ int partition( char* a[], int l, int r) {
     return j;
 }
 
+
 void quickSort( char* a[], int l, int r)
 {
     int j;
@@ -538,43 +549,73 @@ void quickSort( char* a[], int l, int r)
     }
 }
 
+
 /***************************************
- * end of QuickSort
- * *************************************/
+ *          End of QuickSort           *
+ ***************************************/
+
 
 /***********************
  **  Setup Testsuite  **
  ***********************/
 
-/* Create a test suite
+/*
+ * Create a test suite
  * Add new tests to suite here!
  * Taken from the Check tutorial.
  */
-Suite* rnamoves_suite(void)
+Suite* rnamoves_suite()
 {
     Suite *s;
-    TCase *tc_core;
+    /* TCase *tc_core; */
+    TCase *tc_test_utils;
+    TCase *tc_rnamoves_utils;
+    TCase *tc_structure_predicates;
+    TCase *tc_rna_moves_lp;
+    TCase *tc_rna_moves_nolp;
 
-    s = suite_create("rnamoves");
+    s = suite_create("rnamoves.c");
 
-    /* Core test case */
-    tc_core = tcase_create("Core");
+    /* Create test cases and add test functions to them */
+    /* tc_core = tcase_create("Core"); */
+    tc_test_utils = tcase_create("Test suite utilities");
+    tcase_add_test(tc_test_utils, test_sort_str);
+    suite_add_tcase(s, tc_test_utils);
 
-    /* tcase_add_test(tc_core, <test_name> ); */
+    tc_rnamoves_utils = tcase_create("RNA moves utilities");
+    tcase_add_test(tc_rnamoves_utils, test_rnamoves_struct);
+    tcase_add_test(tc_rnamoves_utils, test_parse_structure);
+    suite_add_tcase(s, tc_rnamoves_utils);
 
-    tcase_add_test(tc_core, test_sort_str);
-    /* tcase_add_test(tc_core, test_myturn_val); */
-    tcase_add_test(tc_core, test_rnamoves_struct);
-    tcase_add_test(tc_core, test_parse_structure);
-    tcase_add_test(tc_core, test_loneliness_tests);
-    tcase_add_test(tc_core, test_rnamoves_noshift_lp);
-    tcase_add_test(tc_core, test_rnamoves_shift_lp);
-    tcase_add_test(tc_core, test_rnamoves_noshift_nolp);
-    tcase_add_test(tc_core, test_rnamoves_shift_nolp);
+    tc_structure_predicates = tcase_create("Structure predicates");
+    tcase_add_test(tc_structure_predicates, test_loneliness_tests);
+    suite_add_tcase(s, tc_structure_predicates);
 
-    suite_add_tcase(s, tc_core);
+    tc_rna_moves_lp = tcase_create("Moves INcluding lonely pairs");
+    tcase_add_test(tc_rna_moves_lp, test_rnamoves_noshift_lp);
+    tcase_add_test(tc_rna_moves_lp, test_rnamoves_shift_lp);
+    suite_add_tcase(s, tc_rna_moves_lp);
+
+    tc_rna_moves_nolp = tcase_create("Moves EXcluding lonely pairs");
+    tcase_add_test(tc_rna_moves_nolp, test_rnamoves_noshift_nolp);
+    tcase_add_test(tc_rna_moves_nolp, test_rnamoves_shift_nolp);
+    suite_add_tcase(s, tc_rna_moves_nolp);
+
+
+/*    tcase_add_test(tc_core, test_sort_str);                    */
+/*    /* tcase_add_test(tc_core, test_myturn_val);               */
+/*    tcase_add_test(tc_core, test_rnamoves_struct);             */
+/*    tcase_add_test(tc_core, test_parse_structure);             */
+/*    tcase_add_test(tc_core, test_loneliness_tests);            */
+/*    tcase_add_test(tc_core, test_rnamoves_noshift_lp);         */
+/*    tcase_add_test(tc_core, test_rnamoves_shift_lp);           */
+/*    tcase_add_test(tc_core, test_rnamoves_noshift_nolp);       */
+/*    tcase_add_test(tc_core, test_rnamoves_shift_nolp);         */
+
+/*    suite_add_tcase(s, tc_core);                               */
     return s;
 }
+
 
 /* Run test suite */
 int main(int argc, char **args)
@@ -584,7 +625,7 @@ int main(int argc, char **args)
     Suite *s;
     SRunner *sr;
 
-    s = rnamoves_suite();
+    s  = rnamoves_suite();
     sr = srunner_create(s);
 
     srunner_run_all(sr,CK_VERBOSE);/* CK_... SILENT MINIMAL NORMAL VERBOSE etc*/
@@ -594,3 +635,5 @@ int main(int argc, char **args)
 
     return 0;
 }
+
+/* EOF */

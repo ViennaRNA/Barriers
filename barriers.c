@@ -130,7 +130,7 @@ void set_barrier_options(barrier_options opt) {
       if (opt.kT<=-300) opt.kT=37;
       kT = 0.00198717*(273.15+opt.kT);   /* kT at 37C in kcal/mol */
       isRNA2 = !strncmp(opt.GRAPH, "RNA2", 4);     /* FK */
-      if( isRNA2)
+      if(isRNA2)
       {
           move_it = RNA2_move_it;
           free_move_it = RNA2_free;
@@ -1206,7 +1206,7 @@ map_struc get_mapstruc(char *p, loc_min *LM, int *tm) {
   char *pp, *struc;
   int min, gradmin, tmin, tgradmin;
   map_struc ms;
-  
+
   pp = pack_my_structure(p);
   h.structure = pp;
   hp = lookup_hash(&h);
@@ -1215,7 +1215,7 @@ map_struc get_mapstruc(char *p, loc_min *LM, int *tm) {
     fprintf(stderr, "get_mapstruc: structure not in hash\n");
     return ms;
   }
-	    
+
   min = hp->basin;
   while (tm[min]==0) {
     min = LM[min].father;
@@ -1332,7 +1332,7 @@ void compute_rates(int *truemin, char *farbe) {
 	else
 	  double_move=0;
       }
-	  
+
       pp = pack_my_structure(p);
       h.structure = pp;
       /* check whether we've seen the structure before */
