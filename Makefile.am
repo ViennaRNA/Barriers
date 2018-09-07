@@ -24,8 +24,8 @@ check_rnamoves_LDADD = @CHECK_LIBS@
 endif
 
 bin_SCRIPTS = scripts/crossrates.pl scripts/get_hashbits.pl
-scripts/crossrates.pl: scripts/crossrates.pl
-scripts/get_hashbits.pl: scripts/get_hashbits.pl
+# scripts/crossrates.pl: scripts/crossrates.pl
+# scripts/get_hashbits.pl: scripts/get_hashbits.pl
 
 #  uncomment the following if barriers requires the math library
 if BUILD_SECIS_EXT
