@@ -560,8 +560,6 @@ void RNA2_move_noLP_bpshift_inside_i(int const i, int const j)
 
     /* i -- check only possible pair (k-1,j) */
     k = pairs_with(j-1);
-    fprintf(stderr, "RNA2_move_noLP_bpshift_inside_i: i=%d  j=%d  k=%d\n", i, j, k);
-    fprintf(stderr, "RNA2_move_noLP_bpshift_inside_i: k > i+1 =%d\n", k > (int)i+1);
     if(
         k > i+1
         && !is_paired(k-1)
