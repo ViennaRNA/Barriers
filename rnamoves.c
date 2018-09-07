@@ -148,8 +148,8 @@ void RNA2_init(char const * const sequence, int const shift, int const noLP)
     r2d->shift = shift;
     r2d->noLP  = noLP;
     r2d->form  = (char *)malloc((r2d->len+1) * sizeof(char));
-    r2d->pt    = (unsigned int *)malloc((r2d->len+1)*sizeof(unsigned int));
-    r2d->stack = (unsigned int*)malloc(r2d->len*sizeof(unsigned int));
+    r2d->pt    = (int  *)malloc((r2d->len+1) * sizeof(int ));
+    r2d->stack = (int  *)malloc( r2d->len    * sizeof(int ));
 
     for(i=0; i<r2d->len; i++) /* initialize with open structure */
     {
@@ -170,7 +170,7 @@ void RNA2_init(char const * const sequence, int const shift, int const noLP)
  * @param i left index
  * @param i right index
  */
-inline void close_bp(const unsigned int i, const unsigned int j) {
+inline void close_bp(int const i, int const j) {
     r2d->form[i] = '(';
     r2d->form[j] = ')';
     r2d->pt[i]   =   j;
@@ -184,7 +184,7 @@ inline void close_bp(const unsigned int i, const unsigned int j) {
  * @param i left end
  * @param i right end
  */
-inline void open_bp(const unsigned int i, const unsigned int j) {
+inline void open_bp(int const i, int const j) {
     r2d->form[i] = r2d->form[j] =   '.';
     r2d->pt[i]   = r2d->pt[j]   = UNPRD;
     return;
@@ -198,7 +198,7 @@ inline void open_bp(const unsigned int i, const unsigned int j) {
  */
 inline int seq_len()
 {
-    return r2d->len;
+    return (int)r2d->len;
 }
 
 
@@ -218,7 +218,7 @@ inline char* dot_bracket_str()
  * @param i index to check
  * @return 1 if i participates in any (closed) base pair (i,j), 0 if not
  */
-inline int is_paired(unsigned const i)
+inline int is_paired(int const i)
 {
     return r2d->form[i] != '.';
 }
@@ -230,7 +230,7 @@ inline int is_paired(unsigned const i)
  * @param i left index
  * @return 1 if there is a closed base-pair (i,j) with i<j, 0 if not
  */
-inline int is_opening_bp(unsigned const i)
+inline int is_opening_bp(int const i)
 {
     return r2d->form[i] == '(';
 }
@@ -242,7 +242,7 @@ inline int is_opening_bp(unsigned const i)
  * @param i index to check
  * @return 1 if there is a closed base-pair (j,i) with j<i, 0 if not
  */
-inline int is_closing_bp(unsigned const i)
+inline int is_closing_bp(int const i)
 {
     return r2d->form[i] == ')';
 }
@@ -254,7 +254,7 @@ inline int is_closing_bp(unsigned const i)
  * @param i index to check
  * @return j if (i,j) is a closed base pair, UNPRD otherwise
  */
-inline int pairs_with(unsigned const i)
+inline int pairs_with(int const i)
 {
     return r2d->pt[i];
 }
@@ -267,7 +267,7 @@ inline int pairs_with(unsigned const i)
  * @param j second index
  * @return 1 if (i,j) is a closed base pair, 0 if not
  */
-inline int is_bp(unsigned const i, unsigned const j)
+inline int is_bp(int const i, int const j)
 {
     return r2d->pt[i] == j;
 }
@@ -280,7 +280,7 @@ inline int is_bp(unsigned const i, unsigned const j)
  * @param j right index
  * @return 1 if (i,j) has the minimal loop length, 0 if not.
  */
-inline int has_min_loop_len (unsigned const i, unsigned const j)
+inline int has_min_loop_len (int const i, int const j)
 {
     return j-i >= MYTURN;
 }
@@ -293,7 +293,7 @@ inline int has_min_loop_len (unsigned const i, unsigned const j)
  * @param j right index
  * @return 1 if (i,j) is outside-lonely, 0 if not
  */
-inline int is_out_lonely(unsigned const i, unsigned const j)
+inline int is_out_lonely(int const i, int const j)
 {
     return i==0 || !is_bp(i-1, j+1);
 }
@@ -306,7 +306,7 @@ inline int is_out_lonely(unsigned const i, unsigned const j)
  * @param j right index
  * @return 1 if (i,j) is inside-lonely, 0 if not
  */
-inline int is_ins_lonely(unsigned const i, unsigned const j)
+inline int is_ins_lonely(int const i, int const j)
 {
     return !is_bp(i+1, j-1);
 }
@@ -319,7 +319,7 @@ inline int is_ins_lonely(unsigned const i, unsigned const j)
  * @param j right index
  * @return 1 if (i,j) is lonely, 0 if not
  */
-inline int is_lonely(unsigned const i, unsigned const j)
+inline int is_lonely(int const i, int const j)
 {
     return is_out_lonely(i, j) && is_ins_lonely(i, j);
 }
@@ -334,7 +334,7 @@ inline int is_lonely(unsigned const i, unsigned const j)
  * @return 1 if (i+1,j-1) is a basepair in the current structure and grows lonely
  *  when removing (i,j), 0 if not
  */
-inline int ins_grow_lonely(unsigned const i, unsigned const j)
+inline int ins_grow_lonely(int const i, int const j)
 {
     return is_bp(i+1, j-1) && is_ins_lonely(i+1, j-1);
 }
@@ -349,7 +349,7 @@ inline int ins_grow_lonely(unsigned const i, unsigned const j)
  * @return 1 if (i-1,j+1) is a basepair in the current structure and grows lonely
  *  when removing (i,j), 0 if not
  */
-inline int out_grow_lonely(unsigned const i, unsigned const j)
+inline int out_grow_lonely(int const i, int const j)
 {
     return i!=0 && is_bp(i-1, j+1) && is_out_lonely(i-1, j+1);
 }
@@ -366,7 +366,7 @@ inline int out_grow_lonely(unsigned const i, unsigned const j)
  * @return next index k with i<=j<k such that (i,k) is a valid basepair, or
  *  UNPRD if no such k exists
  */
-int RNA2_move_nxt_val_bp_right(unsigned const i, unsigned j)
+int RNA2_move_nxt_val_bp_right(int const i, int j)
 {
     do /* jump over inner base pairs of current loop */
     {
@@ -466,7 +466,7 @@ void RNA2_move_noLP_bpdel() {
 }
 
 
-void RNA2_move_noLP_bpshift_outside_i(unsigned const i, unsigned const j)
+void RNA2_move_noLP_bpshift_outside_i(int const i, int const j)
 {
     int k;
     /* i -- check only two possible pair (k+1,j)/(j,k+1) [cross] */
@@ -489,6 +489,8 @@ void RNA2_move_noLP_bpshift_outside_i(unsigned const i, unsigned const j)
                             "pushing sil %s\n",
                             dot_bracket_str()
                     );
+                push(dot_bracket_str());
+                open_bp(k+1, j);
             }
             else                            /* Cross i to right side */
             {
@@ -500,13 +502,9 @@ void RNA2_move_noLP_bpshift_outside_i(unsigned const i, unsigned const j)
                             j,
                             k+1
                     );
-            }
-            push(dot_bracket_str());
-
-            if(k < j)
-                open_bp(k+1, j);
-            else
+                push(dot_bracket_str());
                 open_bp(j, k+1);
+            }
         }
     }
 
@@ -514,7 +512,7 @@ void RNA2_move_noLP_bpshift_outside_i(unsigned const i, unsigned const j)
 }
 
 
-void RNA2_move_noLP_bpshift_outside_j(unsigned const i, unsigned const j)
+void RNA2_move_noLP_bpshift_outside_j(int const i, int const j)
 {
     int k;
 
@@ -536,6 +534,8 @@ void RNA2_move_noLP_bpshift_outside_j(unsigned const i, unsigned const j)
                     fprintf(stderr, "pushing sjr %s\n",
                             dot_bracket_str()
                     );
+                push(dot_bracket_str());
+                open_bp(i, k-1);
             }
             else
             {
@@ -544,12 +544,9 @@ void RNA2_move_noLP_bpshift_outside_j(unsigned const i, unsigned const j)
                     fprintf(stderr, "pushing sjc %s\n",
                             dot_bracket_str()
                     );
-            }
-            push(dot_bracket_str());
-            if(i < k)
-                open_bp(i, k-1);
-            else
+                push(dot_bracket_str());
                 open_bp(k-1, i);
+            }
         }
     }
 
@@ -557,13 +554,14 @@ void RNA2_move_noLP_bpshift_outside_j(unsigned const i, unsigned const j)
 }
 
 
-void RNA2_move_noLP_bpshift_inside_i(unsigned const i, unsigned const j)
+void RNA2_move_noLP_bpshift_inside_i(int const i, int const j)
 {
     int k;
-    printf("RNA2_move_noLP_bpshift_inside_i: i=%d  j=%d", i, j);
 
     /* i -- check only possible pair (k-1,j) */
     k = pairs_with(j-1);
+    fprintf(stderr, "RNA2_move_noLP_bpshift_inside_i: i=%d  j=%d  k=%d\n", i, j, k);
+    fprintf(stderr, "RNA2_move_noLP_bpshift_inside_i: k > i+1 =%d\n", k > (int)i+1);
     if(
         k > i+1
         && !is_paired(k-1)
@@ -579,24 +577,10 @@ void RNA2_move_noLP_bpshift_inside_i(unsigned const i, unsigned const j)
     }
 
     return;
-                // k = pairs_with(j-1);
-                // if(
-                //     k > i+1
-                //     && !is_paired(k-1)
-                //     && valid_bp(k-1, j)
-                // )
-                // {
-                //     /* Shift i to right */
-                //     close_bp(k-1, j);
-                //     push(dot_bracket_str());
-                //     if(VERB)
-                //         fprintf(stderr, "pushing sir %s\n", dot_bracket_str());
-                //     open_bp(k-1, j);
-                // }
 }
 
 
-void RNA2_move_noLP_bpshift_inside_j(unsigned const i, unsigned const j)
+void RNA2_move_noLP_bpshift_inside_j(int const i, int const j)
 {
     int k;
 
@@ -624,124 +608,22 @@ void RNA2_move_noLP_bpshift_inside_j(unsigned const i, unsigned const j)
  *  Only six special cases need to be checked. The resulting structures are
  *  pushed onto the global structure stack.
  */
-// void RNA2_move_noLP_bpshift() {
-//     /* Outside: shift i to left or j to right */
-//     int i, j, k;
-//     for(i=0; i<seq_len(); i++)
-//         if(is_opening_bp(i))            /* handle each pair only once */
-//         {
-//             j = pairs_with(i);
-//             open_bp(i, j);
-//
-//             /* Outside & cross moves */
-//             if(is_bp(i+1, j-1) && !is_ins_lonely(i+1, j-1))
-//             {
-//                 /* i -- check only two possible pair (k+1,j)/(j,k+1) [cross] */
-//                 RNA2_move_noLP_bpshift_outside_i(i, j);
-//                 /* j -- check only two possible pair (i,k-1)/(k-1,i) [cross] */
-//                 RNA2_move_noLP_bpshift_outside_j(i, j);
-//             }
-//             /* Inside: shift i to right or j to left */
-//             if(
-//                 i > 0
-//                 && is_bp(i-1, j+1)
-//                 && !is_out_lonely(i-1, j+1)
-//             )
-//             {
-//                 /* i -- check only possible pair (k-1,j) */
-//                 RNA2_move_noLP_bpshift_inside_i(i, j);
-//                 /* j -- check only possible pair (i,k+1) */
-//                 RNA2_move_noLP_bpshift_inside_j(i, j);
-//             }
-//             close_bp(i, j);
-//         }
-//
-//     return;
-// }
-
 void RNA2_move_noLP_bpshift() {
     /* Outside: shift i to left or j to right */
     int i, j, k;
     for(i=0; i<seq_len(); i++)
-        if(is_opening_bp(i))        /* Handle each pair only once */
+        if(is_opening_bp(i))            /* handle each pair only once */
         {
             j = pairs_with(i);
             open_bp(i, j);
-            if(is_bp(i+1, j-1) && !is_ins_lonely(i+1, j-1))
-            {   /* Outside & cross moves */
-                RNA2_move_noLP_bpshift_outside_i(i, j);
-                // if(j < seq_len()-1)
-                // {
-                //     /* i -- check only two possible pair (k+1,j)/(j,k+1) [cross] */
-                //     k = pairs_with(j+1);
-                //     if(
-                //         k >= 0
-                //         && k < seq_len()-1
-                //         && k != i-1
-                //         && !is_paired(k+1)
-                //         && valid_bp(k+1,j)
-                //     )
-                //     {
-                //         if(k < j)        /* Shift i to left */
-                //         {
-                //             close_bp(k+1, j);
-                //             if(VERB)
-                //                 fprintf(stderr, "pushing sil %s\n",
-                //                         dot_bracket_str()
-                //                 );
-                //         }
-                //         else            /* Cross i to right side */
-                //         {
-                //             close_bp(j, k+1);
-                //             if(VERB)
-                //                 fprintf(stderr, "pushing sic %s j=%d k+1=%d\n",
-                //                          dot_bracket_str(), j, k+1
-                //                 );
-                //         }
-                //         push(dot_bracket_str());
 
-                //         if(k < j)
-                //             open_bp(k+1, j);
-                //         else
-                //             open_bp(j, k+1);
-                //     }
-                // }
+            /* Outside & cross moves */
+            if(is_bp(i+1, j-1) && !is_ins_lonely(i+1, j-1))
+            {
+                /* i -- check only two possible pair (k+1,j)/(j,k+1) [cross] */
+                RNA2_move_noLP_bpshift_outside_i(i, j);
+                /* j -- check only two possible pair (i,k-1)/(k-1,i) [cross] */
                 RNA2_move_noLP_bpshift_outside_j(i, j);
-                // if(i > 0)
-                // {
-                //     /* j -- check only two possible pair (i,k-1)/(k-1,i) [cross] */
-                //     k = pairs_with(i-1);
-                //     if(
-                //         k > 0
-                //         && k != j+1
-                //         && !is_paired(k-1)
-                //         && valid_bp(i,k-1)
-                //     )
-                //     {
-                //         /*say "Shift j to right / cross: found candidate";*/
-                //         if(i < k)
-                //         {
-                //             close_bp(i, k-1);
-                //             if(VERB)
-                //                 fprintf(stderr, "pushing sjr %s\n",
-                //                         dot_bracket_str()
-                //                 );
-                //         }
-                //         else
-                //         {
-                //             close_bp(k-1, i);
-                //             if(VERB)
-                //                 fprintf(stderr, "pushing sjc %s\n",
-                //                         dot_bracket_str()
-                //                 );
-                //         }
-                //         push(dot_bracket_str());
-                //         if(i < k)
-                //             open_bp(i, k-1);
-                //         else
-                //             open_bp(k-1, i);
-                //     }
-                // }
             }
             /* Inside: shift i to right or j to left */
             if(
@@ -750,42 +632,17 @@ void RNA2_move_noLP_bpshift() {
                 && !is_out_lonely(i-1, j+1)
             )
             {
-                RNA2_move_noLP_bpshift_inside_i(i, j);      // TODO Segfault
                 /* i -- check only possible pair (k-1,j) */
-                //k = pairs_with(j-1);
-                //if(
-                //    k > i+1
-                //    && !is_paired(k-1)
-                //    && valid_bp(k-1, j)
-                //)
-                //{
-                //    /* Shift i to right */
-                //    close_bp(k-1, j);
-                //    push(dot_bracket_str());
-                //    if(VERB)
-                //        fprintf(stderr, "pushing sir %s\n", dot_bracket_str());
-                //    open_bp(k-1, j);
-                //}
+                RNA2_move_noLP_bpshift_inside_i(i, j);
                 /* j -- check only possible pair (i,k+1) */
-                k = pairs_with(i+1);
-                if(
-                    k >= 0
-                    && k<j-1
-                    && !is_paired(k+1)
-                    && valid_bp(i,k+1)
-                )
-                {
-                    /* say "Shift j to left: found candidate"; */
-                    close_bp(i, k+1);
-                    push(dot_bracket_str());
-                    if(VERB)
-                        fprintf(stderr, "pushing sjl %s\n", dot_bracket_str());
-                    open_bp(i, k+1);
-                }
+                RNA2_move_noLP_bpshift_inside_j(i, j);
             }
             close_bp(i, j);
         }
+
+    return;
 }
+
 
 /**
  * @brief Generate all neighbors by insertions of a base pair (i,j)
@@ -796,7 +653,7 @@ void RNA2_move_noLP_bpshift() {
  *  insertions, set avoid_end=i. The resulting structures are pushed onto the
  *  global structure stack.
  */
-void RNA2_move_bpins_to_right(unsigned const i, unsigned const avoid_end)
+void RNA2_move_bpins_to_right(int const i, int const avoid_end)
 {
     int j;
     for (j=i+1;j<seq_len(); j++) {
@@ -832,7 +689,7 @@ void RNA2_move_bpins_to_right(unsigned const i, unsigned const avoid_end)
 
 
 /* analogous to RNA2_move_bpins_to_right */
-void RNA2_move_bpins_to_left(unsigned const i, unsigned const avoid_end) {
+void RNA2_move_bpins_to_left(int const i, int const avoid_end) {
     int j;
     for (j=i; j>0; ) {
         j--;
@@ -874,8 +731,8 @@ void RNA2_move_bpins_to_left(unsigned const i, unsigned const avoid_end) {
  * @param shift flag, do shift moves?
  */
 void RNA2_move_std(const unsigned shift) {
-    unsigned i;
-    unsigned j;
+    int i;
+    int j;
 
     /* generate base pair deletions */
     for (i=0; i<seq_len(); i++) {
@@ -961,7 +818,7 @@ void parse_structure()
  */
 void RNA2_move_it(char * structure)
 {
-    if(strlen(structure) != seq_len())
+    if(strlen(structure) != r2d->len)
     {
         fprintf(stderr, "ERROR: length of sequence and passed structure "
                          "differ in RNA2_move_it()\n");
