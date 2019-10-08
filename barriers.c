@@ -86,7 +86,7 @@ loc_min  *barriers(barrier_options opt);
 static int  compare(const void *a, const void *b);
 void check_neighbors(void);
 static void merge_basins(void);
-int print_results(loc_min *L, int *tm, char *farbe);
+int print_results(loc_min *L, int *tm, barrier_options *opt);
 void ps_tree(loc_min *Lmin, int *truemin, int rates);
 void print_rates(int n, char *fname);
 map_struc get_mapstruc(char *p, loc_min *LM, int *tm);
@@ -751,8 +751,9 @@ void mark_global(loc_min *Lmin)
 }
 
 /*====================*/
-int print_results(loc_min *Lmin, int *truemin, char *farbe)
+int print_results(loc_min *Lmin, int *truemin, barrier_options *opt)
 {
+  char *sequence = opt->seq;
   int i,ii,j,k,n,connected=1,ncu=0,ncb=0;
   char *struc=NULL, *laststruc=NULL;;
   char *format=NULL,*formatA=NULL,*formatB=NULL,**seen=NULL;
@@ -775,7 +776,7 @@ int print_results(loc_min *Lmin, int *truemin, char *farbe)
 
   n_lmin = Lmin[0].fathers_pool;
 
-  printf("     %s\n", farbe);
+  printf("     %s\n", sequence);
   for (i=1,k=0; i<=n_lmin; i++,k++) {
     int f;
     if ((ii = truemin[i])==0) continue;
@@ -785,20 +786,26 @@ int print_results(loc_min *Lmin, int *truemin, char *farbe)
     n = strlen(struc);
     f = Lmin[i].father;
     if (f>0) f = truemin[f];
-    else {  /* father == 0 */
+    //check this only if the --connected parameter is set!
+    else{
+      if(opt->want_connected){  /* father == 0 */
+      // TODO: break only if --connected parameter is set and only if we are shure that all minima have been printed!!!
+      // TODO: and do this in a separate function!
       if(connected==0) break; /* skip checks if we're already disconnected */
       if(ligand == 1){
-	if(struc[strlen(struc)-1] == '*'){
-	  ncb++;    /* increase not connected bound */
-	}
-	else
-	  ncu++; /* increase not connected unbound */
-	if( ncb > 1 || ncu > 1) connected=0;
+        if(struc[strlen(struc)-1] == '*'){
+          ncb++;    /* increase not connected bound */
+        }
+        else
+          ncu++; /* increase not connected unbound */
+        if( ncb > 1 || ncu > 1) connected=0;
       }
-      else{
-	if (ii>1) connected=0;
+      else {
+          if (ii>1) connected=0;
+        }
       }
     }
+
     
     if(POV_size) {
       int jj;
@@ -1272,9 +1279,9 @@ void print_rates(int n, char *fname) {
   fclose(OUT);
 }
 
-void compute_rates(int *truemin, char *farbe) {
+void compute_rates(int *truemin, char *sequence) {
   int i, j, ii, r, gb, gradmin,n, rc, *realnr;
-  char *p, *pp, *form, newsub[10]="new.sub", mr[15]="microrates.out";
+  char *p, *pp, *structure, newsub[10]="new.sub", mr[15]="microrates.out";
   hash_entry *hpr, h, *hp;
   double Zi;
   FILE *NEWSUB=NULL, *MR=NULL;;
@@ -1290,22 +1297,26 @@ void compute_rates(int *truemin, char *farbe) {
     realnr = (int *)space((readl+1) * sizeof(int));
     MR = fopen(mr, "w");
     NEWSUB = fopen(newsub, "w");
-    fprintf(NEWSUB, "%s %6.2f\n", farbe, 100*mfe);
+    fprintf(NEWSUB, "%s %6.2f\n", sequence, 100*mfe);
     fflush(NEWSUB);
     fprintf(MR, ">%d states\n", readl);
   }
-
   for (rc=1, r=0; r<readl; r++) {
     int b;
     hpr= &hpool[r];
     Zi = exp((mfe-hpr->energy)/kT);
     gradmin = hpr->GradientBasin;
-    while (truemin[gradmin]==0) gradmin = lmin[gradmin].father;
+    while (truemin[gradmin]==0){
+      gradmin = lmin[gradmin].father;
+      if(gradmin == 0){
+        break; // break if we are at the root!
+      }
+    }
     gradmin=truemin[gradmin];
     if (gradmin>n) continue;
     for (b=hpr->basin; b>1; b=lmin[b].father);
-    form = unpack_my_structure(hpr->structure);
-    move_it(form);       /* generate all neighbors of configuration */
+    structure = unpack_my_structure(hpr->structure);
+    move_it(structure);       /* generate all neighbors of configuration */
 
     for (i=0; i<=n; i++) dr[i]=0;
     while ((p = pop())) {
@@ -1339,7 +1350,7 @@ void compute_rates(int *truemin, char *farbe) {
       free(pp);
     }
     if (do_microrates && b){
-      fprintf(NEWSUB, "%s %6.2f %i %i\n", form, hpr->energy, gradmin, hpr->basin);
+      fprintf(NEWSUB, "%s %6.2f %i %i\n", structure, hpr->energy, gradmin, hpr->basin);
       fflush(NEWSUB);
       realnr[hpr->n]=rc++;
     }
@@ -1347,7 +1358,7 @@ void compute_rates(int *truemin, char *farbe) {
       rate[i][gradmin] += dr[i];
       rate[gradmin][i] += dr[i];
     }
-    free(form);
+    free(structure);
     reset_stapel();
   }
 

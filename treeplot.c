@@ -57,8 +57,12 @@ void PS_tree_plot(nodeT *nodes, int n, char *filename) {
     for (l= &chain[f]; l->next!=NULL; l = l->next); 
     l->next=&chain[k]; /* attach child to chain of father */
   }
-  /* chain[f] now starts the ordered chain, next fill in the num field */
-  for (i=0, l= &chain[f]; l!=NULL; l = l->next) l->x = i++;
+  if(n > 0){
+    /* chain[f] now starts the ordered chain, next fill in the num field */
+    for (i=0, l= &chain[f]; l!=NULL; l = l->next){
+      l->x = i++;
+    }
+  }
 
   fprintf(out,
 	  "%%!PS-Adobe-2.0 EPSF-1.2\n"

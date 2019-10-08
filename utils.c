@@ -50,7 +50,7 @@ PUBLIC void *space(size_t size)
     if ( (pointer = (void *) calloc(1, size)) == NULL) {
 #ifdef EINVAL
        if (errno==EINVAL) {
-	  fprintf(stderr,"SPACE: requested size: %d\n", size);
+	  fprintf(stderr,"SPACE: requested size: %ld\n", size);
 	  nrerror("SPACE allocation failure -> EINVAL");
        }
        if (errno==ENOMEM)
@@ -74,7 +74,7 @@ void *xrealloc (void *p, size_t size) {
   if (p == NULL) {
 #ifdef EINVAL
     if (errno==EINVAL) {
-      fprintf(stderr,"xrealloc: requested size: %d\n", size);
+      fprintf(stderr,"xrealloc: requested size: %ld\n", size);
       nrerror("xrealloc allocation failure -> EINVAL");
     }
     if (errno==ENOMEM)

@@ -155,7 +155,7 @@ int main (int argc, char *argv[]) {
 
   if (cut_point > -1)
     opt.seq = costring(opt.seq);
-  c = print_results(LM,tm,opt.seq);
+  c = print_results(LM,tm,&opt);
   fflush(stdout);
 
   if (!opt.want_quiet) ps_tree(LM,tm,0);

@@ -1,3 +1,5 @@
+#ifndef BARRIER_TYPES_H
+#define BARRIER_TYPES_H
 /* global structures */
 #include "hash_util.h"
 typedef struct {
@@ -57,3 +59,5 @@ typedef struct {
   float gradmin_energy;
   float truegradmin_energy;
 } map_struc;
+
+#endif
