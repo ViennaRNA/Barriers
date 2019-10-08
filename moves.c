@@ -266,7 +266,8 @@ String_move_it_crankshaft(char *string)
 
   if (found_em)
     push(s);
-    /*   fprintf(stdout, "SS %s : pushed %s onto stack (end)\n", string, s); */
+
+  /*   fprintf(stdout, "SS %s : pushed %s onto stack (end)\n", string, s); */
 
   free(s);
 

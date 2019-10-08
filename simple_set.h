@@ -4,15 +4,15 @@
 #define SIMPLE_SET_H
 
 typedef struct {
-  int         basin;
-  hash_entry  *hp;
+  unsigned long basin;
+  hash_entry    *hp;
 } basinT;
 
 typedef struct set {
-  int     num_elem;
-  int     max_elem;
-  size_t  elem_size;
-  basinT  *data;
+  unsigned long num_elem;
+  unsigned long max_elem;
+  size_t        elem_size;
+  basinT        *data;
 } Set;
 
 extern Set *new_set(int elems);

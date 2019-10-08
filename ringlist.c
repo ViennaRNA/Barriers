@@ -294,7 +294,8 @@ RNA_move_it(char *form)
       inb_nolp(poList[i]);
       if (i > 0)     /* virtual root should never be deleted or fliped */
         dnb_nolp(poList[i]);
-        /*  if(xtof) fnb(poList[i]); */
+
+      /*  if(xtof) fnb(poList[i]); */
     }
   } else {
     /* all neighbours */

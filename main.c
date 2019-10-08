@@ -24,7 +24,7 @@ static int decode_switches(int  argc,
 
 static void cleanup(char *,
                     loc_min *,
-                    int *);
+                    unsigned long *);
 
 
 extern int  cut_point;
@@ -41,12 +41,13 @@ int
 main(int  argc,
      char *argv[])
 {
-  int     tmp;
-  char    *line;
-  loc_min *LM;
-  int     *tm;
-  int     c, i, errorcode = 0;
-  char    signal[100] = "", what[100] = "", stuff[100] = "";
+  int           tmp;
+  char          *line;
+  loc_min       *LM;
+  unsigned long *tm;
+  unsigned long i, errorcode = 0;
+  int           c;
+  char          signal[100] = "", what[100] = "", stuff[100] = "";
 
   /* Parse command line */
   program_name = argv[0];
@@ -204,15 +205,15 @@ main(int  argc,
     mark_global(LM);
 
   for (i = 0; i < args_info.path_given; ++i) {
-    int L1, L2;
-    sscanf(args_info.path_arg[i], "%d=%d", &L1, &L2);
+    unsigned long L1, L2;
+    sscanf(args_info.path_arg[i], "%ld=%ld", &L1, &L2);
     if ((L1 > 0) && (L2 > 0)) {
       FILE        *PATH = NULL;
       char        tmp[30];
       path_entry  *path;
 
       path = backtrack_path(L1, L2, LM, tm);
-      (void)sprintf(tmp, "path.%03d.%03d.txt", L1, L2);
+      (void)sprintf(tmp, "path.%03ld.%03ld.txt", L1, L2);
 
       PATH = fopen(tmp, "w");
       if (PATH == NULL)
@@ -244,7 +245,7 @@ main(int  argc,
       map_struc myms;
       token = strtok(line, " \t");
       myms  = get_mapstruc(token, LM, tm);
-      fprintf(MAPFOUT, "%s %6d %6.2f %3d %3d %3d %3d\n", myms.structure, myms.n, myms.energy,
+      fprintf(MAPFOUT, "%s %6ld %6.2f %3ld %3ld %3ld %3ld\n", myms.structure, myms.n, myms.energy,
               myms.min, myms.truemin, myms.gradmin, myms.truegradmin);
       free(myms.structure);
       free(line);
@@ -259,9 +260,9 @@ main(int  argc,
 
 
 static void
-cleanup(char    *seq,
-        loc_min *L,
-        int     *t)
+cleanup(char          *seq,
+        loc_min       *L,
+        unsigned long *t)
 {
   /* memory cleanup */
   free(seq);
@@ -278,7 +279,7 @@ static int
 decode_switches(int   argc,
                 char  **argv)
 {
-  int i;
+  unsigned long i;
 
   if (cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
@@ -309,8 +310,8 @@ decode_switches(int   argc,
     opt.kT = args_info.temp_arg;
 
   for (i = 0; i < args_info.path_given; ++i) {
-    int L1, L2;
-    if (sscanf(args_info.path_arg[i], "%d=%d", &L1, &L2) != 2)
+    unsigned long L1, L2;
+    if (sscanf(args_info.path_arg[i], "%ld=%ld", &L1, &L2) != 2)
       nrerror("specifiy paths as e.g.  -P 1=3");
   }
   if (args_info.inputs_num > 1)

@@ -33,9 +33,9 @@ static loc_min        *lmin;  /* array for local minima */
 static double         **rate; /* rate matrix between basins */
 static double         *dr;    /* increments to rate matrix  */
 
-static int            n_lmin;
-static unsigned int   max_lmin;
-static int            n_saddle;
+static unsigned long  n_lmin;
+static unsigned long  max_lmin;
+static unsigned long  n_saddle;
 static double         minh;
 static double         energy;
 /* energy of last read structure (for check_neighbors) */
@@ -56,7 +56,7 @@ static int            print_saddles = 1;
 static int            bsize         = 1;
 static int            shut_up       = 0;
 static int            verbose       = 0;
-static int            max_print     = 0;
+static unsigned long  max_print     = 0;
 static int            IS_RNA        = 0;
 static int            print_labels  = 0;
 static int            IS_arbitrary  = 0;
@@ -64,24 +64,18 @@ static int            IS_arbitrary  = 0;
 static int            maxlabellength = 0;
 
 /* private functions */
-static void walk_limb(hash_entry  *hp,
-                      int         LM,
-                      int         inc,
-                      const char  *tag);
+static void walk_limb(hash_entry    *hp,
+                      unsigned long LM,
+                      unsigned long inc,
+                      const char    *tag);
 
 
-static void backtrack_path_rec(int        l1,
-                               int        l2,
-                               const char *tag);
-
-
-static int *make_sorted_index(int *truemin);
+static void backtrack_path_rec(unsigned long  l1,
+                               unsigned long  l2,
+                               const char     *tag);
 
 
 static void Sorry(char *GRAPH);
-
-
-static void print_hash_entry(hash_entry *h);
 
 
 static int  read_data(barrier_options opt,
@@ -107,14 +101,10 @@ extern char *costring(char *string);
 extern char *tokenize(char *line);
 
 
-int *make_truemin(loc_min *Lmin);
+unsigned long *make_truemin(loc_min *Lmin);
 
 
 loc_min *barriers(barrier_options opt);
-
-
-static int  compare(const void  *a,
-                    const void  *b);
 
 
 void check_neighbors(void);
@@ -124,22 +114,22 @@ static void merge_basins(void);
 
 
 int print_results(loc_min         *L,
-                  int             *tm,
+                  unsigned long   *tm,
                   barrier_options *opt);
 
 
-void ps_tree(loc_min  *Lmin,
-             int      *truemin,
-             int      rates);
+void ps_tree(loc_min        *Lmin,
+             unsigned long  *truemin,
+             int            rates);
 
 
-void print_rates(int  n,
-                 char *fname);
+void print_rates(unsigned long  n,
+                 char           *fname);
 
 
-map_struc get_mapstruc(char     *p,
-                       loc_min  *LM,
-                       int      *tm);
+map_struc get_mapstruc(char           *p,
+                       loc_min        *LM,
+                       unsigned long  *tm);
 
 
 char *strip(char *s);
@@ -149,21 +139,21 @@ bool is_bound(char *s);
 
 
 struct comp {
-  Set   *basins;  /* set of basins connected by these saddles */
-  char  *saddle;  /* one representative (first found) */
-  int   size;
+  Set           *basins;  /* set of basins connected by these saddles */
+  char          *saddle;  /* one representative (first found) */
+  unsigned long size;
 };
 
-static int          *truecomp;
-static struct comp  *comp;
-static int          max_comp = 1024, n_comp;
-static int          do_rates      = 0;
-static int          do_microrates = 0;
-static double       noLP_rate     = 1.;
-static int          ligand        = 0;
+static unsigned long  *truecomp;
+static struct comp    *comp;
+static unsigned long  max_comp = 1024, n_comp;
+static int            do_rates      = 0;
+static int            do_microrates = 0;
+static double         noLP_rate     = 1.;
+static int            ligand        = 0;
 
 #define HASHSIZE (((unsigned long)1 << HASHBITS) - 1)
-static hash_entry   *hpool;
+static hash_entry     *hpool;
 
 /* ----------------------------------------------------------- */
 
@@ -210,7 +200,8 @@ set_barrier_options(barrier_options opt)
             case 'l': /* ligand */
               if (strncmp(opt.MOVESET, "ligand", 6) == 0)
                 ligand = 1;
-                /* move_it = RNA_move_it; */
+
+              /* move_it = RNA_move_it; */
 
               break;
             default:
@@ -373,8 +364,8 @@ Sorry(char *GRAPH)
 }
 
 
-static FILE *mergefile  = NULL;
-static int  readl       = 0;
+static FILE           *Mergefile  = NULL;
+static unsigned long  Read_lines  = 0;
 loc_min *
 barriers(barrier_options opt)
 {
@@ -392,7 +383,7 @@ barriers(barrier_options opt)
 
   form      = (char *)space((length + 2) * sizeof(char));
   comp      = (struct comp *)space((max_comp + 1) * sizeof(struct comp));
-  truecomp  = (int *)space((max_comp + 1) * sizeof(int));
+  truecomp  = (unsigned long *)space((max_comp + 1) * sizeof(unsigned long));
   if (opt.poset) {
     POV_size  = opt.poset;
     POV       = (int *)space(sizeof(int) * opt.poset);
@@ -402,13 +393,13 @@ barriers(barrier_options opt)
 
   ini_stapel(length);
   if (opt.ssize) {
-    mergefile = fopen("saddles.txt", "w");
-    if (!mergefile)
+    Mergefile = fopen("saddles.txt", "w");
+    if (!Mergefile)
       fprintf(stderr, "can't open saddle file\n");
   }
 
   while (read_data(opt, &new_en, form, length, POV)) {
-    if (readl == 0)
+    if (Read_lines == 0)
       mfe = energy = new_en;
 
     if (new_en < energy)
@@ -422,7 +413,7 @@ barriers(barrier_options opt)
     }
 
     energy = new_en;
-    readl++;
+    Read_lines++;
     move_it(form);        /* generate all neighbor of configuration */
     /* fprintf(stderr, "M%s\n", form); */
     check_neighbors();    /* flood the energy landscape */
@@ -440,13 +431,13 @@ barriers(barrier_options opt)
       break;
   }
   merge_basins();
-  if (mergefile)
-    fclose(mergefile);
+  if (Mergefile)
+    fclose(Mergefile);
 
   if (!shut_up)
     fprintf(stderr,
-            "read %d structures, to find %d saddles\n",
-            readl, n_saddle);
+            "read %ld structures, to find %ld saddles\n",
+            Read_lines, n_saddle);
 
   if (max_print == 0 || max_print > n_lmin)
     max_print = n_lmin;
@@ -473,13 +464,13 @@ barriers(barrier_options opt)
 }
 
 
-int *
+unsigned long *
 make_truemin(loc_min *Lmin)
 {
-  int *truemin, nlmin, i, ii;
+  unsigned long *truemin, nlmin, i, ii;
 
   nlmin   = Lmin[0].fathers_pool;
-  truemin = (int *)space((nlmin + 1) * sizeof(int));
+  truemin = (unsigned long *)space((nlmin + 1) * sizeof(unsigned long));
   /* truemin[0] = nlmin; */
 
   for (ii = i = 1; (i <= max_print) && (ii <= n_lmin); ii++) {
@@ -629,35 +620,22 @@ read_data(barrier_options opt,
 }
 
 
-/*=====================================*/
-static int
-compare(const void  *a,
-        const void  *b)
-{
-  int A, B;
-
-  A = ((basinT *)a)->basin;
-  B = ((basinT *)b)->basin;
-  return A - B;
-}
-
-
 /*======================*/
 void
 check_neighbors(void)
 {
-  char        *p, *pp, *pform;
-  int         basin, obasin = -1;
-  hash_entry  *hp, h, *down = NULL;
-  Set         *basins;
-  basinT      b;
+  char          *p, *pp, *pform;
+  unsigned long basin, obasin = ULONG_MAX;
+  hash_entry    *hp, h, *down = NULL;
+  Set           *basins;
+  basinT        b;
 
-  double      minenergia = 100000000.0; /* energy of lowest neighbor */
-  double      Zi;
-  int         min_n   = 1000000000;     /* index of lowest neighbor  */
-  int         gradmin = 0;              /* for Gradient Basins */
-  int         is_min  = 1;
-  int         ccomp   = 0;              /* which connected component */
+  double        minenergia = 100000000.0; /* energy of lowest neighbor */
+  double        Zi;
+  unsigned long min_n   = ULONG_MAX;      /* index of lowest neighbor  */
+  unsigned long gradmin = 0;              /* for Gradient Basins */
+  unsigned long is_min  = 1;
+  unsigned long ccomp   = 0;              /* which connected component */
 
   basins = new_set(10);
 
@@ -705,7 +683,7 @@ check_neighbors(void)
       /* careful: if input has higher precision than FLT_EPSILON
        * bad things will happen */
       if (fabs(hp->energy - energy) <= FLT_EPSILON * fabs(energy)) {
-        int tc;
+        unsigned long tc;
         tc = hp->ccomp;
         while (tc != truecomp[tc])
           tc = truecomp[tc];
@@ -729,7 +707,7 @@ check_neighbors(void)
         basin = lmin[basin].father;
 
       /* put the "deepest" local minimum into the basins-list */
-      if (basin != obasin) {
+      if (basin != obasin || obasin == ULONG_MAX) {
         b.hp    = hp;
         b.basin = basin;
         set_add(basins, &b);
@@ -752,7 +730,7 @@ check_neighbors(void)
     if (++n_comp > max_comp) {
       max_comp  *= 2;
       comp      = (struct comp *)xrealloc(comp, (max_comp + 1) * sizeof(struct comp));
-      truecomp  = (int *)xrealloc(truecomp, (max_comp + 1) * sizeof(int));
+      truecomp  = (unsigned long *)xrealloc(truecomp, (max_comp + 1) * sizeof(unsigned long));
     }
 
     comp[n_comp].basins = set;
@@ -768,7 +746,7 @@ check_neighbors(void)
     down    = NULL;
     /* need to allocate more space for the lmin-list */
     if (n_lmin > max_lmin) {
-      fprintf(stderr, "increasing lmin array to %d\n", max_lmin * 2);
+      fprintf(stderr, "increasing lmin array to %ld\n", max_lmin * 2);
       lmin = (loc_min *)xrealloc(lmin, (max_lmin * 2 + 1) * sizeof(loc_min));
       memset(lmin + max_lmin + 1, 0, max_lmin);
       max_lmin *= 2;
@@ -792,11 +770,11 @@ check_neighbors(void)
   set_merge(comp[ccomp].basins, basins);
 
   {
-    int i_lmin;
+    unsigned long i_lmin;
     i_lmin = (is_min) ? n_lmin : basins->data[0].basin;
     set_kill(basins);
     /* store configuration "Structure" in hash table */
-    hp = hpool + readl - 1;  /* (hash_entry *) space(sizeof(hash_entry)); */
+    hp = hpool + Read_lines - 1;  /* (hash_entry *) space(sizeof(hash_entry)); */
     if (POV_size) {
       int i;
       hp->POV = (int *)space(sizeof(int) * POV_size);
@@ -810,7 +788,7 @@ check_neighbors(void)
     hp->GradientBasin = gradmin;    /* for Gradient Basins */
     hp->down          = down;
     hp->ccomp         = ccomp;
-    hp->n             = readl;
+    hp->n             = Read_lines;
     lmin[gradmin].my_GradPool++;
     lmin[gradmin].Zg += Zi;
 
@@ -831,7 +809,7 @@ check_neighbors(void)
 static void
 merge_basins()
 {
-  int c, i, t;
+  unsigned long c, i, t;
 
   for (i = t = 1; i <= n_comp; i++) {
     if (truecomp[i] == i)
@@ -844,22 +822,22 @@ merge_basins()
   for (c = 1; c <= n_comp; c++) {
     /* foreach connected component */
     /* merge all lmins connected by this component */
-    static int  false_lmin = 0;
-    int         i, father, pool = 0;
-    double      Z = 0;
-    basinT      *basins;
+    static unsigned long  false_lmin = 0;
+    unsigned long         i, father, pool = 0;
+    double                Z = 0;
+    basinT                *basins;
 
-    if (mergefile && (comp[c].basins->num_elem > 1)) {
+    if (Mergefile && (comp[c].basins->num_elem > 1)) {
       const char  format[2][16] = {
         "%13.5f %4d %s", "%6.2f %4d %s"
       };
       char        *saddle;
       saddle = unpack_my_structure(comp[c].saddle);
-      fprintf(mergefile, format[IS_RNA], energy, comp[c].size, saddle);
+      fprintf(Mergefile, format[IS_RNA], energy, comp[c].size, saddle);
       free(saddle);
       for (i = 0; i < comp[c].basins->num_elem; i++)
-        fprintf(mergefile, " %2d", comp[c].basins->data[i].basin);
-      fprintf(mergefile, "\n");
+        fprintf(Mergefile, " %2ld", comp[c].basins->data[i].basin);
+      fprintf(Mergefile, "\n");
     }
 
     basins  = comp[c].basins->data;
@@ -868,13 +846,13 @@ merge_basins()
       father = lmin[father].father;
 
     for (i = 1; i < comp[c].basins->num_elem; i++) {
-      int ii, l, r;
+      unsigned long ii, l, r;
       ii = basins[i].basin;
       while (lmin[ii].father)
         ii = lmin[ii].father;
       if (ii != father) {
         if (ii < father) {
-          int tmp;
+          unsigned long tmp;
           tmp     = ii;
           ii      = father;
           father  = tmp;
@@ -919,9 +897,9 @@ merge_basins()
 void
 mark_global(loc_min *Lmin)
 {
-  int     i, j, k;
-  int     n_gmin;
-  loc_min *G;
+  unsigned long i, j, k;
+  unsigned long n_gmin;
+  loc_min       *G;
 
   G = (loc_min *)space(n_lmin * sizeof(loc_min));
 
@@ -954,16 +932,16 @@ mark_global(loc_min *Lmin)
 /*====================*/
 int
 print_results(loc_min         *Lmin,
-              int             *truemin,
+              unsigned long   *truemin,
               barrier_options *opt)
 {
-  char  *sequence = opt->seq;
-  int   i, ii, j, k, n, connected = 1, ncu = 0, ncb = 0;
-  char  *struc = NULL, *laststruc = NULL;
+  char          *sequence = opt->seq;
+  unsigned long i, ii, j, k, n, connected = 1, ncu = 0, ncb = 0;
+  char          *struc = NULL, *laststruc = NULL;
 
   ;
-  char  *format = NULL, *formatA = NULL, *formatB = NULL, **seen = NULL;
-  bool  otherformat = false;
+  char          *format = NULL, *formatA = NULL, *formatB = NULL, **seen = NULL;
+  bool          otherformat = false;
 
   if (POV_size)
     fprintf(stderr, " POV_size = %d\n", POV_size);
@@ -987,7 +965,7 @@ print_results(loc_min         *Lmin,
 
   printf("     %s\n", sequence);
   for (i = 1, k = 0; i <= n_lmin; i++, k++) {
-    int f;
+    unsigned long f;
     if ((ii = truemin[i]) == 0)
       continue;
 
@@ -1026,7 +1004,7 @@ print_results(loc_min         *Lmin,
 
     if (POV_size) {
       int jj;
-      printf("%4d %s ", ii, struc);
+      printf("%4ld %s ", ii, struc);
 
       if (IS_RNA)
         printf("%6.2f ", Lmin[i].energy);
@@ -1036,10 +1014,10 @@ print_results(loc_min         *Lmin,
       for (jj = 0; jj < POV_size; jj++)
         printf("%6d ", Lmin[i].POV[jj]);
       if (IS_RNA)
-        printf("%4d %6.2f", f,
+        printf("%4ld %6.2f", f,
                Lmin[i].E_saddle - Lmin[i].energy);
       else
-        printf("%4d %13.5f", f,
+        printf("%4ld %13.5f", f,
                Lmin[i].E_saddle - Lmin[i].energy);
 
       if (Lmin[i].global)
@@ -1142,13 +1120,13 @@ is_bound(char *s)
 
 
 void
-ps_tree(loc_min *Lmin,
-        int     *truemin,
-        int     rates)
+ps_tree(loc_min       *Lmin,
+        unsigned long *truemin,
+        int           rates)
 {
-  nodeT *nodes;
-  int   i, ii;
-  int   nlmin;
+  nodeT         *nodes;
+  unsigned long i, ii;
+  unsigned long nlmin;
 
   nlmin = Lmin[0].fathers_pool;
 
@@ -1248,45 +1226,11 @@ get_taxon_label(int i)
 }
 
 
-/*=========================================*/
-static int
-indx_comp(const void  *i1,
-          const void  *i2)
-{
-  int i, j;
-
-  i = *((int *)i1);
-  j = *((int *)i2);
-  if (lmin[i].E_saddle == lmin[j].E_saddle)
-    return i - j;
-
-  return (lmin[i].E_saddle < lmin[j].E_saddle) ? (-1) : (1);
-}
-
-
 /*===============================*/
-static int *
-make_sorted_index(int *truemin)
-{
-  int i, ii, *index;
-
-  index = (int *)space((max_print + 1) * sizeof(int));
-
-  /* include only up to max_print local minima */
-  for (i = 0, ii = 1; i < max_print; ii++)
-    if (truemin[ii])
-      index[i++] = ii;
-
-  /* sort local minima by saddle-point-heights */
-  /* starting with the 1st excited state */
-  qsort(index + 1, max_print - 1, sizeof(int), indx_comp);
-
-  return index;
-}
 
 
-static path_entry *path;
-static int        np, max_path;
+static path_entry     *path;
+static unsigned long  np, max_path;
 
 static int
 path_cmp(const void *a,
@@ -1306,13 +1250,13 @@ path_cmp(const void *a,
 
 /*=======*/
 path_entry *
-backtrack_path(int      l1,
-               int      l2,
-               loc_min  *LM,
-               int      *truemin)
+backtrack_path(unsigned long  l1,
+               unsigned long  l2,
+               loc_min        *LM,
+               unsigned long  *truemin)
 {
-  int   n_lmin, i, ll1 = 0, ll2 = 0;
-  char  *tag;
+  unsigned long n_lmin, i, ll1 = 0, ll2 = 0;
+  char          *tag;
 
   lmin    = LM;
   n_lmin  = lmin[0].fathers_pool;
@@ -1336,12 +1280,12 @@ backtrack_path(int      l1,
 
 
 static void
-backtrack_path_rec(int        l1,
-                   int        l2,
-                   const char *tag)
+backtrack_path_rec(unsigned long  l1,
+                   unsigned long  l2,
+                   const char     *tag)
 {
-  hash_entry  h, *l1dir, *l2dir;
-  int         dir = 1, swap = 0, child, father, maxsaddle;
+  hash_entry    h, *l1dir, *l2dir;
+  unsigned long dir = 1, swap = 0, child, father, maxsaddle;
 
   /* if left==1 left points toward l2 else toward l1 */
   if (l1 > l2) {
@@ -1362,13 +1306,13 @@ backtrack_path_rec(int        l1,
   while (lmin[child].father != father) {
     if (lmin[child].father == 0) {
       fprintf(stderr, "ERROR in backtrack_path(): ");
-      fprintf(stderr, "No saddle between lmin %d and lmin %d\n", l2, l1);
+      fprintf(stderr, "No saddle between lmin %ld and lmin %ld\n", l2, l1);
       exit(1);
     }
 
     child = lmin[child].father;
     if (child < father) {
-      int t;
+      unsigned long t;
       t       = child;
       child   = father;
       father  = t;
@@ -1417,14 +1361,14 @@ backtrack_path_rec(int        l1,
 
 /*=======================================================================*/
 static void
-walk_limb(hash_entry  *hp,
-          int         LM,
-          int         inc,
-          const char  *tag)
+walk_limb(hash_entry    *hp,
+          unsigned long LM,
+          unsigned long inc,
+          const char    *tag)
 {
-  char        *tmp;
-  int         num = 0;
-  hash_entry  *htmp;
+  char          *tmp;
+  unsigned long num = 0;
+  hash_entry    *htmp;
 
   tmp = (char *)space(strlen(tag) + 4);
   ;
@@ -1516,8 +1460,8 @@ static int
 comp_comps(const void *A,
            const void *B)
 {
-  struct comp *a, *b;
-  int         r, i = 0;
+  struct comp   *a, *b;
+  unsigned long r, i = 0;
 
   a = (struct comp *)A;
   b = (struct comp *)B;
@@ -1530,28 +1474,15 @@ comp_comps(const void *A,
 }
 
 
-static void
-print_hash_entry(hash_entry *h)
-{
-  int down = 0;
-
-  if (h->down)
-    down = h->down->n;
-
-  fprintf(stderr, "%2d %s %6.2f %2d %2d %2d %2d\n", h->n, h->structure,
-          h->energy, h->basin, h->GradientBasin, h->ccomp, down);
-}
-
-
 map_struc
-get_mapstruc(char     *p,
-             loc_min  *LM,
-             int      *tm)
+get_mapstruc(char           *p,
+             loc_min        *LM,
+             unsigned long  *tm)
 {
-  hash_entry  *hp, h;
-  char        *pp, *struc;
-  int         min, gradmin, tmin, tgradmin;
-  map_struc   ms;
+  hash_entry    *hp, h;
+  char          *pp, *struc;
+  unsigned long min, gradmin, tmin, tgradmin;
+  map_struc     ms;
 
   pp          = pack_my_structure(p);
   h.structure = pp;
@@ -1591,21 +1522,27 @@ get_mapstruc(char     *p,
 
 
 void
-print_rates(int   n,
-            char  *fname)
+print_rates(unsigned long n,
+            char          *fname)
 {
-  int     i, j;
-  FILE    *OUT;
+  unsigned long i, j;
+  FILE          *OUT;
 
 #define BINRATES
 #ifdef BINRATES
-  FILE    *BINOUT;
-  char    *binfile = "rates.bin";
-  double  tmprate;
+  FILE          *BINOUT;
+  char          *binfile = "rates.bin";
+  double        tmprate;
   BINOUT = fopen(binfile, "w");
   if (!BINOUT) {
     fprintf(stderr, "could not open file pointer 4 binary outfile\n");
     exit(101);
+  }
+
+  if (n > INT_MAX) {
+    fprintf(stderr, "Error: more local minima than 32bit integer values!");
+    // we need a new binary format in order to support this.
+    exit(EXIT_FAILURE);
   }
 
   /* first write dim to file */
@@ -1637,16 +1574,14 @@ print_rates(int   n,
 
 
 void
-compute_rates(int   *truemin,
-              char  *sequence)
+compute_rates(unsigned long *truemin,
+              char          *sequence)
 {
-  int         i, j, ii, r, gb, gradmin, n, rc, *realnr;
-  char        *p, *pp, *structure, newsub[10] = "new.sub", mr[15] = "microrates.out";
-  hash_entry  *hpr, h, *hp;
-  double      Zi;
-  FILE        *NEWSUB = NULL, *MR = NULL;
-
-  ;
+  unsigned long i, j, ii, r, gb, gradmin, n, rc, *realnr;
+  char          *p, *pp, *structure, newsub[10] = "new.sub", mr[15] = "microrates.out";
+  hash_entry    *hpr, h, *hp;
+  double        Zi;
+  FILE          *NEWSUB = NULL, *MR = NULL;
 
   if (ligand == 1)
     move_it = RNA_move_it_rates;
@@ -1657,16 +1592,16 @@ compute_rates(int   *truemin,
   for (i = 1; i <= n; i++)
     rate[i] = (double *)space((n + 1) * sizeof(double));
   if (do_microrates) {
-    realnr  = (int *)space((readl + 1) * sizeof(int));
+    realnr  = (unsigned long *)space((Read_lines + 1) * sizeof(unsigned long));
     MR      = fopen(mr, "w");
     NEWSUB  = fopen(newsub, "w");
     fprintf(NEWSUB, "%s %6.2f\n", sequence, 100 * mfe);
     fflush(NEWSUB);
-    fprintf(MR, ">%d states\n", readl);
+    fprintf(MR, ">%ld states\n", Read_lines);
   }
 
-  for (rc = 1, r = 0; r < readl; r++) {
-    int b;
+  for (rc = 1, r = 0; r < Read_lines; r++) {
+    unsigned long b;
     hpr     = &hpool[r];
     Zi      = exp((mfe - hpr->energy) / kT);
     gradmin = hpr->GradientBasin;
@@ -1712,7 +1647,7 @@ compute_rates(int   *truemin,
             double rate, dg;
             dg    = hpr->energy - hp->energy;
             rate  = exp(-dg / kT);
-            fprintf(MR, "%10d %8d %15.12f 1\n", rc, realnr[hp->n], rate);
+            fprintf(MR, "%10ld %8ld %15.12f 1\n", rc, realnr[hp->n], rate);
           }
         }
       }
@@ -1720,7 +1655,7 @@ compute_rates(int   *truemin,
       free(pp);
     }
     if (do_microrates && b) {
-      fprintf(NEWSUB, "%s %6.2f %i %i\n", structure, hpr->energy, gradmin, hpr->basin);
+      fprintf(NEWSUB, "%s %6.2f %li %li\n", structure, hpr->energy, gradmin, hpr->basin);
       fflush(NEWSUB);
       realnr[hpr->n] = rc++;
     }

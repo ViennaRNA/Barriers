@@ -22,10 +22,10 @@ extern void initialize_hash();
 typedef struct _hash_entry {
   char                *structure;     /* my structure */
   float               energy;         /* my energy */
-  int                 basin;          /* which basin do I belong to */
-  int                 GradientBasin;  /* for Gradient Basins */
-  int                 ccomp;          /* in which connected component am I */
-  int                 n;              /* my index in energy sorted list */
+  unsigned long       basin;          /* which basin do I belong to */
+  unsigned long       GradientBasin;  /* for Gradient Basins */
+  unsigned long       ccomp;          /* in which connected component am I */
+  unsigned long       n;              /* my index in energy sorted list */
   struct _hash_entry  *down;          /* pointer to lowest neighbor */
   int                 *POV;           /* for Posets only */
 } hash_entry;
