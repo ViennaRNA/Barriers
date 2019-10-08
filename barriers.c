@@ -1088,6 +1088,113 @@ print_results(loc_min         *Lmin,
   return connected;
 }
 
+int
+print_rna_barriers_output(loc_min         *Lmin,
+              unsigned long   *truemin,
+              barrier_options *opt,
+              unsigned long *mfe_component_true_min_indices)
+{
+  char          *sequence = opt->seq;
+  unsigned long i, ii, j, k, n, connected = 1, ncu = 0, ncb = 0;
+  char          *struc = NULL, *laststruc = NULL;
+
+  char          *format = NULL, *formatA = NULL, *formatB = NULL, **seen = NULL;
+  bool          otherformat = false;
+
+  if (IS_RNA) {
+    formatA = "%4d %s %6.2f %4d %6.2f";
+    formatB = "%4d %s  %6.2f %4d %6.2f";
+    format  = formatA;
+  }
+
+  if (verbose)
+    printf("Using output format string '%s'\n", format);
+
+  n_lmin = Lmin[0].fathers_pool;
+  i = 1;
+  if(mfe_component_true_min_indices != NULL){
+    unsigned long mfe_comp_size = 0;
+    while(mfe_component_true_min_indices[mfe_comp_size] != 0) mfe_comp_size++;
+    //fprintf(stderr, "%ld states in mfe component!\n", mfe_comp_size);
+  }
+
+
+  printf("     %s\n", sequence);
+  for (k = 0; i <= n_lmin; i++, k++) {
+    unsigned long f;
+    if ((ii = truemin[i]) == 0)
+      continue;
+
+    unsigned long j;
+    if(mfe_component_true_min_indices != NULL){
+      int is_in_mfe_comp = 0;
+      for(j=0;mfe_component_true_min_indices[j] != 0; j++){
+        if(mfe_component_true_min_indices[j] == ii){
+          is_in_mfe_comp = 1;
+          break;
+        }
+      }
+      if(!is_in_mfe_comp)
+        continue;
+    }
+
+    struc = unpack_my_structure(Lmin[i].structure);
+    if (cut_point > -1)
+      struc = costring(struc);
+
+    n = strlen(struc);
+    f = Lmin[i].father;
+    if (f > 0) {
+      f = truemin[f];
+    }
+      if (IS_RNA && (ligand == 1)) {
+        if (strstr(struc, "*") == NULL) {
+          format      = formatB;
+          otherformat = true;
+        }
+      }
+
+      // numbers with step size 1
+      if(mfe_component_true_min_indices != NULL){
+        ii = j+1;
+      }
+
+      printf(format, ii, struc, Lmin[i].energy, f,
+             Lmin[i].E_saddle - Lmin[i].energy);
+      if (otherformat) {
+        format      = formatA;
+        otherformat = false;
+      }
+
+    if (print_saddles) {
+      if (Lmin[i].saddle) {
+        char *saddlestruc = unpack_my_structure(Lmin[i].saddle);
+        printf(" %s", saddlestruc);
+        free(saddlestruc);
+      } else {
+        printf(" ");
+        for (j = 0; j < n; j++)
+          printf("~");
+      }
+    }
+
+    if (bsize)
+      printf(" %12ld %8ld %10.6f %8ld %10.6f",
+             Lmin[i].my_pool, Lmin[i].fathers_pool, mfe - kT * log(lmin[i].Z),
+             Lmin[i].my_GradPool, mfe - kT * log(lmin[i].Zg));
+
+    printf("\n");
+
+    if (laststruc != NULL)
+      free(laststruc);
+
+    laststruc = strdup(struc);
+    free(struc);
+  } /* end for */
+  free(laststruc);
+  return connected;
+}
+
 
 /*====================*/
 /* remove additional characters from structure, such as
@@ -1118,6 +1225,33 @@ is_bound(char *s)
   return val;
 }
 
+unsigned long *compute_connected_component_states(loc_min       *lmin,
+    unsigned long *truemin){
+  unsigned long nlmin = truemin[0]; //lmin[0].fathers_pool;
+  unsigned long *mfe_component_minima = malloc(sizeof(unsigned long)* (truemin[0] +1));
+  unsigned long ii;
+
+  //char *mfe_structure = lmin[1].structure;
+  int mfe_comp_index = 0;
+  for ( ii = 1; ii <= nlmin; ii++) {
+    if(truemin[ii] == 0)
+      continue;
+    unsigned long root_gradmin = ii;
+    while (lmin[root_gradmin].father != 0){
+      root_gradmin = lmin[root_gradmin].father;
+    }
+
+    if(root_gradmin == 1){
+      //ii is connected to the mfe tree
+      mfe_component_minima[mfe_comp_index++] = ii;
+    }
+    else{
+      continue;
+    }
+  }
+  mfe_component_minima[mfe_comp_index] = 0; // zero terminated
+  return mfe_component_minima;
+}
 
 void
 ps_tree(loc_min       *Lmin,
@@ -1135,7 +1269,7 @@ ps_tree(loc_min       *Lmin,
 
   nodes = (nodeT *)space(sizeof(nodeT) * (max_print + 1));
   for (i = 0, ii = 1; i < max_print && ii <= nlmin; ii++) {
-    register int  s1, f;
+    unsigned long  s1, f;
     double        E_saddle;
     if ((s1 = truemin[ii]) == 0)
       continue;
@@ -1688,3 +1822,182 @@ compute_rates(unsigned long *truemin,
 
   free_stapel();
 }
+
+void free_rates(unsigned long length_rates){
+  unsigned long i;
+  for(i=0; i <= length_rates; i++){
+    free(rate[i]);
+  }
+  free(rate);
+}
+
+void print_rates_of_mfe_component(char           *fname,
+                 unsigned long *mfe_component_true_min_indices){
+  unsigned long n, i, j, ii, jj;
+  FILE          *OUT;
+
+  if(mfe_component_true_min_indices != NULL){
+    n = 0;
+    while(mfe_component_true_min_indices[n] != 0) n++;
+  }
+  else{
+    fprintf(stderr, "Error: could not print rates because mfe component is NULL!");
+    return;
+  }
+
+#define BINRATES
+#ifdef BINRATES
+  FILE          *BINOUT;
+  char          *binfile = "rates.bin";
+  double        tmprate;
+  BINOUT = fopen(binfile, "w");
+  if (!BINOUT) {
+    fprintf(stderr, "could not open file pointer 4 binary outfile\n");
+    exit(101);
+  }
+
+  if (n > INT_MAX) {
+    fprintf(stderr, "Error: more local minima than 32bit integer values!");
+    // we need a new binary format in order to support this.
+    exit(EXIT_FAILURE);
+  }
+
+  /* first write dim to file */
+  fwrite(&n, sizeof(int), 1, BINOUT);
+  for (i =0; i < n; i++){
+    ii = mfe_component_true_min_indices[i];
+    for (j = 0; j < n; j++) {
+      jj = mfe_component_true_min_indices[j];
+      tmprate = rate[jj][ii];
+      fwrite(&tmprate, sizeof(double), 1, BINOUT);
+    }
+  }
+  fprintf(stderr, "rate matrix written to binfile\n");
+  fclose(BINOUT);
+#endif
+
+  OUT = fopen(fname, "w");
+  if (!OUT) {
+    fprintf(stderr, "could not open rates file %s for output\n", fname);
+    return;
+  }
+
+  for (i = 0; i < n; i++) {
+    ii = mfe_component_true_min_indices[i];
+    for (j = 0; j < n; j++){
+      jj = mfe_component_true_min_indices[j];
+      fprintf(OUT, "%10.4g ", rate[ii][jj]);
+    }
+    fprintf(OUT, "\n");
+  }
+  fclose(OUT);
+}
+
+void ps_tree_mfe_component(loc_min        *Lmin,
+             unsigned long  *truemin,
+             int            rates,
+             unsigned long *mfe_component_true_min_indices){
+  nodeT         *nodes;
+  unsigned long i, ii;
+  unsigned long nlmin;
+
+  nlmin = truemin[0]; //Lmin[0].fathers_pool;
+
+ //if (max_print > truemin[0])
+ //   max_print = truemin[0];
+  int mfe_comp_max;
+  for(mfe_comp_max = 0; mfe_component_true_min_indices[mfe_comp_max] != 0; mfe_comp_max++);
+  unsigned long max_print = mfe_comp_max;
+
+  nodes = (nodeT *)space(sizeof(nodeT) * (max_print + 1));
+  for (i = 0, ii = 1; i < max_print && ii <= nlmin; ii++) {
+    unsigned long  s1, f;
+    double        E_saddle;
+    if ((s1 = truemin[ii]) == 0)
+      continue;
+
+    int mfe_comp_index = 0;
+    for(mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0; mfe_comp_index++){
+      if(ii == mfe_component_true_min_indices[mfe_comp_index]){
+        break;
+      }
+    }
+
+    if(mfe_comp_index == mfe_comp_max){
+      //i++;
+      continue;
+    }
+
+    if (i > max_print)
+      nrerror("inconsistency in ps_tree, aborting");
+
+    E_saddle  = Lmin[ii].E_saddle;
+    f         = Lmin[ii].father;
+    if (f == 0)
+      E_saddle = Lmin[0].E_saddle;         /* maximum energy */
+
+    nodes[mfe_comp_index].father = (f == 0) ? -1 : truemin[f] - 1;
+    /* was truemin[f]-1; */
+    if (rates) {
+      double F, Ft;
+      F   = mfe - kT * log(Lmin[ii].Zg);
+      Ft  =
+        (f > 0) ? F - kT * log(rate[truemin[ii]][truemin[f]])  : E_saddle;
+      nodes[mfe_comp_index].height        = F;
+      nodes[mfe_comp_index].saddle_height = Ft;
+    } else {
+      nodes[mfe_comp_index].height        = Lmin[ii].energy;
+      nodes[mfe_comp_index].saddle_height = E_saddle;
+    }
+
+    if (print_labels) {
+      char  *L;
+      char  *s;
+      s = unpack_my_structure(Lmin[ii].structure);
+      if ((POV_size) && (Lmin[ii].global)) {
+        L = (char *)space(sizeof(char) * (3 + strlen(s)));
+        strcat(L, s);
+        strcat(L, " *");
+        nodes[mfe_comp_index].label = L;
+      } else {
+        nodes[mfe_comp_index].label = strdup(s);
+      }
+
+      free(s);
+    } else {
+      char *L = NULL, *s = NULL;
+      L = (char *)space(sizeof(char) * 10);
+      s = unpack_my_structure(Lmin[ii].structure);
+      if (s[strlen(s) - 1] == '*') {
+        (void)sprintf(L, "%d", s1);
+        nodes[mfe_comp_index].label = L;
+      } else {
+        free(L);
+      }
+
+      if ((POV_size) && (Lmin[ii].global)) {
+        (void)sprintf(L, "%d *", s1);
+        nodes[mfe_comp_index].label = L;
+      }
+
+      free(s);
+    }
+
+    i++;
+  }
+  if (rates)
+    PS_tree_plot(nodes, max_print, "treeR.ps");
+  else
+    PS_tree_plot(nodes, max_print, "tree.ps");
+
+
+  for (i = 0; i < (max_print); i++)
+    if (nodes[i].label != NULL)
+      free(nodes[i].label);
+
+  free(nodes);
+}
+
+
+
+
