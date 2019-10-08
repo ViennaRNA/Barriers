@@ -12,10 +12,10 @@ typedef struct {
 } Edge;
 
 typedef struct {
-  int size;
-  Node *I;
-  Node *L;
-  Edge *E;
+  int   size;
+  Node  *I;
+  Node  *L;
+  Edge  *E;
 } Tree;
 
 

@@ -5,10 +5,21 @@
 #define _stapel_h
 
 extern void push(char *form);
+
+
 extern char *pop(void);
+
+
 extern int get_top(void);
+
+
 extern void ini_stapel(int size);
+
+
 extern void free_stapel(void);
+
+
 extern void reset_stapel(void);
+
 
 #endif
