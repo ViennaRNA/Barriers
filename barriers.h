@@ -15,8 +15,7 @@ int print_results(loc_min         *LM,
 
 
 void ps_tree(loc_min        *LM,
-             unsigned long  *tm,
-             int            rates);
+             unsigned long  *tm);
 
 
 path_entry *backtrack_path(unsigned long  l1,
@@ -68,7 +67,6 @@ void print_rates_of_mfe_component(unsigned long       *mfe_component_true_min_in
 
 void ps_tree_mfe_component(loc_min        *LM,
                            unsigned long  *tm,
-                           int            rates,
                            unsigned long  *mfe_component_true_min_indices);
 
 

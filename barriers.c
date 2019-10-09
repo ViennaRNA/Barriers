@@ -119,8 +119,7 @@ int print_results(loc_min         *L,
 
 
 void ps_tree(loc_min        *Lmin,
-             unsigned long  *truemin,
-             int            rates);
+             unsigned long  *truemin);
 
 
 map_struc get_mapstruc(char           *p,
@@ -977,29 +976,6 @@ print_results(loc_min         *Lmin,
     if (f > 0) {
       f = truemin[f];
     }
-    //check this only if the --connected parameter is set!
-    else {
-      if (opt->want_connected) {
-        /* father == 0 */
-        // TODO: break only if --connected parameter is set and only if we are shure that all minima have been printed!!!
-        // TODO: and do this in a separate function!
-        if (connected == 0)
-          break;              /* skip checks if we're already disconnected */
-
-        if (ligand == 1) {
-          if (struc[strlen(struc) - 1] == '*')
-            ncb++;  /* increase not connected bound */
-          else
-            ncu++;  /* increase not connected unbound */
-
-          if (ncb > 1 || ncu > 1)
-            connected = 0;
-        } else {
-          if (ii > 1)
-            connected = 0;
-        }
-      }
-    }
 
     if (POV_size) {
       int jj;
@@ -1058,25 +1034,6 @@ print_results(loc_min         *Lmin,
 
     printf("\n");
 
-#if 0
-    {
-      /* check if ligand/protein bound structure is present in all worlds */
-      if (laststruc != NULL) {
-        /* for all but the first structure */
-        char *last = strip(laststruc);
-        if (is_bound(laststruc) && (strcmp(last, struc) != 0)) {
-          map_struc m = get_mapstruc(last, Lmin, truemin);
-          fprintf(stderr, "WARNING: %s -> %s deltaE: %6.2f\n", last, m.structure,
-                  (float)(m.energy - m.truegradmin_energy));
-          /* fprintf(stderr, "%s %s %6d %6.2f %3d %3d %3d %3d\n", last, m.structure, m.n, m.energy, */
-          /*    m.min, m.truemin, m.gradmin, m.truegradmin); */
-          free(m.structure);
-        }
-
-        free(last);
-      }
-    }
-#endif
     if (laststruc != NULL)
       free(laststruc);
 
@@ -1257,8 +1214,7 @@ compute_connected_component_states(loc_min        *lmin,
 
 void
 ps_tree(loc_min       *Lmin,
-        unsigned long *truemin,
-        int           rates)
+        unsigned long *truemin)
 {
   nodeT         *nodes;
   unsigned long i, ii;
@@ -1285,20 +1241,10 @@ ps_tree(loc_min       *Lmin,
       E_saddle = Lmin[0].E_saddle;         /* maximum energy */
 
     nodes[s1 - 1].father = (f == 0) ? -1 : truemin[f] - 1;
-    /* was truemin[f]-1; */
-    if (rates) {
-      double F, Ft, r;
-      r   = rate[truemin[ii]][truemin[f]];
-      F   = mfe - kT * log(Lmin[ii].Zg);
-      Ft  =
-        (f > 0 && r != 0.0) ? F - kT * log(r)  : E_saddle;
-      // TODO: actually look for rate to node in the sibling cluster.
-      nodes[s1 - 1].height        = F;
-      nodes[s1 - 1].saddle_height = Ft;
-    } else {
-      nodes[s1 - 1].height        = Lmin[ii].energy;
-      nodes[s1 - 1].saddle_height = E_saddle;
-    }
+
+    nodes[s1 - 1].height        = Lmin[ii].energy;
+    nodes[s1 - 1].saddle_height = E_saddle;
+
 
     if (print_labels) {
       char  *L;
@@ -1335,10 +1281,8 @@ ps_tree(loc_min       *Lmin,
 
     i++;
   }
-  if (rates)
-    PS_tree_plot(nodes, max_print, "treeR.ps");
-  else
-    PS_tree_plot(nodes, max_print, "tree.ps");
+
+  PS_tree_plot(nodes, max_print, "tree.ps");
 
   for (i = 0; i < (max_print); i++)
     if (nodes[i].label != NULL)
@@ -1907,7 +1851,6 @@ print_rates_of_mfe_component(unsigned long        *mfe_component_true_min_indice
 void
 ps_tree_mfe_component(loc_min       *Lmin,
                       unsigned long *truemin,
-                      int           rates,
                       unsigned long *mfe_component_true_min_indices)
 {
   nodeT         *nodes;
@@ -1947,21 +1890,9 @@ ps_tree_mfe_component(loc_min       *Lmin,
       E_saddle = Lmin[0].E_saddle;         /* maximum energy */
 
     nodes[mfe_comp_index].father = (f == 0) ? -1 : truemin[f] - 1;
-    /* was truemin[f]-1; */
-    if (rates) {
-      double F, Ft, r;
-      r   = rate[truemin[ii]][truemin[f]];
-      F   = mfe - kT * log(Lmin[ii].Zg);
-      Ft  =
-        (f > 0 && r != 0.0) ? F - kT * log(r)  : E_saddle;
-      // TODO: actually look for rate to node in the sibling cluster.
-      //printf("%.4f %.4f %10.4g %.4f\n",F, Ft, rate[truemin[ii]][truemin[f]], E_saddle);
-      nodes[mfe_comp_index].height        = F;
-      nodes[mfe_comp_index].saddle_height = Ft;
-    } else {
-      nodes[mfe_comp_index].height        = Lmin[ii].energy;
-      nodes[mfe_comp_index].saddle_height = E_saddle;
-    }
+
+    nodes[mfe_comp_index].height        = Lmin[ii].energy;
+    nodes[mfe_comp_index].saddle_height = E_saddle;
 
     if (print_labels) {
       char  *L;
@@ -1998,10 +1929,8 @@ ps_tree_mfe_component(loc_min       *Lmin,
 
     i++;
   }
-  if (rates)
-    PS_tree_plot(nodes, max_print, "treeR.ps");
-  else
-    PS_tree_plot(nodes, max_print, "tree.ps");
+
+  PS_tree_plot(nodes, max_print, "tree.ps");
 
   for (i = 0; i < (max_print); i++)
     if (nodes[i].label != NULL)

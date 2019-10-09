@@ -193,9 +193,9 @@ main(int  argc,
 
   if (!opt.want_quiet) {
     if (opt.want_connected)
-      ps_tree_mfe_component(LM, tm, 0, mfe_component_true_min_indices);
+      ps_tree_mfe_component(LM, tm, mfe_component_true_min_indices);
     else
-      ps_tree(LM, tm, 0);
+      ps_tree(LM, tm);
   }
 
   fprintf(stderr, "want_connected is %d\n", opt.want_connected);
@@ -207,12 +207,6 @@ main(int  argc,
 
   if (opt.rates != Barriers_no_rates || opt.microrates) {
     compute_rates(tm, opt.seq);
-    if (!opt.want_quiet) {
-      if (opt.want_connected)
-        ps_tree_mfe_component(LM, tm, 1, mfe_component_true_min_indices);
-      else
-        ps_tree(LM, tm, 1);
-    }
 
     if (opt.want_connected) {
       print_rates_of_mfe_component(mfe_component_true_min_indices, &opt, opt.rates);
