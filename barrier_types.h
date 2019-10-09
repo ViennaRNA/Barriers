@@ -19,25 +19,34 @@ typedef struct {
   char          global; /* mark global Pareto points */
 } loc_min;
 
+typedef enum {
+  Barriers_no_rates,
+  Barriers_binary_rates,
+  Barriers_text_rates,
+  Barriers_both_rates = Barriers_binary_rates | Barriers_text_rates,
+} barriers_rates_type;
+
 typedef struct {
-  int           print_saddles;
-  int           bsize;
-  int           ssize;
-  int           shut_up;
-  unsigned long max_print;
-  double        minh;
-  double        kT;
-  int           want_quiet;
-  int           want_verbose;
-  int           want_connected;
-  char          *GRAPH, *MOVESET;
-  FILE          *INFILE;
-  char          *seq;
-  int           poset;
-  int           label;
-  int           rates;
-  double        noLP_rate;
-  int           microrates;
+  int                 print_saddles;
+  int                 bsize;
+  int                 ssize;
+  int                 shut_up;
+  unsigned long       max_print;
+  double              minh;
+  double              kT;
+  int                 want_quiet;
+  int                 want_verbose;
+  int                 want_connected;
+  char                *GRAPH, *MOVESET;
+  FILE                *INFILE;
+  char                *seq;
+  int                 poset;
+  int                 label;
+  barriers_rates_type rates;
+  double              noLP_rate;
+  int                 microrates;
+  char                *text_rates_file;
+  char                *binary_rates_file;
 } barrier_options;
 
 typedef struct {

@@ -123,14 +123,13 @@ void ps_tree(loc_min        *Lmin,
              int            rates);
 
 
-void print_rates(unsigned long  n,
-                 char           *fname);
-
-
 map_struc get_mapstruc(char           *p,
                        loc_min        *LM,
                        unsigned long  *tm);
-
+void
+print_rates(unsigned long       n,
+            barrier_options     *opt,
+            barriers_rates_type rate_files);
 
 char *strip(char *s);
 
@@ -1661,43 +1660,43 @@ get_mapstruc(char           *p,
 
 
 void
-print_rates(unsigned long n,
-            char          *fname)
+print_rates(unsigned long       n,
+            barrier_options     *opt,
+            barriers_rates_type rate_files)
 {
   unsigned long i, j;
   FILE          *OUT;
 
-#define BINRATES
-#ifdef BINRATES
-  FILE          *BINOUT;
-  char          *binfile = "rates.bin";
-  double        tmprate;
-  BINOUT = fopen(binfile, "w");
-  if (!BINOUT) {
-    fprintf(stderr, "could not open file pointer 4 binary outfile\n");
-    exit(101);
-  }
-
-  if (n > INT_MAX) {
-    fprintf(stderr, "Error: more local minima than 32bit integer values!");
-    // we need a new binary format in order to support this.
-    exit(EXIT_FAILURE);
-  }
-
-  /* first write dim to file */
-  fwrite(&n, sizeof(int), 1, BINOUT);
-  for (i = 1; i <= n; i++)
-    for (j = 1; j <= n; j++) {
-      tmprate = rate[j][i];
-      fwrite(&tmprate, sizeof(double), 1, BINOUT);
+  if (rate_files & Barriers_binary_rates) {
+    FILE    *BINOUT;
+    char    *binfile = opt->binary_rates_file;
+    double  tmprate;
+    BINOUT = fopen(binfile, "w");
+    if (!BINOUT) {
+      fprintf(stderr, "could not open file pointer 4 binary outfile\n");
+      exit(101);
     }
-  fprintf(stderr, "rate matrix written to binfile\n");
-  fclose(BINOUT);
-#endif
 
-  OUT = fopen(fname, "w");
+    if (n > INT_MAX) {
+      fprintf(stderr, "Error: more local minima than 32bit integer values!");
+      // we need a new binary format in order to support this.
+      exit(EXIT_FAILURE);
+    }
+
+    /* first write dim to file */
+    fwrite(&n, sizeof(int), 1, BINOUT);
+    for (i = 1; i <= n; i++)
+      for (j = 1; j <= n; j++) {
+        tmprate = rate[j][i];
+        fwrite(&tmprate, sizeof(double), 1, BINOUT);
+      }
+    fprintf(stderr, "rate matrix written to binfile\n");
+    fclose(BINOUT);
+  }
+
+  OUT = fopen(opt->text_rates_file, "w");
   if (!OUT) {
-    fprintf(stderr, "could not open rates file %s for output\n", fname);
+    fprintf(stderr, "could not open rates file %s for output\n", opt->text_rates_file);
     return;
   }
 
@@ -1841,8 +1840,9 @@ free_rates(unsigned long length_rates)
 
 
 void
-print_rates_of_mfe_component(char           *fname,
-                             unsigned long  *mfe_component_true_min_indices)
+print_rates_of_mfe_component(unsigned long        *mfe_component_true_min_indices,
+                             barrier_options      *opt,
+                             barriers_rates_type  rate_files)
 {
   unsigned long n, i, j, ii, jj;
   FILE          *OUT;
@@ -1856,40 +1856,39 @@ print_rates_of_mfe_component(char           *fname,
     return;
   }
 
-#define BINRATES
-#ifdef BINRATES
-  FILE    *BINOUT;
-  char    *binfile = "rates.bin";
-  double  tmprate;
-  BINOUT = fopen(binfile, "w");
-  if (!BINOUT) {
-    fprintf(stderr, "could not open file pointer 4 binary outfile\n");
-    exit(101);
-  }
-
-  if (n > INT_MAX) {
-    fprintf(stderr, "Error: more local minima than 32bit integer values!");
-    // we need a new binary format in order to support this.
-    exit(EXIT_FAILURE);
-  }
-
-  /* first write dim to file */
-  fwrite(&n, sizeof(int), 1, BINOUT);
-  for (i = 0; i < n; i++) {
-    ii = mfe_component_true_min_indices[i];
-    for (j = 0; j < n; j++) {
-      jj      = mfe_component_true_min_indices[j];
-      tmprate = rate[jj][ii];
-      fwrite(&tmprate, sizeof(double), 1, BINOUT);
+  if (rate_files & Barriers_binary_rates) {
+    FILE    *BINOUT;
+    char    *binfile = opt->binary_rates_file;
+    double  tmprate;
+    BINOUT = fopen(binfile, "w");
+    if (!BINOUT) {
+      fprintf(stderr, "could not open file pointer 4 binary outfile\n");
+      exit(101);
     }
-  }
-  fprintf(stderr, "rate matrix written to binfile\n");
-  fclose(BINOUT);
-#endif
 
-  OUT = fopen(fname, "w");
+    if (n > INT_MAX) {
+      fprintf(stderr, "Error: more local minima than 32bit integer values!");
+      // we need a new binary format in order to support this.
+      exit(EXIT_FAILURE);
+    }
+
+    /* first write dim to file */
+    fwrite(&n, sizeof(int), 1, BINOUT);
+    for (i = 0; i < n; i++) {
+      ii = mfe_component_true_min_indices[i];
+      for (j = 0; j < n; j++) {
+        jj      = mfe_component_true_min_indices[j];
+        tmprate = rate[jj][ii];
+        fwrite(&tmprate, sizeof(double), 1, BINOUT);
+      }
+    }
+    fprintf(stderr, "rate matrix written to binfile\n");
+    fclose(BINOUT);
+  }
+
+  OUT = fopen(opt->text_rates_file, "w");
   if (!OUT) {
-    fprintf(stderr, "could not open rates file %s for output\n", fname);
+    fprintf(stderr, "could not open rates file %s for output\n", opt->text_rates_file);
     return;
   }
 

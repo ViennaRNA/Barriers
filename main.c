@@ -205,7 +205,7 @@ main(int  argc,
     exit(102);
   }
 
-  if (opt.rates || opt.microrates) {
+  if (opt.rates != Barriers_no_rates || opt.microrates) {
     compute_rates(tm, opt.seq);
     if (!opt.want_quiet) {
       if (opt.want_connected)
@@ -215,10 +215,10 @@ main(int  argc,
     }
 
     if (opt.want_connected) {
-      print_rates_of_mfe_component("rates.out", mfe_component_true_min_indices);
+      print_rates_of_mfe_component(mfe_component_true_min_indices, &opt, opt.rates);
       free_rates(tm[0]);
     } else {
-      print_rates(tm[0], "rates.out");
+      print_rates(tm[0], &opt, opt.rates);
     }
   }
 
@@ -321,10 +321,22 @@ decode_switches(int   argc,
   opt.bsize           = args_info.bsize_given;
   opt.ssize           = args_info.ssize_given;
   opt.print_saddles   = args_info.saddle_given;
-  opt.rates           = args_info.rates_given;
-  opt.microrates      = args_info.microrates_given;
-  GRAPH               = args_info.graph_arg;
-  opt.noLP_rate       = (args_info.noLP_rate_given) ? args_info.noLP_rate_arg : 1.;
+  opt.rates           = Barriers_no_rates;
+  if (args_info.rates_given)
+    opt.rates |= Barriers_both_rates; // print both files
+
+  if (args_info.rates_text_file_given)
+    opt.rates |= Barriers_text_rates; // print only text file
+
+  opt.text_rates_file = args_info.rates_text_file_arg;
+  if (args_info.rates_binary_file_given)
+    opt.rates |= Barriers_binary_rates; // print only binary
+
+  opt.binary_rates_file = args_info.rates_binary_file_arg;
+
+  opt.microrates  = args_info.microrates_given;
+  GRAPH           = args_info.graph_arg;
+  opt.noLP_rate   = (args_info.noLP_rate_given) ? args_info.noLP_rate_arg : 1.;
   if (args_info.moves_given)
     opt.MOVESET = args_info.moves_arg;
 

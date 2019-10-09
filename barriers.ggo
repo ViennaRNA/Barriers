@@ -14,7 +14,9 @@ option "ssize"    -  "print saddle component sizes" flag off
 option "max"      -  "compute only the lowest <num> local minima" int default="100"
 option "minh"     -  "print only minima with barrier > dE" double default="0.000001"
 option "saddle"   -  "print saddle point structures" flag off 
-option "rates"    -  "compute rates between macro states (basins)" flag off
+option "rates"    -  "compute rates between macro states (basins) and print a text and binary file." flag off
+option "rates-text-file" - "file name for the rates output." typestr="filename" string default="rates.out"
+option "rates-binary-file" - "file name for the binary rates output." typestr="filename" string default="rates.bin"
 option "noLP-rate"  - "scale rates of double moves for RNA-noLP (e.g. 0.01)" double default="1.0"
 option "microrates" - "compute microscopic rates between connected states" flag off hidden
 option "poset"    -  "input is a poset from n objective functions" int default="0"
