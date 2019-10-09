@@ -5,7 +5,7 @@ version "1.7.0"
 args    "--default-optional --unamed-opts=[FILE] --include-getopt"
 
 option "quiet"    q  "be quiet, inhibit PS output"  flag off
-option "connected" c "check if landscape is conntected; skip rates computation if not" flag off
+option "connected" c "check if landscape is conntected; print only the states, rates and the tree for the connected component with the ground state." flag off
 option "verbose"  v  "print more information" flag off
 option "graph"    G  "define graph type" string default="RNA" string typestr="Graph"
 option "moves"    M  "select move-set (if Graph allows several different ones)" string 
