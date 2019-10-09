@@ -56,8 +56,8 @@ PRIVATE void          *hashtab[HASHSIZE + 1];
 
 PUBLIC unsigned long  collisions = 0;
 
-static unsigned long  hashfillmax = HASHSIZE * 2. / 3.;
-
+//static unsigned long  hashfillmax = HASHSIZE * 2. / 3.;
+static unsigned long  hashfillmax = HASHSIZE;
 
 /* ----------------------------------------------------------------- */
 
@@ -117,11 +117,16 @@ lookup_hash(void *x)                 /* returns NULL unless x is in the hash */
 #endif
   if (hashtab[hashval] == NULL)
     return NULL;
-
+  unsigned long hash_value_rejections = 0;
   while (hashtab[hashval]) {
     if (hash_comp(x, hashtab[hashval]) == 0)
       return hashtab[hashval];
-
+    hash_value_rejections++;
+    if (hash_value_rejections >= hashfillmax) {
+      float percentage = 100.0f * ((float)hashfillmax/(float)HASHSIZE);
+      fprintf(stderr, "# of hash collision  >= %.0f%% of hashsize (%lu | %lu)\n", percentage, hashfillmax, HASHSIZE);
+      exit(EXIT_FAILURE);
+    }
     hashval = ((hashval + 1) & (HASHSIZE));
   }
   return NULL;
@@ -142,17 +147,18 @@ write_hash(void *x)               /* returns 1 if x already was in the hash */
           ((hash_entry *)x)->structure,
           hashval);
 #endif
+  unsigned long hash_value_rejections = 0;
   while (hashtab[hashval]) {
     if (hash_comp(x, hashtab[hashval]) == 0)
       return 1;
 
     hashval = ((hashval + 1) & (HASHSIZE));
     collisions++;
-    if (collisions >= hashfillmax) {
+    hash_value_rejections++;
+    if (hash_value_rejections >= hashfillmax) {
       /* die if # of hash entries exceeds 0.75*HASHSIE */
-      char str[160];
-      sprintf(str, "# of hash collision  >= 3/4 of hashsize (%lu | %lu)\n", hashfillmax, HASHSIZE);
-      perror(str);
+      float percentage = 100.0f * ((float)hashfillmax/(float)HASHSIZE);
+      fprintf(stderr, "# of hash collision  >= %.0f\% of hashsize (%lu | %lu)\n", percentage, hashfillmax, HASHSIZE);
       exit(EXIT_FAILURE);
     }
   }
