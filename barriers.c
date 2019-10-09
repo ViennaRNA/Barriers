@@ -1285,10 +1285,12 @@ ps_tree(loc_min       *Lmin,
     nodes[s1 - 1].father = (f == 0) ? -1 : truemin[f] - 1;
     /* was truemin[f]-1; */
     if (rates) {
-      double F, Ft;
+      double F, Ft, r;
+      r = rate[truemin[ii]][truemin[f]];
       F   = mfe - kT * log(Lmin[ii].Zg);
       Ft  =
-        (f > 0) ? F - kT * log(rate[truemin[ii]][truemin[f]])  : E_saddle;
+        (f > 0 && r != 0.0) ? F - kT * log(r)  : E_saddle;
+      // TODO: actually look for rate to node in the sibling cluster.
       nodes[s1 - 1].height        = F;
       nodes[s1 - 1].saddle_height = Ft;
     } else {
@@ -1939,10 +1941,13 @@ void ps_tree_mfe_component(loc_min        *Lmin,
     nodes[mfe_comp_index].father = (f == 0) ? -1 : truemin[f] - 1;
     /* was truemin[f]-1; */
     if (rates) {
-      double F, Ft;
+      double F, Ft, r;
+      r = rate[truemin[ii]][truemin[f]];
       F   = mfe - kT * log(Lmin[ii].Zg);
       Ft  =
-        (f > 0) ? F - kT * log(rate[truemin[ii]][truemin[f]])  : E_saddle;
+        (f > 0 && r != 0.0) ? F - kT * log(r)  : E_saddle;
+      // TODO: actually look for rate to node in the sibling cluster.
+      //printf("%.4f %.4f %10.4g %.4f\n",F, Ft, rate[truemin[ii]][truemin[f]], E_saddle);
       nodes[mfe_comp_index].height        = F;
       nodes[mfe_comp_index].saddle_height = Ft;
     } else {
