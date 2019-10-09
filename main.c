@@ -181,24 +181,23 @@ main(int  argc,
     opt.seq = costring(opt.seq);
 
   unsigned long *mfe_component_true_min_indices = NULL;
-  if (opt.want_connected){
-    mfe_component_true_min_indices = compute_connected_component_states(LM,tm);
-    fprintf(stderr,"computed mfe component\n");
-    print_rna_barriers_output(LM,tm,&opt,mfe_component_true_min_indices);
-  }
-  else{
+  if (opt.want_connected) {
+    mfe_component_true_min_indices = compute_connected_component_states(LM, tm);
+    fprintf(stderr, "computed mfe component\n");
+    print_rna_barriers_output(LM, tm, &opt, mfe_component_true_min_indices);
+  } else {
     c = print_results(LM, tm, &opt);
   }
+
   fflush(stdout);
 
-  if (!opt.want_quiet){
-    if(opt.want_connected){
-            ps_tree_mfe_component(LM, tm, 0, mfe_component_true_min_indices);
-          }
-    else{
+  if (!opt.want_quiet) {
+    if (opt.want_connected)
+      ps_tree_mfe_component(LM, tm, 0, mfe_component_true_min_indices);
+    else
       ps_tree(LM, tm, 0);
-    }
   }
+
   fprintf(stderr, "want_connected is %d\n", opt.want_connected);
   if (opt.want_connected && c == 0) {
     fprintf(stderr, "WARNING: landscape is not connected, skipping rates computation\n");
@@ -208,20 +207,17 @@ main(int  argc,
 
   if (opt.rates || opt.microrates) {
     compute_rates(tm, opt.seq);
-    if (!opt.want_quiet){
-      if(opt.want_connected){
+    if (!opt.want_quiet) {
+      if (opt.want_connected)
         ps_tree_mfe_component(LM, tm, 1, mfe_component_true_min_indices);
-      }
-      else{
+      else
         ps_tree(LM, tm, 1);
-      }
     }
 
-    if(opt.want_connected){
-      print_rates_of_mfe_component("rates.out",mfe_component_true_min_indices);
+    if (opt.want_connected) {
+      print_rates_of_mfe_component("rates.out", mfe_component_true_min_indices);
       free_rates(tm[0]);
-    }
-    else{
+    } else {
       print_rates(tm[0], "rates.out");
     }
   }
@@ -254,7 +250,7 @@ main(int  argc,
 
   if (args_info.mapstruc_given) {
     FILE  *MAPFIN = NULL, *MAPFOUT = NULL;
-    char  *line = NULL, *token = NULL, *fname = "mapstruc.out";
+    char  *line   = NULL, *token = NULL, *fname = "mapstruc.out";
 
     MAPFIN = fopen(args_info.mapstruc_arg, "r");
     if (MAPFIN == NULL)

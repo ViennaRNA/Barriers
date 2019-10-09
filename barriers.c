@@ -146,7 +146,7 @@ struct comp {
 
 static unsigned long  *truecomp;
 static struct comp    *comp;
-static unsigned long  max_comp = 1024, n_comp;
+static unsigned long  max_comp      = 1024, n_comp;
 static int            do_rates      = 0;
 static int            do_microrates = 0;
 static double         noLP_rate     = 1.;
@@ -940,7 +940,7 @@ print_results(loc_min         *Lmin,
   char          *struc = NULL, *laststruc = NULL;
 
   ;
-  char          *format = NULL, *formatA = NULL, *formatB = NULL, **seen = NULL;
+  char          *format     = NULL, *formatA = NULL, *formatB = NULL, **seen = NULL;
   bool          otherformat = false;
 
   if (POV_size)
@@ -1088,17 +1088,18 @@ print_results(loc_min         *Lmin,
   return connected;
 }
 
+
 int
 print_rna_barriers_output(loc_min         *Lmin,
-              unsigned long   *truemin,
-              barrier_options *opt,
-              unsigned long *mfe_component_true_min_indices)
+                          unsigned long   *truemin,
+                          barrier_options *opt,
+                          unsigned long   *mfe_component_true_min_indices)
 {
   char          *sequence = opt->seq;
   unsigned long i, ii, j, k, n, connected = 1, ncu = 0, ncb = 0;
   char          *struc = NULL, *laststruc = NULL;
 
-  char          *format = NULL, *formatA = NULL, *formatB = NULL, **seen = NULL;
+  char          *format     = NULL, *formatA = NULL, *formatB = NULL, **seen = NULL;
   bool          otherformat = false;
 
   if (IS_RNA) {
@@ -1110,14 +1111,14 @@ print_rna_barriers_output(loc_min         *Lmin,
   if (verbose)
     printf("Using output format string '%s'\n", format);
 
-  n_lmin = Lmin[0].fathers_pool;
-  i = 1;
-  if(mfe_component_true_min_indices != NULL){
+  n_lmin  = Lmin[0].fathers_pool;
+  i       = 1;
+  if (mfe_component_true_min_indices != NULL) {
     unsigned long mfe_comp_size = 0;
-    while(mfe_component_true_min_indices[mfe_comp_size] != 0) mfe_comp_size++;
+    while (mfe_component_true_min_indices[mfe_comp_size] != 0)
+      mfe_comp_size++;
     //fprintf(stderr, "%ld states in mfe component!\n", mfe_comp_size);
   }
-
 
   printf("     %s\n", sequence);
   for (k = 0; i <= n_lmin; i++, k++) {
@@ -1126,15 +1127,15 @@ print_rna_barriers_output(loc_min         *Lmin,
       continue;
 
     unsigned long j;
-    if(mfe_component_true_min_indices != NULL){
+    if (mfe_component_true_min_indices != NULL) {
       int is_in_mfe_comp = 0;
-      for(j=0;mfe_component_true_min_indices[j] != 0; j++){
-        if(mfe_component_true_min_indices[j] == ii){
+      for (j = 0; mfe_component_true_min_indices[j] != 0; j++) {
+        if (mfe_component_true_min_indices[j] == ii) {
           is_in_mfe_comp = 1;
           break;
         }
       }
-      if(!is_in_mfe_comp)
+      if (!is_in_mfe_comp)
         continue;
     }
 
@@ -1144,27 +1145,26 @@ print_rna_barriers_output(loc_min         *Lmin,
 
     n = strlen(struc);
     f = Lmin[i].father;
-    if (f > 0) {
+    if (f > 0)
       f = truemin[f];
+
+    if (IS_RNA && (ligand == 1)) {
+      if (strstr(struc, "*") == NULL) {
+        format      = formatB;
+        otherformat = true;
+      }
     }
-      if (IS_RNA && (ligand == 1)) {
-        if (strstr(struc, "*") == NULL) {
-          format      = formatB;
-          otherformat = true;
-        }
-      }
 
-      // numbers with step size 1
-      if(mfe_component_true_min_indices != NULL){
-        ii = j+1;
-      }
+    // numbers with step size 1
+    if (mfe_component_true_min_indices != NULL)
+      ii = j + 1;
 
-      printf(format, ii, struc, Lmin[i].energy, f,
-             Lmin[i].E_saddle - Lmin[i].energy);
-      if (otherformat) {
-        format      = formatA;
-        otherformat = false;
-      }
+    printf(format, ii, struc, Lmin[i].energy, f,
+           Lmin[i].E_saddle - Lmin[i].energy);
+    if (otherformat) {
+      format      = formatA;
+      otherformat = false;
+    }
 
     if (print_saddles) {
       if (Lmin[i].saddle) {
@@ -1225,33 +1225,36 @@ is_bound(char *s)
   return val;
 }
 
-unsigned long *compute_connected_component_states(loc_min       *lmin,
-    unsigned long *truemin){
-  unsigned long nlmin = truemin[0]; //lmin[0].fathers_pool;
-  unsigned long *mfe_component_minima = malloc(sizeof(unsigned long)* (truemin[0] +1));
+
+unsigned long *
+compute_connected_component_states(loc_min        *lmin,
+                                   unsigned long  *truemin)
+{
+  unsigned long nlmin                 = truemin[0]; //lmin[0].fathers_pool;
+  unsigned long *mfe_component_minima = malloc(sizeof(unsigned long) * (truemin[0] + 1));
   unsigned long ii;
 
   //char *mfe_structure = lmin[1].structure;
-  int mfe_comp_index = 0;
-  for ( ii = 1; ii <= nlmin; ii++) {
-    if(truemin[ii] == 0)
-      continue;
-    unsigned long root_gradmin = ii;
-    while (lmin[root_gradmin].father != 0){
-      root_gradmin = lmin[root_gradmin].father;
-    }
+  int           mfe_comp_index = 0;
 
-    if(root_gradmin == 1){
+  for (ii = 1; ii <= nlmin; ii++) {
+    if (truemin[ii] == 0)
+      continue;
+
+    unsigned long root_gradmin = ii;
+    while (lmin[root_gradmin].father != 0)
+      root_gradmin = lmin[root_gradmin].father;
+
+    if (root_gradmin == 1)
       //ii is connected to the mfe tree
       mfe_component_minima[mfe_comp_index++] = ii;
-    }
-    else{
+    else
       continue;
-    }
   }
   mfe_component_minima[mfe_comp_index] = 0; // zero terminated
   return mfe_component_minima;
 }
+
 
 void
 ps_tree(loc_min       *Lmin,
@@ -1269,7 +1272,7 @@ ps_tree(loc_min       *Lmin,
 
   nodes = (nodeT *)space(sizeof(nodeT) * (max_print + 1));
   for (i = 0, ii = 1; i < max_print && ii <= nlmin; ii++) {
-    unsigned long  s1, f;
+    unsigned long s1, f;
     double        E_saddle;
     if ((s1 = truemin[ii]) == 0)
       continue;
@@ -1286,7 +1289,7 @@ ps_tree(loc_min       *Lmin,
     /* was truemin[f]-1; */
     if (rates) {
       double F, Ft, r;
-      r = rate[truemin[ii]][truemin[f]];
+      r   = rate[truemin[ii]][truemin[f]];
       F   = mfe - kT * log(Lmin[ii].Zg);
       Ft  =
         (f > 0 && r != 0.0) ? F - kT * log(r)  : E_saddle;
@@ -1825,33 +1828,39 @@ compute_rates(unsigned long *truemin,
   free_stapel();
 }
 
-void free_rates(unsigned long length_rates){
+
+void
+free_rates(unsigned long length_rates)
+{
   unsigned long i;
-  for(i=0; i <= length_rates; i++){
+
+  for (i = 0; i <= length_rates; i++)
     free(rate[i]);
-  }
   free(rate);
 }
 
-void print_rates_of_mfe_component(char           *fname,
-                 unsigned long *mfe_component_true_min_indices){
+
+void
+print_rates_of_mfe_component(char           *fname,
+                             unsigned long  *mfe_component_true_min_indices)
+{
   unsigned long n, i, j, ii, jj;
   FILE          *OUT;
 
-  if(mfe_component_true_min_indices != NULL){
+  if (mfe_component_true_min_indices != NULL) {
     n = 0;
-    while(mfe_component_true_min_indices[n] != 0) n++;
-  }
-  else{
+    while (mfe_component_true_min_indices[n] != 0)
+      n++;
+  } else {
     fprintf(stderr, "Error: could not print rates because mfe component is NULL!");
     return;
   }
 
 #define BINRATES
 #ifdef BINRATES
-  FILE          *BINOUT;
-  char          *binfile = "rates.bin";
-  double        tmprate;
+  FILE    *BINOUT;
+  char    *binfile = "rates.bin";
+  double  tmprate;
   BINOUT = fopen(binfile, "w");
   if (!BINOUT) {
     fprintf(stderr, "could not open file pointer 4 binary outfile\n");
@@ -1866,10 +1875,10 @@ void print_rates_of_mfe_component(char           *fname,
 
   /* first write dim to file */
   fwrite(&n, sizeof(int), 1, BINOUT);
-  for (i =0; i < n; i++){
+  for (i = 0; i < n; i++) {
     ii = mfe_component_true_min_indices[i];
     for (j = 0; j < n; j++) {
-      jj = mfe_component_true_min_indices[j];
+      jj      = mfe_component_true_min_indices[j];
       tmprate = rate[jj][ii];
       fwrite(&tmprate, sizeof(double), 1, BINOUT);
     }
@@ -1886,7 +1895,7 @@ void print_rates_of_mfe_component(char           *fname,
 
   for (i = 0; i < n; i++) {
     ii = mfe_component_true_min_indices[i];
-    for (j = 0; j < n; j++){
+    for (j = 0; j < n; j++) {
       jj = mfe_component_true_min_indices[j];
       fprintf(OUT, "%10.4g ", rate[ii][jj]);
     }
@@ -1895,40 +1904,40 @@ void print_rates_of_mfe_component(char           *fname,
   fclose(OUT);
 }
 
-void ps_tree_mfe_component(loc_min        *Lmin,
-             unsigned long  *truemin,
-             int            rates,
-             unsigned long *mfe_component_true_min_indices){
+
+void
+ps_tree_mfe_component(loc_min       *Lmin,
+                      unsigned long *truemin,
+                      int           rates,
+                      unsigned long *mfe_component_true_min_indices)
+{
   nodeT         *nodes;
   unsigned long i, ii;
   unsigned long nlmin;
 
   nlmin = truemin[0]; //Lmin[0].fathers_pool;
 
- //if (max_print > truemin[0])
- //   max_print = truemin[0];
-  int mfe_comp_max;
-  for(mfe_comp_max = 0; mfe_component_true_min_indices[mfe_comp_max] != 0; mfe_comp_max++);
+  //if (max_print > truemin[0])
+  //   max_print = truemin[0];
+  int           mfe_comp_max;
+  for (mfe_comp_max = 0; mfe_component_true_min_indices[mfe_comp_max] != 0; mfe_comp_max++);
   unsigned long max_print = mfe_comp_max;
 
   nodes = (nodeT *)space(sizeof(nodeT) * (max_print + 1));
   for (i = 0, ii = 1; i < max_print && ii <= nlmin; ii++) {
-    unsigned long  s1, f;
+    unsigned long s1, f;
     double        E_saddle;
     if ((s1 = truemin[ii]) == 0)
       continue;
 
-    int mfe_comp_index = 0;
-    for(mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0; mfe_comp_index++){
-      if(ii == mfe_component_true_min_indices[mfe_comp_index]){
+    int           mfe_comp_index = 0;
+    for (mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0; mfe_comp_index++)
+      if (ii == mfe_component_true_min_indices[mfe_comp_index])
         break;
-      }
-    }
 
-    if(mfe_comp_index == mfe_comp_max){
+    if (mfe_comp_index == mfe_comp_max)
       //i++;
       continue;
-    }
 
     if (i > max_print)
       nrerror("inconsistency in ps_tree, aborting");
@@ -1942,7 +1951,7 @@ void ps_tree_mfe_component(loc_min        *Lmin,
     /* was truemin[f]-1; */
     if (rates) {
       double F, Ft, r;
-      r = rate[truemin[ii]][truemin[f]];
+      r   = rate[truemin[ii]][truemin[f]];
       F   = mfe - kT * log(Lmin[ii].Zg);
       Ft  =
         (f > 0 && r != 0.0) ? F - kT * log(r)  : E_saddle;
@@ -1995,14 +2004,9 @@ void ps_tree_mfe_component(loc_min        *Lmin,
   else
     PS_tree_plot(nodes, max_print, "tree.ps");
 
-
   for (i = 0; i < (max_print); i++)
     if (nodes[i].label != NULL)
       free(nodes[i].label);
 
   free(nodes);
 }
-
-
-
-

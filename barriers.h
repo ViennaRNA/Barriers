@@ -18,6 +18,7 @@ void ps_tree(loc_min        *LM,
              unsigned long  *tm,
              int            rates);
 
+
 path_entry *backtrack_path(unsigned long  l1,
                            unsigned long  l2,
                            loc_min        *LM,
@@ -35,7 +36,9 @@ void mark_global(loc_min *Lmin);
 void compute_rates(unsigned long  *truemin,
                    char           *farbe);
 
+
 void free_rates(unsigned long length_rates);
+
 
 void print_rates(unsigned long  n,
                  char           *fname);
@@ -45,21 +48,26 @@ map_struc get_mapstruc(char           *p,
                        loc_min        *LM,
                        unsigned long  *tm);
 
+
 unsigned long *compute_connected_component_states(loc_min       *lmin,
-    unsigned long *truemin);
+                                                  unsigned long *truemin);
+
 
 int
 print_rna_barriers_output(loc_min         *Lmin,
-              unsigned long   *truemin,
-              barrier_options *opt,
-              unsigned long *mfe_component_true_min_indices);
+                          unsigned long   *truemin,
+                          barrier_options *opt,
+                          unsigned long   *mfe_component_true_min_indices);
 
-void print_rates_of_mfe_component(char           *fname,
-                 unsigned long *mfe_component_true_min_indices);
+
+void print_rates_of_mfe_component(char          *fname,
+                                  unsigned long *mfe_component_true_min_indices);
+
 
 void ps_tree_mfe_component(loc_min        *LM,
-             unsigned long  *tm,
-             int            rates,
-             unsigned long *mfe_component_true_min_indices);
+                           unsigned long  *tm,
+                           int            rates,
+                           unsigned long  *mfe_component_true_min_indices);
+
 
 #endif
