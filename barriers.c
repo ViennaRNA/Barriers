@@ -772,6 +772,11 @@ check_neighbors(void)
     i_lmin = (is_min) ? n_lmin : basins->data[0].basin;
     set_kill(basins);
     /* store configuration "Structure" in hash table */
+    if(Read_lines > HASHSIZE){
+      fprintf(stderr,"Error: Structure in line %ld could not be written to the hash table! Please restrict the input or recompile with --with-hash-bits and a higher value.", Read_lines);
+      exit(EXIT_FAILURE);
+    }
+
     hp = hpool + Read_lines - 1;  /* (hash_entry *) space(sizeof(hash_entry)); */
     if (POV_size) {
       int i;

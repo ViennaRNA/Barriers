@@ -59,6 +59,8 @@ PUBLIC unsigned long  collisions = 0;
 //static unsigned long  hashfillmax = HASHSIZE * 2. / 3.;
 static unsigned long  hashfillmax = HASHSIZE;
 
+unsigned long Number_of_hash_entries = 0;
+
 /* ----------------------------------------------------------------- */
 
 /* stolen from perl source */
@@ -123,9 +125,7 @@ lookup_hash(void *x)                 /* returns NULL unless x is in the hash */
       return hashtab[hashval];
     hash_value_rejections++;
     if (hash_value_rejections >= hashfillmax) {
-      float percentage = 100.0f * ((float)hashfillmax/(float)HASHSIZE);
-      fprintf(stderr, "# of hash collision  >= %.0f%% of hashsize (%lu | %lu)\n", percentage, hashfillmax, HASHSIZE);
-      exit(EXIT_FAILURE);
+      return NULL;
     }
     hashval = ((hashval + 1) & (HASHSIZE));
   }
@@ -158,11 +158,12 @@ write_hash(void *x)               /* returns 1 if x already was in the hash */
     if (hash_value_rejections >= hashfillmax) {
       /* die if # of hash entries exceeds 0.75*HASHSIE */
       float percentage = 100.0f * ((float)hashfillmax/(float)HASHSIZE);
-      fprintf(stderr, "# of hash collision  >= %.0f\% of hashsize (%lu | %lu)\n", percentage, hashfillmax, HASHSIZE);
-      exit(EXIT_FAILURE);
+      fprintf(stderr, "Warning: The hash is filled up to %.0f%% of hashsize (%ld | %ld)! Structure %s has been omitted!\n", percentage, hashfillmax, HASHSIZE, ((hash_entry *)x)->structure);
+      return -1;
     }
   }
   hashtab[hashval] = x;
+  Number_of_hash_entries++;
   return 0;
 }
 
@@ -189,6 +190,7 @@ kill_hash()
       hashtab[i] = NULL;
     }
   }
+  Number_of_hash_entries = 0;
 }
 
 
@@ -200,13 +202,18 @@ delete_hash(void *x)               /* doesn't work in case of collsions */
   /* doesn't free anything ! */
   unsigned int hashval;
 
+  unsigned long hash_value_rejections = 0;
   hashval = hash_f(x);
   while (hashtab[hashval]) {
     if (hash_comp(x, hashtab[hashval]) == 0) {
       hashtab[hashval] = NULL;
+      Number_of_hash_entries--;
       return;
     }
-
+    hash_value_rejections++;
+    if (hash_value_rejections >= hashfillmax) {
+      return;
+    }
     hashval = ((hashval + 1) & (HASHSIZE));
   }
 }
