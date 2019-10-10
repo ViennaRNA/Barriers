@@ -197,13 +197,6 @@ main(int  argc,
       ps_tree(LM, tm);
   }
 
-  fprintf(stderr, "want_connected is %d\n", opt.want_connected);
-  if (opt.want_connected && c == 0) {
-    fprintf(stderr, "WARNING: landscape is not connected, skipping rates computation\n");
-    cleanup(opt.seq, LM, tm);
-    exit(102);
-  }
-
   if (opt.rates != Barriers_no_rates || opt.microrates) {
     compute_rates(tm, opt.seq);
 

@@ -1862,11 +1862,11 @@ ps_tree_mfe_component(loc_min       *Lmin,
   unsigned long i, ii;
   unsigned long nlmin;
 
-  nlmin = truemin[0]; //Lmin[0].fathers_pool;
+  nlmin = Lmin[0].fathers_pool;
 
   //if (max_print > truemin[0])
   //   max_print = truemin[0];
-  int           mfe_comp_max;
+  unsigned long mfe_comp_max;
   for (mfe_comp_max = 0; mfe_component_true_min_indices[mfe_comp_max] != 0; mfe_comp_max++);
   unsigned long max_print = mfe_comp_max;
 
@@ -1877,13 +1877,12 @@ ps_tree_mfe_component(loc_min       *Lmin,
     if ((s1 = truemin[ii]) == 0)
       continue;
 
-    int           mfe_comp_index = 0;
+    unsigned long mfe_comp_index = 0;
     for (mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0; mfe_comp_index++)
-      if (ii == mfe_component_true_min_indices[mfe_comp_index])
+      if (s1 == mfe_component_true_min_indices[mfe_comp_index])
         break;
 
     if (mfe_comp_index == mfe_comp_max)
-      //i++;
       continue;
 
     if (i > max_print)
@@ -1894,7 +1893,12 @@ ps_tree_mfe_component(loc_min       *Lmin,
     if (f == 0)
       E_saddle = Lmin[0].E_saddle;         /* maximum energy */
 
-    nodes[mfe_comp_index].father = (f == 0) ? -1 : truemin[f] - 1;
+    unsigned long mfe_comp_father_index = 0;
+    for (mfe_comp_father_index = 0; mfe_component_true_min_indices[mfe_comp_father_index] != 0; mfe_comp_father_index++)
+      if (truemin[f] == mfe_component_true_min_indices[mfe_comp_father_index])
+        break;
+
+    nodes[mfe_comp_index].father = (f == 0) ? -1 : mfe_comp_father_index; //(f == 0) ? -1 : truemin[f] - 1;
 
     nodes[mfe_comp_index].height        = Lmin[ii].energy;
     nodes[mfe_comp_index].saddle_height = E_saddle;
