@@ -183,7 +183,6 @@ main(int  argc,
   unsigned long *mfe_component_true_min_indices = NULL;
   if (opt.want_connected) {
     mfe_component_true_min_indices = compute_connected_component_states(LM, tm);
-    fprintf(stderr, "computed mfe component\n");
     print_rna_barriers_output(LM, tm, &opt, mfe_component_true_min_indices);
   } else {
     c = print_results(LM, tm, &opt);
