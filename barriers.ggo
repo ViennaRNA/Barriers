@@ -22,7 +22,13 @@ option "microrates" - "compute microscopic rates between connected states" flag 
 option "poset"    -  "input is a poset from n objective functions" int default="0"
 option "path"     P  "backtrack path between lmins l2 and l1 (l1 < l2),\
        can be specified multiple times" typestr="<l1>=<l2>" string multiple
-option "mapstruc"  -  "map conformations to minima in the tree" typestr="filename" string 
+option "mapstruc"  -  "map conformations to minima in the tree" typestr="filename" string
+option "mapstruc-output"  -
+"output file for printing structure mapping requested by --mapstruc parameter"
+typestr="filename"
+string 
+dependon="mapstruc"
+default="mapstruc.out"
 option "temp"     T  "temperature for Boltzmann factor" double hidden
 
 section "Graph Types (-G graph) and Move Sets (-M mset)"

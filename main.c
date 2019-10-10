@@ -243,7 +243,7 @@ main(int  argc,
 
   if (args_info.mapstruc_given) {
     FILE  *MAPFIN = NULL, *MAPFOUT = NULL;
-    char  *line   = NULL, *token = NULL, *fname = "mapstruc.out";
+    char  *line   = NULL, *token = NULL, *fname = args_info.mapstruc_output_arg;
 
     MAPFIN = fopen(args_info.mapstruc_arg, "r");
     if (MAPFIN == NULL)
