@@ -85,8 +85,8 @@ static int  read_data(barrier_options opt,
                       int             *POV);
 
 
-static void merge_components(int  c1,
-                             int  c2);
+static void merge_components(unsigned long  c1,
+                             unsigned long  c2);
 
 
 static int comp_comps(const void  *A,
@@ -370,7 +370,7 @@ barriers(barrier_options opt)
   int     length;
   double  new_en = 0;
 
-  fprintf(stderr, "hashbits = %d\n", (int)HASHBITS);
+  fprintf(stderr, "hashbits = %ld\n", HASHBITS);
   hpool = (hash_entry *)space((HASHSIZE + 1) * sizeof(hash_entry));
   set_barrier_options(opt);
 
@@ -472,7 +472,7 @@ make_truemin(loc_min *Lmin)
   /* truemin[0] = nlmin; */
 
   for (ii = i = 1; (i <= max_print) && (ii <= n_lmin); ii++) {
-    int f;
+    unsigned long f;
     f = lmin[ii].father;
     if (!f)
       lmin[ii].E_saddle = energy + 0.000001;
@@ -1196,7 +1196,7 @@ compute_connected_component_states(loc_min        *lmin,
   unsigned long ii;
 
   //char *mfe_structure = lmin[1].structure;
-  int           mfe_comp_index = 0;
+  unsigned long mfe_comp_index = 0;
 
   for (ii = 1; ii <= nlmin; ii++) {
     if (truemin[ii] == 0)
@@ -1527,11 +1527,11 @@ print_path(FILE       *PATH,
 
 
 static void
-merge_components(int  c1,
-                 int  c2)
+merge_components(unsigned long  c1,
+                 unsigned long  c2)
 {
   if (comp[c1].size < comp[c2].size) {
-    int cc;
+    unsigned long cc;
     cc  = c1;
     c1  = c2;
     c2  = cc;
@@ -1570,13 +1570,14 @@ get_mapstruc(char           *p,
   char          *pp, *struc;
   unsigned long min, gradmin, tmin, tgradmin;
   map_struc     ms;
-
+  ms.structure = NULL;
   pp          = pack_my_structure(p);
   h.structure = pp;
   hp          = lookup_hash(&h);
 
   if (hp == NULL) {
     fprintf(stderr, "get_mapstruc: structure not in hash\n");
+    free(pp);
     return ms;
   }
 
@@ -1589,6 +1590,7 @@ get_mapstruc(char           *p,
 
   if (gradmin == 0) {
     fprintf(stderr, "get_mapstruc: gradient minimum not yet assigned\n");
+    free(pp);
     return ms;
   }
 
@@ -1897,6 +1899,9 @@ ps_tree_mfe_component(loc_min       *Lmin,
     for (mfe_comp_father_index = 0; mfe_component_true_min_indices[mfe_comp_father_index] != 0; mfe_comp_father_index++)
       if (truemin[f] == mfe_component_true_min_indices[mfe_comp_father_index])
         break;
+
+    if(f != 0 && mfe_comp_father_index >= mfe_comp_max)
+      continue; // do not include it if father is not the root and not in the mfe component.
 
     nodes[mfe_comp_index].father = (f == 0) ? -1 : mfe_comp_father_index; //(f == 0) ? -1 : truemin[f] - 1;
 
