@@ -252,9 +252,32 @@ main(int  argc,
       map_struc myms;
       token = strtok(line, " \t");
       myms  = get_mapstruc(token, LM, tm);
-      fprintf(MAPFOUT, "%s %6ld %6.2f %3ld %3ld %3ld %3ld\n", myms.structure, myms.n, myms.energy,
-              myms.min, myms.truemin, myms.gradmin, myms.truegradmin);
-      free(myms.structure);
+      if(myms.structure != NULL){
+        if(args_info.connected_flag){
+          unsigned long new_gradientmin_index, mfe_comp_index, max_mfe_comp_index;
+
+          for (max_mfe_comp_index = 0; mfe_component_true_min_indices[max_mfe_comp_index] != 0; max_mfe_comp_index++);
+
+          for (mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0; mfe_comp_index++)
+            if (myms.truegradmin == mfe_component_true_min_indices[mfe_comp_index])
+              break;
+          if(mfe_comp_index < max_mfe_comp_index){
+            fprintf(MAPFOUT, "%s %6ld %6.2f %3ld %3ld %3ld %3ld\n", myms.structure, myms.n, myms.energy,
+                  myms.min, myms.truemin, myms.gradmin, mfe_comp_index);
+          }
+          else{
+            fprintf(MAPFOUT, "structure not in mfe component!\n");
+          }
+        }
+        else{
+          fprintf(MAPFOUT, "%s %6ld %6.2f %3ld %3ld %3ld %3ld\n", myms.structure, myms.n, myms.energy,
+                  myms.min, myms.truemin, myms.gradmin, myms.truegradmin);
+        }
+        free(myms.structure);
+      }
+      else{
+        fprintf(MAPFOUT, "structure not in hash\n");
+      }
       free(line);
     }
     fclose(MAPFIN);
