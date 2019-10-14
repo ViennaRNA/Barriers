@@ -56,8 +56,8 @@ PRIVATE void          *hashtab[HASHSIZE + 1];
 
 PUBLIC unsigned long  collisions = 0;
 
-//static unsigned long  hashfillmax = HASHSIZE * 2. / 3.;
-static unsigned long  hashfillmax = HASHSIZE;
+static unsigned long  hashfillmax = HASHSIZE * 2. / 3.;
+//static unsigned long  hashfillmax = HASHSIZE;
 
 unsigned long Number_of_hash_entries = 0;
 
