@@ -1074,10 +1074,10 @@ print_rna_barriers_output(loc_min         *Lmin,
 
   n_lmin  = Lmin[0].fathers_pool;
   i       = 1;
+  unsigned long max_mfe_comp_size = 0;
   if (mfe_component_true_min_indices != NULL) {
-    unsigned long mfe_comp_size = 0;
-    while (mfe_component_true_min_indices[mfe_comp_size] != 0)
-      mfe_comp_size++;
+    while (mfe_component_true_min_indices[max_mfe_comp_size] != 0)
+      max_mfe_comp_size++;
     //fprintf(stderr, "%ld states in mfe component!\n", mfe_comp_size);
   }
 
@@ -1106,8 +1106,22 @@ print_rna_barriers_output(loc_min         *Lmin,
 
     n = strlen(struc);
     f = Lmin[i].father;
-    if (f > 0)
+    if (f > 0){
       f = truemin[f];
+      if (mfe_component_true_min_indices != NULL) {
+        unsigned long mfe_comp_index = 0;
+        while (mfe_component_true_min_indices[mfe_comp_index] != 0){
+          if(f == mfe_component_true_min_indices[mfe_comp_index])
+            break;
+          mfe_comp_index++;
+        }
+        if(mfe_comp_index >= max_mfe_comp_size){
+          //fprintf(stderr, "Error: father %ld is not in mfe component!\n", f);
+          continue;
+        }
+        f = mfe_comp_index+1;
+      }
+    }
 
     if (IS_RNA && (ligand == 1)) {
       if (strstr(struc, "*") == NULL) {
@@ -1208,7 +1222,7 @@ compute_connected_component_states(loc_min        *lmin,
 
     if (root_gradmin == 1)
       //ii is connected to the mfe tree
-      mfe_component_minima[mfe_comp_index++] = ii;
+      mfe_component_minima[mfe_comp_index++] = truemin[ii];
     else
       continue;
   }
