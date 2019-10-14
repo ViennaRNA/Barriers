@@ -29,12 +29,12 @@ typedef struct link {
 
 void
 PS_tree_plot(nodeT  *nodes,
-             int    n,
+             unsigned long    n,
              char   *filename)
 {
   /* plot tree with leaf-nodes nodes, to file filename (stdout if NULL) */
   FILE  *out;
-  int   i, k, ll, f = 0, *sindex;
+  unsigned long   i, k, ll, f = 0, *sindex;
   linkT *chain, *l;
   int   bbox[4] = {
     72, 144, 522, 700
@@ -51,11 +51,11 @@ PS_tree_plot(nodeT  *nodes,
   }
 
   /* make index list, sorted by saddle height */
-  sindex = (int *)space(n * sizeof(int));
+  sindex = (unsigned long *)space(n * sizeof(unsigned long));
   for (i = 0; i < n; i++)
     sindex[i] = i;
   leafs = nodes;
-  qsort(sindex, n, sizeof(int), cmp_saddle);
+  qsort(sindex, n, sizeof(unsigned long), cmp_saddle);
 
   /* make order (x-coordinates) of leafs, we use a linked list for this */
   chain = (linkT *)space(n * sizeof(linkT));
@@ -71,8 +71,16 @@ PS_tree_plot(nodeT  *nodes,
     if (k == f)
       continue;          /* lowest node doesn't merge */
 
-    for (l = &chain[f]; l->next != NULL; l = l->next);
-    l->next = &chain[k]; /* attach child to chain of father */
+    if(f >=0 && f < n){
+      l = &chain[f];
+      while ((l->next) != NULL){
+          l = l->next;
+      }
+      l->next = &chain[k]; /* attach child to chain of father */
+    }
+    else{
+      fprintf(stderr,"Error: father index out of bounds! father: %ld max: %ld\n", f, n);
+    }
   }
   if (n > 0) {
     /* chain[f] now starts the ordered chain, next fill in the num field */
