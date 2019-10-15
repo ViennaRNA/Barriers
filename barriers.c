@@ -1084,7 +1084,7 @@ print_rna_barriers_output(loc_min         *Lmin,
   if (mfe_component_true_min_indices != NULL) {
     while (mfe_component_true_min_indices[max_mfe_comp_size] != 0)
       max_mfe_comp_size++;
-    //fprintf(stderr, "%ld states in mfe component!\n", mfe_comp_size);
+    //fprintf(stderr, "%ld states in mfe component!\n", max_mfe_comp_size);
   }
 
   printf("     %s\n", sequence);
@@ -1215,7 +1215,42 @@ compute_connected_component_states(loc_min        *lmin,
   unsigned long *mfe_component_minima = malloc(sizeof(unsigned long) * (truemin[0] + 1));
   unsigned long ii;
 
-  //char *mfe_structure = lmin[1].structure;
+  unsigned int star_mfe_index = UINT_MAX;
+  unsigned int normal_mfe_index = UINT_MAX;
+  float star_mfe = FLT_MAX;
+  float normal_mfe = FLT_MAX;
+
+  loc_min *current_lm;
+  char *current_structure;
+
+  if(ligand){
+    // look for second mfe root node! one of two mfe has a star (ligand bound structure).
+    for (ii = 1; ii <= nlmin; ii++) {
+      if (truemin[ii] == 0)
+        continue;
+
+      unsigned long root_gradmin = ii;
+      while (lmin[root_gradmin].father != 0)
+        root_gradmin = lmin[root_gradmin].father;
+
+      current_lm = &lmin[root_gradmin];
+      current_structure = unpack_my_structure(current_lm->structure);
+      if(current_structure[strlen(current_structure)-1] == '*'){
+        if(current_lm->energy < star_mfe){
+          star_mfe = current_lm->energy;
+          star_mfe_index = root_gradmin;
+        }
+      }
+      else{
+        if(current_lm->energy < normal_mfe){
+          normal_mfe = current_lm->energy;
+          normal_mfe_index = root_gradmin;
+        }
+      }
+      free(current_structure);
+    }
+  }
+
   unsigned long mfe_comp_index = 0;
 
   for (ii = 1; ii <= nlmin; ii++) {
@@ -1226,7 +1261,7 @@ compute_connected_component_states(loc_min        *lmin,
     while (lmin[root_gradmin].father != 0)
       root_gradmin = lmin[root_gradmin].father;
 
-    if (root_gradmin == 1)
+    if ((!ligand && root_gradmin == 1) || (ligand && ((root_gradmin == star_mfe_index)||(root_gradmin == normal_mfe_index))))
       //ii is connected to the mfe tree
       mfe_component_minima[mfe_comp_index++] = truemin[ii];
     else
