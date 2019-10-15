@@ -795,12 +795,18 @@ check_neighbors(void)
     lmin[gradmin].my_GradPool++;
     lmin[gradmin].Zg += Zi;
 
-    if (write_hash(hp)) {
+    int write_result = write_hash(hp);
+    if (write_result == 1) {
       hash_entry *foo = NULL;
       foo = (hash_entry *)lookup_hash(hp);
       fprintf(stderr, "%s\n", unpack_my_structure(foo->structure));
       fprintf(stderr, "%s\n", unpack_my_structure(hp->structure));
       nrerror("duplicate structure");
+    }
+    if(write_result == -1){
+      if (!shut_up)
+        fprintf(stderr, "%lu hash table collisions\n", collisions);
+      exit(EXIT_FAILURE);
     }
   }
 

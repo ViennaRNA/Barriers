@@ -158,7 +158,7 @@ write_hash(void *x)               /* returns 1 if x already was in the hash */
     if (hash_value_rejections >= hashfillmax) {
       /* die if # of hash entries exceeds 0.75*HASHSIE */
       float percentage = 100.0f * ((float)hashfillmax/(float)HASHSIZE);
-      fprintf(stderr, "Warning: The hash is filled up to %.0f%% of hashsize (%ld | %ld)! Structure %s has been omitted!\n", percentage, hashfillmax, HASHSIZE, ((hash_entry *)x)->structure);
+      fprintf(stderr, "Warning: The hash is filled up to %.0f%% of hashsize (%ld | %ld)! Structure %s has been omitted!\n", percentage, hashfillmax, HASHSIZE, unpack_structure(((hash_entry *)x)->structure));
       return -1;
     }
   }
