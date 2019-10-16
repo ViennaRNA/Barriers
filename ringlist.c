@@ -170,7 +170,6 @@ RNA_free_rl(void)
 {
   free(rl);
   free(wurzl);
-  free(farbe);
   free(form);
   free(poList);
 }
