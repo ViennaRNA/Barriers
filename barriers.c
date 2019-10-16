@@ -477,7 +477,7 @@ make_truemin(loc_min *Lmin)
     if (!f)
       lmin[ii].E_saddle = energy + 0.000001;
 
-    if (lmin[ii].E_saddle - lmin[ii].energy - (float)minh + FLT_EPSILON >= 0.) {
+    if ((lmin[ii].E_saddle - lmin[ii].energy - (float)minh + FLT_EPSILON >= 0.) || (nlmin == 1)) {
       truemin[ii] = i++;
     } else {
       /* ii is not a truemin */
