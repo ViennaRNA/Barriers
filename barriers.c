@@ -193,8 +193,9 @@ set_barrier_options(barrier_options opt)
             case 's': /* Shift moves */
               if (strncmp(opt.MOVESET, "shift", 5) == 0)
                 shift = 1;
-
-              break;
+            case 'n': /* Shift moves */
+              if (strcmp(opt.MOVESET, "noShift") == 0 || strcmp(opt.MOVESET, "noshift") == 0)
+                shift = 0;
             case 'l': /* ligand */
               if (strncmp(opt.MOVESET, "ligand", 6) == 0)
                 ligand = 1;
@@ -213,7 +214,7 @@ set_barrier_options(barrier_options opt)
             opt.seq[i] = 'U';
 
         RNA_init(opt.seq, shift, nolp);
-        if (verbose)
+        if (!shut_up)
           fprintf(stderr, "Graph is RNA with noLP=%d, Shift=%d, ligand=%d\n", nolp, shift, ligand);
       } else {
         Sorry(opt.GRAPH);
@@ -225,11 +226,11 @@ set_barrier_options(barrier_options opt)
         /* binary +- alphabet */
         if (strcmp(opt.MOVESET, "c") == 0) {
           move_it = SPIN_complement_move_it;
-          if (verbose)
+          if (!shut_up)
             fprintf(stderr, "Graph is Q2 with complementation moves\n");
         } else {
           move_it = SPIN_move_it;
-          if (verbose)
+          if (!shut_up)
             fprintf(stderr, "Graph is Q2\n");
         }
 
@@ -264,12 +265,12 @@ set_barrier_options(barrier_options opt)
         if (strcmp(opt.MOVESET, "c") == 0) {
           initialize_crankshaft();
           move_it = String_move_it_crankshaft;
-          if (verbose)
+          if (!shut_up)
             fprintf(stderr, "Graph is Q%d with Alphabet '%s' with crankshaft moves\n",
                     alphabetsize, ALPHA);
         } else {
           move_it = String_move_it;
-          if (verbose)
+          if (!shut_up)
             fprintf(stderr, "Graph is Q%d with Alphabet '%s'\n",
                     alphabetsize, ALPHA);
         }
@@ -300,7 +301,7 @@ set_barrier_options(barrier_options opt)
       }
       pack_my_structure   = strdup;
       unpack_my_structure = strdup;
-      if (verbose)
+      if (!shut_up)
         fprintf(stderr, "Graph is Permutations with moveset %c\n",
                 *opt.MOVESET ? *opt.MOVESET : 'T');
 
@@ -321,7 +322,7 @@ set_barrier_options(barrier_options opt)
       move_it             = NNI_move_it;
       pack_my_structure   = strdup;
       unpack_my_structure = strdup;
-      if (verbose)
+      if (!shut_up)
         fprintf(stderr, "Graph is Trees with NNI moves\n");
 
       break;
