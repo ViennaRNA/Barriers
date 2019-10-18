@@ -101,6 +101,27 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 dnl Checks for library functions.
 AC_CHECK_FUNCS(erand48)
 
+
+dnl ---------------------------------------------------------------------------
+dnl Checks for gengetopt
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_VAR([GENGETOPT], [the 'gengetopt' program to generate command line argument parsers for executable programs])
+AC_PATH_PROG([GENGETOPT], [gengetopt], [no])
+AC_SUBST([GENGETOPT])
+AM_CONDITIONAL(BARRIERS_AM_SWITCH_HAS_GENGETOPT, test "x$GENGETOPT" != "xno")
+
+
+dnl ---------------------------------------------------------------------------
+dnl Miscellaneous
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_VAR([HELP2MAN], [the 'help2man' script to generate man pages from command line options of our executable programs])
+AC_PATH_PROG([HELP2MAN], [help2man], [no])
+AC_SUBST([HELP2MAN])
+AM_CONDITIONAL(BARRIERS_AM_SWITCH_HAS_HELP2MAN, test "x$HELP2MAN" != "xno")
+
+
 dnl Conditionally build Makefile in SECIS subdirectory
 have_secis_ext=0
 if test "$with_secis" != "no"; then
@@ -119,11 +140,14 @@ AC_DEFINE_UNQUOTED(HAVE_SECIS_EXTENSION,
 
 AM_CONDITIONAL(BUILD_SECIS_EXT, test "$with_secis" != "no")
 
-AC_OUTPUT([Makefile barriers.lsm])
-AC_OUTPUT([PoHo/Makefile])
-AC_OUTPUT([SECIS/Makefile])
-AC_OUTPUT([packaging/barriers.spec packaging/PKGBUILD])
+AC_CONFIG_FILES([Makefile barriers.lsm])
+AC_CONFIG_FILES([PoHo/Makefile])
+AC_CONFIG_FILES([SECIS/Makefile])
+AC_CONFIG_FILES([packaging/barriers.spec packaging/PKGBUILD])
+AC_CONFIG_FILES([man/Makefile])
+AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
+AC_OUTPUT
 
 if test "$with_secis" != "no"; then
 AC_MSG_NOTICE(

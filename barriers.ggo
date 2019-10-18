@@ -4,54 +4,185 @@ purpose "Compute local minima and energy barriers of a landscape"
 version "1.7.0"
 args    "--default-optional --unamed-opts=[FILE] --include-getopt"
 
-option "quiet"    q  "be quiet, inhibit PS output"  flag off
-option "connected" c "check if landscape is conntected; print only the states, rates and the tree for the connected component with the ground state." flag off
-option "verbose"  v  "print more information" flag off
-option "graph"    G  "define graph type" string default="RNA" string typestr="Graph"
-option "moves"    M  "select move-set (if Graph allows several different ones)" string 
-option "bsize"    -  "print basin sizes" flag off
-option "ssize"    -  "print saddle component sizes" flag off
-option "max"      -  "compute only the lowest <num> local minima" int default="100"
-option "minh"     -  "print only minima with barrier > dE" double default="0.000001"
-option "saddle"   -  "print saddle point structures" flag off 
-option "rates"    -  "compute rates between macro states (basins) and print a text and binary file." flag off
-option "rates-text-file" - "file name for the rates output." typestr="filename" string default="rates.out"
-option "rates-binary-file" - "file name for the binary rates output." typestr="filename" string default="rates.bin"
-option "noLP-rate"  - "scale rates of double moves for RNA-noLP (e.g. 0.01)" double default="1.0"
-option "microrates" - "compute microscopic rates between connected states" flag off hidden
-option "poset"    -  "input is a poset from n objective functions" int default="0"
-option "path"     P  "backtrack path between lmins l2 and l1 (l1 < l2),\
-       can be specified multiple times" typestr="<l1>=<l2>" string multiple
-option "mapstruc"  -  "map conformations to minima in the tree" typestr="filename" string
+description "This program reads an energy sorted list of conformations of \
+a landscape, and computes local minima and energy barriers of the landscape. \
+For RNA secondary structures, suitable input is produced by RNAsubopt. For \
+each local minimum found it prints to stdout, the conformation of the minimum, \
+its energy, the number of the \"parent\"-minimum it merges with, and the height \
+of the energy barrier. Additional information on each minimum, such as saddle \
+point conformation and basin sizes can be included via options.\n\nA PostScript \
+drawing of the resulting tree is written to \"tree.ps\" in the current directory."
+
+# Options
+section "General Options"
+sectiondesc="Command line options which alter the general behavior of this program\n\n"
+
+option "verbose"  v
+"Be verbose, i.e. print more information.\n\n"
+flag
+off
+
+option "quiet"    q
+"Be quiet (also inhibit PS tree output).\n\n"
+flag
+off
+
+section "Graphs and Move Sets"
+sectiondesc="The graph and move set options specify the types of states/conformations\
+ in the system as well as their neighborhood. Some graphs provide different neighborhood\
+ settings. The type of landscape may also be set by the input file using the fourth word\
+ on first line. E.g.:\n\n\
+ AUCGUGAGCUGUGUAGCUUAGCUAGCUAGC -610 100 :: RNA-noLP\n\n
+ for a landscape of canonical RNA structures.\n\n"
+
+option "graph"    G
+"Define type of the graph, i.e. configuration space\n"
+string
+default="RNA"
+typestr="Graph"
+details="The configuration space (graph) determines the neighborhood of the system\
+ and can be any of the following types:\n\
+ 'RNA': RNA secondary structures\n\n\
+ 'RNA-noLP': canonical RNA structures\n\n\
+ 'RNA2': RNA secondary structures\n\n\
+ 'RNA2-noLP': canonical RNA structures, no lonely pairs\n\n\
+ 'Q2': Spin Glass (strings of \"+-\")\n\n\
+ 'Qa,ALPHA': a-letter Hamming graph, e.g. Q3 strings of \"ABC\". ALPHAbet is optional, default is 'ABC...'\n\n\
+ 'T': Phylogenetic Treesin bracket notation, e.g. \"((1)(((2)(3))(5))(4))\"\n\n\
+ 'P': Permutations as comma separated list, e.g. 5,1,4,2,3\n\n\
+ 'X': Exchange Moves on balances +/- strings\n\n\
+ '?': General graph; adjacency list in file\n\n"
+
+option "moves"    M
+"Select the move-set for generating neighbors of a configuration (if Graph allows several different ones).\n"
+string
+details="The available move sets heavily depend on the choice of the graph.\nFor\
+ RNA structures, the available move sets are:\n\n\
+ '[no]Shift': (Dis-)allow shift moves. (default: noShift)\n\n\
+ 'ligand': RNA-ligand/protein interaction\n\n\
+ For permutation graphs, the possible move sets are:\n\n\
+ 'T': for Transpositions (default)\n\n\
+ 'C': for Canonical Transpositions\n\n\
+ 'R': for Reversal moves.\n\n\
+ Spin Glass graphs provide the two move sets:\n\n
+ 'p': point mutations, i.e. single spin flip (default), and\n\n\
+ 'c': flip 2nd half.\n\n\
+ Trees always use NNI (Nearest Neighbour Interchange).\n\n"
+
+option "poset"    -
+"Input is a poset from n objective functions.\n\n"
+int
+default="0"
+hidden
+
+section "Barrier Tree Computation"
+
+option "connected" c
+"Check if landscape is conntected.\n"
+details="Skip rates computation if landscape is disconnected, i.e. print\
+ only the states, rates and the tree for the connected component with the\
+ ground state.\n\n"
+flag
+off
+
+option "bsize"    -
+"Print the size of of each basin in output.\n\n"
+flag
+off
+
+option "ssize"    -
+"Print saddle component sizes.\n\n"
+flag
+off
+
+option "max"      -
+"Compute only the lowest <num> local minima.\n\n"
+int
+default="100"
+
+option "minh"     -
+"Print only minima with energy barrier greater than delta.\n\n"
+double
+typestr="<delta>"
+default="0.000001"
+
+option "saddle"   -
+"Print the saddle point conformations in output.\n\n"
+flag
+off
+
+section "Transition Rate Computation"
+
+option "rates"    -
+"Compute rates between macro states (basins).\n"
+details="Two output files are written, \"rates.out\" containing the\
+ rates in ASCII format and \"rates.bin\" in binary form. Both output\
+ files can be readily used in conjunction with the treekin program.\n\n"
+flag
+off
+
+option "rates-text-file" -
+"Specify file name for the rates output.\n\n"
+typestr="<filename>"
+string
+default="rates.out"
+
+option "rates-binary-file" -
+"Specify file name for the binary rates output.\n\n"
+typestr="<filename>"
+string
+default="rates.bin"
+
+option "noLP-rate"  -
+"Scale rates of double moves for RNA-noLP (e.g. 0.01).\n\n"
+double
+default="1.0"
+
+option "microrates" -
+"Compute microscopic rates between connected states.\n\n"
+flag
+off
+hidden
+
+option "temp"     T
+"Set temperature in centigrade.\n"
+details="This temperature is used to compute Boltzmann fators in\
+ conjunction with --rates option.\n\n"
+double
+default="37.0"
+hidden
+
+section "Miscellaneous Options"
+
+option "path"     P
+"Backtrack an optimal path between lmins l2 and l1 (l1 < l2).\n"
+details="The option can be specified multiple times and each path will\
+ be written to a corresponding file \"path.l1.l2.txt\".\n\n"
+typestr="<l1>=<l2>"
+string
+multiple
+
+option "mapstruc"  -
+"Map conformations to minima in the tree.\n\n"
+details="Once the barrier tree (and optionally rates) are constructed , read\
+ stuctures from \"filename\" and map them to their corresponding minima (macro\
+ states). Output is written to file \"mapstruc.out\" in table format with\
+ the following columns:\n\n\
+ 1: gradient_min\n\n\
+ 2: index_in_subopt\n\n\
+ 3: energy\n\n\
+ 4: basin\n\n\
+ 5: truebasin\n\n\
+ 6: gradient_basin\n\n\
+ 7: true_grad_basin\n\n\
+The last number is probably what you want, true basins are those that fulfill the minh criterium.\n\n"
+typestr="<filename>"
+string
+
 option "mapstruc-output"  -
-"output file for printing structure mapping requested by --mapstruc parameter"
-typestr="filename"
+"Output file for printing structure mapping as requested by --mapstruc parameter.\n\n"
+typestr="<filename>"
 string 
 dependon="mapstruc"
 default="mapstruc.out"
-option "temp"     T  "temperature for Boltzmann factor" double hidden
 
-section "Graph Types (-G graph) and Move Sets (-M mset)"
-text "\n
-Graph Types (-G graph) and Move Sets (-M mset)are:
-  RNA             RNA secondary structures
-  RNA-noLP        canonical RNA structures
-      [no]Shift       toggle shift moves [default noShift]
-      ligand          RNA-ligand/protein interaction [default off]
-  RNA2            RNA secondary structures
-  RNA2-noLP       canonical RNA structures, no lonely pairs
-      [no]Shift       toggle shift moves [default noShift]
-  Q2              Spin Glass
-      p               point mutation (default)
-      c               flip 2nd half
-  Qa,ALPHA        a-letter Hamming graph.  
-                      ALPHAbet is optional, default is 'ABC...'
-  T               Phylogenetic Trees
-      NNI             NNI moves [no other options yet]
-  P               Permutations
-      T               Transpositions [default]
-      C               Canonical Transpositions
-      R               Reversals
-  X               Exchange Moves on balances +/- strings
-  ?               General graph; adjacency list in file
-"

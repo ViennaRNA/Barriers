@@ -4,7 +4,7 @@ if BUILD_SECIS_EXT
 SEDIR=SECIS
 endif
 
-SUBDIRS = $(SEDIR) PoHo .
+SUBDIRS = $(SEDIR) PoHo man
 
 bin_PROGRAMS = barriers
 
@@ -57,7 +57,6 @@ EXTRA_DIST = \
     ChangeLog.md \
     barriers.lsm.in \
     barriers.texinfo \
-    barriers.1 \
     barriers.ggo \
     VERSION.txt \
     scripts/crossrates.pl \
@@ -73,15 +72,7 @@ check_rnamoves_CFLAGS = @CHECK_CFLAGS@
 check_rnamoves_LDADD = @CHECK_LIBS@
 endif
 
-#  build and install the .info pages
-# info_TEXINFOS = barriers.texinfo
-# barriers_TEXINFOS = gpl.texinfo
-
-#  install the man pages
-man_MANS=barriers.1
-
 main.c: cmdline.h
-
 
 cmdline.h cmdline.c: barriers.ggo
 	gengetopt -i barriers.ggo
