@@ -1,21 +1,49 @@
+AUTOMAKE_OPTIONS = foreign
+
 if BUILD_SECIS_EXT
 SEDIR=SECIS
 endif
 
 SUBDIRS = $(SEDIR) PoHo .
 
-bin_PROGRAMS=barriers
-barriers_SOURCES=main.c hash_util.c barriers.c compress.c stapel.c \
-        ringlist.c moves.c trees.c treeplot.c utils.c simple_set.c \
-	cmdline.c rnamoves.c
+bin_PROGRAMS = barriers
 
-noinst_HEADERS = barrier_types.h barriers.h hash.h hash_util.h pair_mat.h \
-        ringlist.h stapel.h tree_types.h trees.h utils.h treeplot.h \
-	simple_set.h compress.h cmdline.h rnamoves.h
+barriers_SOURCES = \
+    main.c \
+    hash_util.c \
+    barriers.c \
+    compress.c \
+    stapel.c \
+    ringlist.c \
+    moves.c \
+    trees.c \
+    treeplot.c \
+    utils.c \
+    simple_set.c \
+    cmdline.c \
+    rnamoves.c
 
-bin_SCRIPTS = scripts/crossrates.pl scripts/get_hashbits.pl
-scripts/crossrates.pl: scripts/crossrates.pl
-scripts/get_hashbits.pl: scripts/get_hashbits.pl
+noinst_HEADERS = \
+    barrier_types.h \
+    barriers.h \
+    hash.h \
+    hash_util.h \
+    pair_mat.h \
+    ringlist.h \
+    stapel.h \
+    tree_types.h \
+    trees.h \
+    utils.h \
+    treeplot.h \
+    simple_set.h \
+    compress.h \
+    cmdline.h \
+    rnamoves.h
+
+bin_SCRIPTS = \
+    scripts/crossrates.pl \
+    scripts/get_hashbits.pl
+
 
 #  uncomment the following if barriers requires the math library
 if BUILD_SECIS_EXT
@@ -24,8 +52,16 @@ else
 barriers_LDADD= -lm 
 endif
 
-EXTRA_DIST=barriers.lsm.in barriers.texinfo barriers.1 barriers.ggo \
-	VERSION.txt scripts/crossrates.pl scripts/get_hashbits.pl
+EXTRA_DIST = \
+    README.md \
+    ChangeLog.md \
+    barriers.lsm.in \
+    barriers.texinfo \
+    barriers.1 \
+    barriers.ggo \
+    VERSION.txt \
+    scripts/crossrates.pl \
+    scripts/get_hashbits.pl
 
 # Unit Tests for RNA moveset
 # Compile only if Check Unit Testing Framework found
