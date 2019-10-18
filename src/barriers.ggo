@@ -1,7 +1,7 @@
 # Last changed Time-stamp: <2017-11-23 17:32:20 mtw> 
 package "barriers"
 purpose "Compute local minima and energy barriers of a landscape"
-version "1.7.0"
+##version "1.8.0"
 args    "--default-optional --unamed-opts=[FILE] --include-getopt"
 
 description "This program reads an energy sorted list of conformations of \
