@@ -190,12 +190,20 @@ set_barrier_options(barrier_options opt)
                 shift = 1;
 
               break;
+
             case 's': /* Shift moves */
               if (strncmp(opt.MOVESET, "shift", 5) == 0)
                 shift = 1;
-            case 'n': /* Shift moves */
-              if (strcmp(opt.MOVESET, "noShift") == 0 || strcmp(opt.MOVESET, "noshift") == 0)
+
+              break;
+
+            case 'n': /* no Shift moves */
+              if (strncmp(opt.MOVESET, "noShift", 7) == 0 ||
+                  strncmp(opt.MOVESET, "noshift", 7) == 0)
                 shift = 0;
+
+                break;
+
             case 'l': /* ligand */
               if (strncmp(opt.MOVESET, "ligand", 6) == 0)
                 ligand = 1;
@@ -203,6 +211,7 @@ set_barrier_options(barrier_options opt)
               /* move_it = RNA_move_it; */
 
               break;
+
             default:
               fprintf(stderr, "Unknown moveset %s\n", opt.MOVESET);
               exit(EXIT_FAILURE);
