@@ -9,7 +9,7 @@
     copyright            : (C) 2006 by Anke Busch
     email                : abusch@informatik.uni-freiburg.de
 ***************************************************************************/
-
+#include <climits>
 #include "secis_basics.h"
 
 

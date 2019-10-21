@@ -1,5 +1,6 @@
 config/
 *.o
+*.a
 *~
 *.in
 *.tar.gz
@@ -19,6 +20,7 @@ install-sh
 INSTALL
 Makefile
 missing
-PoHo/genPoHoLandscape
+src/PoHo/genPoHoLandscape
+src/SECIS/secisFindSeqs
 stamp-h1
 .dirstamp

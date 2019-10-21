@@ -1,10 +1,10 @@
 AUTOMAKE_OPTIONS = foreign
 
-if BUILD_SECIS_EXT
-SEDIR=SECIS
-endif
+AM_DISTCHECK_CONFIGURE_FLAGS = \
+    --with-secis \
+    --disable-silent-rules
 
-SUBDIRS = src $(SEDIR) PoHo man tests
+SUBDIRS = src man tests
 
 bin_SCRIPTS = \
     perl/crossrates.pl \

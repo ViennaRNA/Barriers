@@ -11,6 +11,7 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <climits>
 #include <stdlib.h>
 
 #include "secis_constraints.h"

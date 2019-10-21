@@ -13,7 +13,7 @@ AC_SUBST(VERSION)
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_SILENT_RULES([yes])
-AM_INIT_AUTOMAKE([1.11])
+AM_INIT_AUTOMAKE([1.11 -Wall -Werror])
 
 dnl enable unit tests if 'Check' framework is installed
 AC_CHECK_HEADERS(
@@ -72,29 +72,13 @@ AC_ARG_WITH(secis,
 [ with_secis="no"]
 )
 
-dnl default install location for Vienna RNA Package
-ac_VRNA_includes=/usr/local/ViennaRNA
-ac_VRNA_lib=/usr/local/lib
-
-AC_ARG_WITH(ViennaRNA-include,
-  [ --with-ViennaRNA-include    where to search for ViennaRNA header files],
-  ac_VRNA_includes="$withval",
-  )
-
-AC_ARG_WITH(ViennaRNA-lib,
-  [ --with-ViennaRNA-lib        where to search for libRNA.a],
-  ac_VRNA_lib="$withval",
-  )
-
-AC_SUBST(ac_VRNA_includes)
-AC_SUBST(ac_VRNA_lib)
-
 dnl Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_RANLIB
+AM_PROG_AR
 
 AC_C_INLINE
 
@@ -133,7 +117,14 @@ AM_CONDITIONAL(BARRIERS_AM_SWITCH_HAS_HELP2MAN, test "x$HELP2MAN" != "xno")
 dnl Conditionally build Makefile in SECIS subdirectory
 have_secis_ext=0
 if test "$with_secis" != "no"; then
-   if test -f $srcdir/SECIS/Makefile.am; then
+  #Search for the RNAlib2 and set variables for Makefiles if found.  _CFLAGS and _LIBS can be overriden with the modue Name from PKG_CHECK_MODULES
+  PKG_CHECK_MODULES([RNALIB], [RNAlib2 >= 2.2.0],
+                    [ AC_SUBST([RNALIB_CFLAGS])
+                      AC_SUBST([RNALIB_LIBS])
+                    ],
+                    [])
+
+   if test -f $srcdir/src/SECIS/Makefile.am; then
       have_secis_ext=1 
 dnl      AC_OUTPUT(SECIS/Makefile)
    else
@@ -150,8 +141,8 @@ AM_CONDITIONAL(BUILD_SECIS_EXT, test "$with_secis" != "no")
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile tests/Makefile])
-AC_CONFIG_FILES([PoHo/Makefile])
-AC_CONFIG_FILES([SECIS/Makefile])
+AC_CONFIG_FILES([src/PoHo/Makefile])
+AC_CONFIG_FILES([src/SECIS/Makefile])
 AC_CONFIG_FILES([packaging/barriers.spec packaging/PKGBUILD packaging/barriers.lsm])
 AC_CONFIG_FILES([man/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
@@ -164,6 +155,8 @@ eval _bindir=$(eval printf "%s" $bindir)
 eval _datadir=$(eval printf "%s" $datadir)
 eval _mandir=$(eval printf "%s" $mandir)
 
+m4_map_args([ AC_COLOR_RESULT_PACKAGE],
+            [secis])
 m4_map_args([ AC_COLOR_RESULT_SIMPLE],
             [_bindir],
             [_mandir],
@@ -174,29 +167,17 @@ m4_map_args([ AC_COLOR_RESULT_SIMPLE],
 AC_STRING_APPEND_FORMAT_BOLD([ac_barriers_name_string], [Barriers ${PACKAGE_VERSION}])
 AC_STRING_APPEND_FORMAT_BOLD([ac_barriers_final_msg], [You can run 'make', 'make check', and 'make install' now!])
 
-if test "$with_secis" != "no"; then
-AC_MSG_NOTICE(
-[
-Configure successful with the following options:
-
-  SECIS Extension:               ${with_secis:-yes}
-  Dependency to ViennaRNA        ${with_secis:-yes}
-  Expect ViennaRNA headers in:   $ac_VRNA_includes
-  Expect ViennaRNA library in:   $ac_VRNA_lib
-
-If the ViennaRNA headers and library are in a different location on
-your system, please set the appropriate absolute paths with the
-configure options --with-ViennaRNA-include and --with-ViennaRNA-lib
-])
-else
-
 AC_MSG_NOTICE([
 
 ======================================
     $ac_barriers_name_string
 ======================================
 
-Successfully configured!
+Configured successful with the following options:
+
+Extra Features
+---------------
+  * SECIS Extension           : ${result_secis}
 
 Install Directories
 -------------------
@@ -205,5 +186,3 @@ Install Directories
   * Man pages                 : $result__mandir
 
 $ac_barriers_final_msg])
-
-fi

@@ -1,3 +1,9 @@
+if BUILD_SECIS_EXT
+SEDIR=SECIS
+endif
+
+SUBDIRS = $(SEDIR) PoHo
+
 bin_PROGRAMS = barriers
 
 barriers_SOURCES = \
@@ -35,9 +41,17 @@ noinst_HEADERS = \
 
 #  uncomment the following if barriers requires the math library
 if BUILD_SECIS_EXT
-barriers_LDADD= -LSECIS -lSECIS -L@ac_VRNA_lib@ -lRNA -lm -lstdc++
+barriers_CPPFLAGS = \
+    -I$(top_srcdir)/src/SECIS
+
+barriers_LDADD= \
+    -L$(top_builddir)/src/SECIS -lSECIS \
+    $(RNALIB_LIBS) \
+    -lm \
+    -lstdc++
 else
-barriers_LDADD= -lm 
+barriers_LDADD= \
+    -lm
 endif
 
 EXTRA_DIST = \

@@ -12,6 +12,9 @@
 #include "barriers.h"
 #include "hash_util.h"
 #include "cmdline.h"
+#if HAVE_SECIS_EXTENSION
+#include "secis_neighbors.h"
+#endif
 
 /* PRIVATE FUNCTIONS */
 static barrier_options            opt;
