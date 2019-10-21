@@ -10,6 +10,8 @@ AC_CONFIG_AUX_DIR(config)
 
 AC_SUBST(VERSION)
 
+AC_CONFIG_MACRO_DIR([m4])
+
 AM_SILENT_RULES([yes])
 AM_INIT_AUTOMAKE([1.11])
 
@@ -156,6 +158,22 @@ AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
 AC_OUTPUT
 
+# get directory paths
+
+eval _bindir=$(eval printf "%s" $bindir)
+eval _datadir=$(eval printf "%s" $datadir)
+eval _mandir=$(eval printf "%s" $mandir)
+
+m4_map_args([ AC_COLOR_RESULT_SIMPLE],
+            [_bindir],
+            [_mandir],
+            [_datadir])
+
+# Notify the user
+
+AC_STRING_APPEND_FORMAT_BOLD([ac_barriers_name_string], [Barriers ${PACKAGE_VERSION}])
+AC_STRING_APPEND_FORMAT_BOLD([ac_barriers_final_msg], [You can run 'make', 'make check', and 'make install' now!])
+
 if test "$with_secis" != "no"; then
 AC_MSG_NOTICE(
 [
@@ -170,4 +188,22 @@ If the ViennaRNA headers and library are in a different location on
 your system, please set the appropriate absolute paths with the
 configure options --with-ViennaRNA-include and --with-ViennaRNA-lib
 ])
+else
+
+AC_MSG_NOTICE([
+
+======================================
+    $ac_barriers_name_string
+======================================
+
+Successfully configured!
+
+Install Directories
+-------------------
+  * Executables               : $result__bindir
+  * Extra Data                : $result__datadir
+  * Man pages                 : $result__mandir
+
+$ac_barriers_final_msg])
+
 fi
