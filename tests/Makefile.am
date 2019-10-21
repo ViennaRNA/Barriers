@@ -7,7 +7,11 @@ AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src/
 if CHECK_FOUND
 TESTS = check_rnamoves
 check_PROGRAMS = check_rnamoves
-check_rnamoves_SOURCES = check_rnamoves.c ../src/stapel.c ../src/utils.c ../src/ringlist.c # rnamoves.c 
+check_rnamoves_SOURCES = \
+    check_rnamoves.c \
+    ../src/stapel.c \
+    ../src/utils.c \
+    ../src/ringlist.c # rnamoves.c 
 check_rnamoves_CFLAGS = @CHECK_CFLAGS@
 check_rnamoves_LDADD = @CHECK_LIBS@
 endif
