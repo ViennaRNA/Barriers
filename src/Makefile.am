@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
 if BUILD_SECIS_EXT
 SEDIR=SECIS
 endif

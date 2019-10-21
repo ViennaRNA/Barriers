@@ -1,4 +1,5 @@
 [![GitHub release](https://img.shields.io/github/release/ViennaRNA/Barriers.svg)](https://www.tbi.univie.ac.at/RNA/Barriers/#download)
+[![Build Status](https://travis-ci.org/ViennaRNA/Barriers.svg?branch=master)](https://travis-ci.org/ViennaRNA/Barriers)
 [![Github All Releases](https://img.shields.io/github/downloads/ViennaRNA/Barriers/total.svg)](https://github.com/ViennaRNA/Barriers/releases)
 [![Conda](https://img.shields.io/conda/v/bioconda/barriers.svg)](https://anaconda.org/bioconda/barriers)
 [![AUR](https://img.shields.io/aur/version/barriers.svg)](https://aur.archlinux.org/packages/barriers/)
