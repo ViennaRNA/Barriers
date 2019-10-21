@@ -1,0 +1,7 @@
+# log files andd test results are of no interest
+*.log
+*.trs
+
+# ignore executables
+check_rnamoves
+

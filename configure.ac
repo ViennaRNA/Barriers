@@ -5,7 +5,13 @@ AC_INIT([barriers],
 	m4_esyscmd_s([cat VERSION.txt]),
 	[{ivo,xtof,mtw}@tbi.univie.ac.at],[Barriers], [https://www.tbi.univie.ac.at/RNA/Barriers])
 
-AM_INIT_AUTOMAKE
+AC_PREREQ([2.60])
+AC_CONFIG_AUX_DIR(config)
+
+AC_SUBST(VERSION)
+
+AM_SILENT_RULES([yes])
+AM_INIT_AUTOMAKE([1.11])
 
 dnl enable unit tests if 'Check' framework is installed
 AC_CHECK_HEADERS(
@@ -140,10 +146,11 @@ AC_DEFINE_UNQUOTED(HAVE_SECIS_EXTENSION,
 
 AM_CONDITIONAL(BUILD_SECIS_EXT, test "$with_secis" != "no")
 
-AC_CONFIG_FILES([Makefile barriers.lsm])
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([src/Makefile tests/Makefile])
 AC_CONFIG_FILES([PoHo/Makefile])
 AC_CONFIG_FILES([SECIS/Makefile])
-AC_CONFIG_FILES([packaging/barriers.spec packaging/PKGBUILD])
+AC_CONFIG_FILES([packaging/barriers.spec packaging/PKGBUILD packaging/barriers.lsm])
 AC_CONFIG_FILES([man/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 

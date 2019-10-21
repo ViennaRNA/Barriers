@@ -6,7 +6,7 @@ dist_man_MANS = barriers.1
 
 SUFFIXES = .1 .ggo
 
-vpath %.ggo = ../
+vpath %.ggo = ../src
 
 if BARRIERS_AM_SWITCH_HAS_HELP2MAN
 
@@ -16,7 +16,9 @@ if BARRIERS_AM_SWITCH_HAS_HELP2MAN
 
 endif
 
-EXTRA_DIST =  include
+EXTRA_DIST = \
+    include \
+    barriers.texinfo
 
 # remove all generated man pages
 maintainer-clean-local:

@@ -1,3 +1,4 @@
+config/
 *.o
 *~
 *.in
@@ -20,3 +21,4 @@ Makefile
 missing
 PoHo/genPoHoLandscape
 stamp-h1
+.dirstamp
