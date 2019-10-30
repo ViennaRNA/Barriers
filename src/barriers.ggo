@@ -78,10 +78,14 @@ hidden
 section "Barrier Tree Computation"
 
 option "connected" c
-"Check if landscape is conntected.\n"
-details="Skip rates computation if landscape is disconnected, i.e. print\
- only the states, rates and the tree for the connected component with the\
- ground state.\n\n"
+"Restrict the output to the connected component.\n"
+details="Depending on the input data, the corresponding barrier tree(s) might\
+ not be connected, i.e. the internal represenation actually is a barrier forest.\
+ Enabling this option will restrict the output to the one connected component\
+ the ground state belongs to. In case there are multiple ground states, the\
+ component of the first according to the input order will be selected. Note,\
+ that restricting the rate computation to the connected component also ensures\
+ that the rate matrix is ergodic.\n\n"
 flag
 off
 
@@ -155,7 +159,7 @@ hidden
 section "Miscellaneous Options"
 
 option "path"     P
-"Backtrack an optimal path between lmins l2 and l1 (l1 < l2).\n"
+"Backtrack an optimal path between local minimum l2 and l1.\n"
 details="The option can be specified multiple times and each path will\
  be written to a corresponding file \"path.l1.l2.txt\".\n\n"
 typestr="<l1>=<l2>"
