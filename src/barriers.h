@@ -26,8 +26,8 @@ path_entry *backtrack_path(unsigned long  l1,
 
 void print_path(FILE          *PATH,
                 path_entry    *path,
-                unsigned long *tm);
-
+                unsigned long *tm,
+                unsigned long  *mfe_component_true_min_indices);
 
 void mark_global(loc_min *Lmin);
 

@@ -215,21 +215,38 @@ main(int  argc,
     mark_global(LM);
 
   for (i = 0; i < args_info.path_given; ++i) {
-    unsigned long L1, L2;
-    sscanf(args_info.path_arg[i], "%ld=%ld", &L1, &L2);
-    if ((L1 > 0) && (L2 > 0)) {
+    unsigned long l1, l2, l1_index_cc, l2_index_cc;
+    sscanf(args_info.path_arg[i], "%ld=%ld", &l1, &l2);
+    if ((l1 > 0) && (l2 > 0)) {
       FILE        *PATH = NULL;
       char        tmp[30];
       path_entry  *path;
 
-      path = backtrack_path(L1, L2, LM, tm);
-      (void)sprintf(tmp, "path.%03ld.%03ld.txt", L1, L2);
+      if(opt.want_connected){
+        /* map minima indices to connected component output indices */
+        unsigned long max_mfe_comp_index;
+        for (max_mfe_comp_index = 0; mfe_component_true_min_indices[max_mfe_comp_index] != 0; max_mfe_comp_index++);
+        if(l1 > max_mfe_comp_index || l2 > max_mfe_comp_index){
+          fprintf(stderr,"Error: one of the path indices is not in the connected component! l1=%ld, l2=%ld, maximum=%ld\n", l1, l2, max_mfe_comp_index);
+          continue; /* with next path */
+        }
+        l1_index_cc = mfe_component_true_min_indices[l1-1];
+        l2_index_cc = mfe_component_true_min_indices[l2-1];
+        path = backtrack_path(l1_index_cc, l2_index_cc, LM, tm);
+      }
+      else{
+        path = backtrack_path(l1, l2, LM, tm);
+      }
+      (void)sprintf(tmp, "path.%03ld.%03ld.txt", l1, l2);
 
       PATH = fopen(tmp, "w");
       if (PATH == NULL)
         nrerror("couldn't open path file");
 
-      print_path(PATH, path, tm);
+      if(opt.want_connected)
+        print_path(PATH, path, tm, mfe_component_true_min_indices);
+      else
+        print_path(PATH, path, tm, NULL);
       /* fprintf(stderr, "%llu %llu\n", 0, MAXIMUM);   */
       fclose(PATH);
       fprintf(stderr, "wrote file %s\n", tmp);

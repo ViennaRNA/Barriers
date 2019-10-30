@@ -11,6 +11,7 @@
 #include <limits.h>
 #include <float.h>
 #include <stdbool.h>
+#include <barriers.h>
 #include "ringlist.h"
 #include "stapel.h"
 #include "utils.h"
@@ -1581,16 +1582,40 @@ walk_limb(hash_entry    *hp,
 void
 print_path(FILE       *PATH,
            path_entry *path,
-           unsigned long        *tm)
+           unsigned long        *tm,
+           unsigned long  *mfe_component_true_min_indices)
 {
-  unsigned long i;
+  unsigned long i, n, grad_min_index, mfe_component_index;
+  int found_gradmin;
 
   for (i = 0; path[i].hp; i++) {
     char c[6] = {
       0, 0, 0, 0
     }, *struc;
-    if (path[i].hp->down == NULL)
-      sprintf(c, "L%04d", tm[path[i].hp->basin]);
+    if (path[i].hp->down == NULL){
+      grad_min_index = tm[path[i].hp->basin];
+      if(mfe_component_true_min_indices == NULL){
+        sprintf(c, "L%04d", grad_min_index);
+      }
+      else{
+          /* find gradient minimum in mfe component index list*/
+          n = 0;
+          found_gradmin = 0;
+          while (mfe_component_true_min_indices[n] != 0){
+            if(grad_min_index == mfe_component_true_min_indices[n]){
+              mfe_component_index = n+1;
+              found_gradmin = 1;
+              sprintf(c, "L%04d", mfe_component_index);
+              break;
+            }
+            n++;
+          }
+          if(found_gradmin == 0){
+            fprintf(stderr, "Error: the minimum on the path is not in the connected component of the mfe structure! The path is not complete!\n");
+            break;
+          }
+      }
+    }
     else
     if (path[i].key[strlen(path[i].key) - 1] == 'M')
       c[0] = 'S';
