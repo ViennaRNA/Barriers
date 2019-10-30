@@ -4,7 +4,6 @@
  *   c  Ivo L Hofacker and Walter Fontana
  *      Vienna RNA package
  */
-/* Last changed Time-stamp: <2017-11-23 17:16:11 mtw> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,8 +18,8 @@
 
 #include "utils.h"
 
-unsigned short xsubi[3];
-int            cut_point = -1;
+unsigned short  xsubi[3];
+int             cut_point = -1;
 
 /*-------------------------------------------------------------------------*/
 
@@ -107,11 +106,14 @@ init_rand(void)
 
 double
 urn(void)
-/* uniform random number generator; urn() is in [0,1] */
-/* uses a linear congruential library routine */
-/* 48 bit arithmetic */
+/*
+ * uniform random number generator; urn() is in [0,1]
+ * uses a linear congruential library routine
+ * 48 bit arithmetic
+ */
 {
-  extern double erand48(unsigned short[3]);
+  extern double
+  erand48(unsigned short[3]);
 
 
   return erand48(xsubi);
@@ -379,8 +381,8 @@ unpack_structure(const char *packed)
 {
   bool  isstar = false;
   int   struc_endofstr, len;
-  char  *struc    = NULL;
-  char  *p        = NULL;
+  char  *struc  = NULL;
+  char  *p      = NULL;
 
   p   = (char *)strdup(packed);
   len = strlen(packed);
@@ -406,19 +408,25 @@ unpack_structure(const char *packed)
 }
 
 
-/* char *unpack_structure(const char *packed) { */
-/*   /\* 5:1 compression using base 3 encoding *\/ */
-/*   int i,j,l; */
-/*   char *struc; */
-/*   unsigned const char *pp; */
-/*   char code[3] = {'(', '.', ')'}; */
+/*
+ * char *unpack_structure(const char *packed) {
+ *   /\* 5:1 compression using base 3 encoding *\/
+ *   int i,j,l;
+ *   char *struc;
+ *   unsigned const char *pp;
+ *   char code[3] = {'(', '.', ')'};
+ */
 
-/*   l = (int) strlen(packed); */
-/*   pp = (const unsigned char *) packed; */
-/*   struc = (char *) space((l*5+1)*sizeof(char));   /\* up to 4 byte extra *\/ */
+/*
+ *   l = (int) strlen(packed);
+ *   pp = (const unsigned char *) packed;
+ *   struc = (char *) space((l*5+1)*sizeof(char));   /\* up to 4 byte extra *\/
+ */
 
-/*   return struc; */
-/* } */
+/*
+ *   return struc;
+ * }
+ */
 
 /*---------------------------------------------------------------------------*/
 
@@ -473,8 +481,10 @@ int
 bp_distance(const char  *str1,
             const char  *str2)
 {
-  /* dist = {number of base pairs in one structure but not in the other} */
-  /* same as edit distance with pair_open pair_close as move set */
+  /*
+   * dist = {number of base pairs in one structure but not in the other}
+   * same as edit distance with pair_open pair_close as move set
+   */
   int   dist, i, l;
   short *t1, *t2;
 

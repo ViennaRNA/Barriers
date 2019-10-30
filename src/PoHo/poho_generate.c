@@ -1,7 +1,3 @@
-/*
-  Last changed Time-stamp: <2006-07-24 17:15:20 xtof>
-  $Id: poho_generate.c,v 1.1 2006/07/25 14:34:55 xtof Exp $
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

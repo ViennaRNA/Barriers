@@ -6,9 +6,9 @@
 
 #define NUM 5555
 
-static char         *ALPHABET;
-static int          ALPHASIZE;
-static char         *ADJLIST;
+static char *ALPHABET;
+static int  ALPHASIZE;
+static char *ADJLIST;
 /* static char *get_ADJLIST(void); */
 static char **move;
 
@@ -36,8 +36,10 @@ initialize_crankshaft(void)
       strcpy(move[2332], "RLLR\0");
       strcpy(move[3223], "LRRL\0"); /* LRRL <-> RLLR */
       break;
-    case 5:                         /* 12345 */
-                                    /* FLRUD: SC lattice */
+    case 5:                         /*
+                                     * 12345
+                                     * FLRUD: SC lattice
+                                     */
       strcpy(move[231], "DDR\0");
       strcpy(move[553], "LRF\0");   /* LRF <-> DDR */
       strcpy(move[232], "DDD\0");
@@ -170,8 +172,10 @@ String_move_it_crankshaft(char *string)
           free(s);
           s = strdup(string);
           memset(tr_str, 0, rep_len + 1);
-          i++;  /* found a 3-letter replacement, no need */
-                /* to find a 4-letter replacement too */
+          i++;  /*
+                 * found a 3-letter replacement, no need
+                 * to find a 4-letter replacement too
+                 */
         }
       }
     }
@@ -522,13 +526,14 @@ NNI_move_it(char *string)
 
 static int spin_len;
 
-char *unpack_spin(const char *packed);
+char *
+unpack_spin(const char *packed);
 
 
 char *
 pack_spin(const char *spin)
 {
-  int           mask[7] = {
+  int   mask[7] = {
     64, 32, 16, 8, 4, 2, 1
   };
   int   i, j, k, l;
@@ -622,8 +627,10 @@ LIST_move_it(char *string)
 {
   char *s, *token;
 
-  /* parse adjacency list and push the token on the stack */
-  /* using strtok */
+  /*
+   * parse adjacency list and push the token on the stack
+   * using strtok
+   */
 
   token = strtok(ADJLIST, ":");
   while (token) {

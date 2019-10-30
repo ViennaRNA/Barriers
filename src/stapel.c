@@ -1,5 +1,6 @@
-/* Last changed Time-stamp: <2017-10-20 11:42:37 mtw> */
-/* stapel.c */
+/*
+ * stapel.c
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,10 +9,10 @@
 
 #define BASIS_SIZE 128
 
-static char         **v       = NULL;
-static int          len       = 0;
-static int          stapelTop = 0;
-static int          maxSize   = BASIS_SIZE;
+static char **v       = NULL;
+static int  len       = 0;
+static int  stapelTop = 0;
+static int  maxSize   = BASIS_SIZE;
 
 
 /**/

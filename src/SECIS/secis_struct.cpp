@@ -1,7 +1,3 @@
-/*
-  Last changed Time-stamp: <2006-07-17 11:35:26 xtof>
-  $Id: secis_struct.cpp,v 1.1 2006/07/18 14:08:49 xtof Exp $
-*/
 /***************************************************************************
                     struct.cpp  -  functions dealing with the structure
                              -------------------

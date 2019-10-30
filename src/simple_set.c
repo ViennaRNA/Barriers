@@ -1,5 +1,3 @@
-/* Last changed Time-stamp: <2002-09-09 15:56:32 ivo> */
-
 /* implement set as sorted array */
 #include <stdlib.h>
 #include <stdio.h>

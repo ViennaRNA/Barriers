@@ -1,7 +1,3 @@
-/*
-  Last changed Time-stamp: <2006-07-17 11:38:06 xtof>
-  $Id: secis_generate.h,v 1.1 2006/07/18 14:08:49 xtof Exp $
-*/
 /***************************************************************************
                 generate.h  -  generating valid sequences
                              -------------------

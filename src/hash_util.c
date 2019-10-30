@@ -1,5 +1,6 @@
-/* Last changed Time-stamp: <2017-10-02 11:58:00 mtw> */
-/* hash_util.c */
+/*
+ * hash_util.c
+ */
 
 #include "config.h"
 
@@ -17,7 +18,8 @@
 /* modify hash_f(), hash_comp() and the typedef of hash_entry in hash_utils.h
  * to suit your application */
 
-inline PRIVATE unsigned hash_f(void *x);
+inline PRIVATE unsigned
+hash_f(void *x);
 
 
 /* HASHBITS usually defined via configure and config.h */
@@ -27,10 +29,12 @@ inline PRIVATE unsigned hash_f(void *x);
 #define HASHSIZE (((unsigned long)1 << HASHBITS) - 1)
 /* on 64bit machines: unsigned long num = 1<<63; */
 
-/* #define HASHSIZE 67108864 -1 */ /* 2^26 -1   must be power of 2 -1 */
-/* #define HASHSIZE 33554432 -1 */ /* 2^25 -1   must be power of 2 -1 */
-/* #define HASHSIZE 16777216 -1 */ /* 2^24 -1   must be power of 2 -1 */
-/* #define HASHSIZE 4194304 -1  */ /* 2^22 -1   must be power of 2 -1 */
+/*
+ * #define HASHSIZE 67108864 -1 */ /* 2^26 -1   must be power of 2 -1
+ * #define HASHSIZE 33554432 -1 */ /* 2^25 -1   must be power of 2 -1
+ * #define HASHSIZE 16777216 -1 */ /* 2^24 -1   must be power of 2 -1
+ * #define HASHSIZE 4194304 -1  */ /* 2^22 -1   must be power of 2 -1
+ */
 
 PRIVATE void          *hashtab[HASHSIZE + 1];
 
@@ -39,12 +43,12 @@ PUBLIC unsigned long  collisions = 0;
 static unsigned long  hashfillmax = HASHSIZE * 2. / 3.;
 //static unsigned long  hashfillmax = HASHSIZE;
 
-unsigned long Number_of_hash_entries = 0;
+unsigned long         Number_of_hash_entries = 0;
 
 /* ----------------------------------------------------------------- */
 
 /* stolen from perl source */
-char coeff[] = {
+char                  coeff[] = {
   61, 59, 53, 47, 43, 41, 37, 31, 29, 23, 17, 13, 11, 7, 3, 1,
   61, 59, 53, 47, 43, 41, 37, 31, 29, 23, 17, 13, 11, 7, 3, 1,
   61, 59, 53, 47, 43, 41, 37, 31, 29, 23, 17, 13, 11, 7, 3, 1,
@@ -99,14 +103,16 @@ lookup_hash(void *x)                 /* returns NULL unless x is in the hash */
 #endif
   if (hashtab[hashval] == NULL)
     return NULL;
+
   unsigned long hash_value_rejections = 0;
   while (hashtab[hashval]) {
     if (hash_comp(x, hashtab[hashval]) == 0)
       return hashtab[hashval];
+
     hash_value_rejections++;
-    if (hash_value_rejections >= hashfillmax) {
+    if (hash_value_rejections >= hashfillmax)
       return NULL;
-    }
+
     hashval = ((hashval + 1) & (HASHSIZE));
   }
   return NULL;
@@ -137,8 +143,13 @@ write_hash(void *x)               /* returns 1 if x already was in the hash */
     hash_value_rejections++;
     if (hash_value_rejections >= hashfillmax) {
       /* die if # of hash entries exceeds 0.75*HASHSIE */
-      float percentage = 100.0f * ((float)hashfillmax/(float)HASHSIZE);
-      fprintf(stderr, "Warning: The hash is filled up to %.0f%% of hashsize (%ld | %ld)! Structure %s has been omitted!\n", percentage, hashfillmax, HASHSIZE, unpack_structure(((hash_entry *)x)->structure));
+      float percentage = 100.0f * ((float)hashfillmax / (float)HASHSIZE);
+      fprintf(stderr,
+              "Warning: The hash is filled up to %.0f%% of hashsize (%ld | %ld)! Structure %s has been omitted!\n",
+              percentage,
+              hashfillmax,
+              HASHSIZE,
+              unpack_structure(((hash_entry *)x)->structure));
       return -1;
     }
   }
@@ -180,9 +191,10 @@ PUBLIC void
 delete_hash(void *x)               /* doesn't work in case of collsions */
 {
   /* doesn't free anything ! */
-  unsigned int hashval;
+  unsigned int  hashval;
 
   unsigned long hash_value_rejections = 0;
+
   hashval = hash_f(x);
   while (hashtab[hashval]) {
     if (hash_comp(x, hashtab[hashval]) == 0) {
@@ -190,10 +202,11 @@ delete_hash(void *x)               /* doesn't work in case of collsions */
       Number_of_hash_entries--;
       return;
     }
+
     hash_value_rejections++;
-    if (hash_value_rejections >= hashfillmax) {
+    if (hash_value_rejections >= hashfillmax)
       return;
-    }
+
     hashval = ((hashval + 1) & (HASHSIZE));
   }
 }

@@ -1,5 +1,6 @@
-/* Last changed Time-stamp: <2017-11-23 17:27:02 mtw> */
-/* main.c */
+/*
+ * main.c
+ */
 
 #include "config.h"
 #include <stdio.h>
@@ -22,13 +23,15 @@ static barrier_options            opt;
 static char                       *GRAPH;
 
 static struct gengetopt_args_info args_info;
-static int decode_switches(int  argc,
-                           char **argv);
+static int
+decode_switches(int   argc,
+                char  **argv);
 
 
-static void cleanup(char *,
-                    loc_min *,
-                    unsigned long *);
+static void
+cleanup(char *,
+        loc_min *,
+        unsigned long *);
 
 
 static char *program_name;
@@ -220,29 +223,35 @@ main(int  argc,
       char        tmp[30];
       path_entry  *path;
 
-      if(opt.want_connected){
+      if (opt.want_connected) {
         /* map minima indices to connected component output indices */
-        if(l1 > max_mfe_comp_index || l2 > max_mfe_comp_index){
-          fprintf(stderr,"Error: one of the path indices is not in the connected component! l1=%ld, l2=%ld, maximum=%ld\n", l1, l2, max_mfe_comp_index);
+        if (l1 > max_mfe_comp_index || l2 > max_mfe_comp_index) {
+          fprintf(stderr,
+                  "Error: one of the path indices is not in the connected component! l1=%ld, l2=%ld, maximum=%ld\n",
+                  l1,
+                  l2,
+                  max_mfe_comp_index);
           exit(EXIT_FAILURE);
         }
-        l1_index_cc = mfe_component_true_min_indices[l1-1];
-        l2_index_cc = mfe_component_true_min_indices[l2-1];
-        path = backtrack_path(l1_index_cc, l2_index_cc, LM, tm);
-      }
-      else{
+
+        l1_index_cc = mfe_component_true_min_indices[l1 - 1];
+        l2_index_cc = mfe_component_true_min_indices[l2 - 1];
+        path        = backtrack_path(l1_index_cc, l2_index_cc, LM, tm);
+      } else {
         path = backtrack_path(l1, l2, LM, tm);
       }
+
       (void)sprintf(tmp, "path.%03ld.%03ld.txt", l1, l2);
 
       PATH = fopen(tmp, "w");
       if (PATH == NULL)
         nrerror("couldn't open path file");
 
-      if(opt.want_connected)
+      if (opt.want_connected)
         print_path(PATH, path, tm, mfe_component_true_min_indices);
       else
         print_path(PATH, path, tm, NULL);
+
       /* fprintf(stderr, "%llu %llu\n", 0, MAXIMUM);   */
       fclose(PATH);
       fprintf(stderr, "wrote file %s\n", tmp);
@@ -252,7 +261,7 @@ main(int  argc,
 
   if (args_info.mapstruc_given) {
     FILE  *MAPFIN = NULL, *MAPFOUT = NULL;
-    char  *line   = NULL, *token = NULL, *fname = args_info.mapstruc_output_arg;
+    char  *line = NULL, *token = NULL, *fname = args_info.mapstruc_output_arg;
 
     MAPFIN = fopen(args_info.mapstruc_arg, "r");
     if (MAPFIN == NULL)
@@ -268,30 +277,45 @@ main(int  argc,
       map_struc myms;
       token = strtok(line, " \t");
       myms  = get_mapstruc(token, LM, tm);
-      if(myms.structure != NULL){
-        if(args_info.connected_flag){
+      if (myms.structure != NULL) {
+        if (args_info.connected_flag) {
           unsigned long mfe_comp_index;
 
-          for (mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0; mfe_comp_index++)
+          for (mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0;
+               mfe_comp_index++)
             if (myms.truegradmin == mfe_component_true_min_indices[mfe_comp_index])
               break;
-          if(mfe_comp_index < max_mfe_comp_index){
-            fprintf(MAPFOUT, "%s %6ld %6.2f %3ld %3ld %3ld %3ld\n", myms.structure, myms.n, myms.energy,
-                  myms.min, myms.truemin, myms.gradmin, mfe_comp_index);
-          }
-          else{
+
+          if (mfe_comp_index < max_mfe_comp_index) {
+            fprintf(MAPFOUT,
+                    "%s %6ld %6.2f %3ld %3ld %3ld %3ld\n",
+                    myms.structure,
+                    myms.n,
+                    myms.energy,
+                    myms.min,
+                    myms.truemin,
+                    myms.gradmin,
+                    mfe_comp_index);
+          } else {
             fprintf(MAPFOUT, "structure not in mfe component!\n");
           }
+        } else {
+          fprintf(MAPFOUT,
+                  "%s %6ld %6.2f %3ld %3ld %3ld %3ld\n",
+                  myms.structure,
+                  myms.n,
+                  myms.energy,
+                  myms.min,
+                  myms.truemin,
+                  myms.gradmin,
+                  myms.truegradmin);
         }
-        else{
-          fprintf(MAPFOUT, "%s %6ld %6.2f %3ld %3ld %3ld %3ld\n", myms.structure, myms.n, myms.energy,
-                  myms.min, myms.truemin, myms.gradmin, myms.truegradmin);
-        }
+
         free(myms.structure);
-      }
-      else{
+      } else {
         fprintf(MAPFOUT, "structure not in hash\n");
       }
+
       free(line);
     }
     fclose(MAPFIN);

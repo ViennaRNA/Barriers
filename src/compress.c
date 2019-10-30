@@ -14,9 +14,11 @@ static int  orig_stringlength = -1;
 void
 ini_pack_em(barrier_options opt)
 {
-  /* 7:1 compression using base 2 encoding */
-  /* 5:1 compression using base 3 encoding */
-  /* 3:1 compression using base 4, 5 or 6 encoding */
+  /*
+   * 7:1 compression using base 2 encoding
+   * 5:1 compression using base 3 encoding
+   * 3:1 compression using base 4, 5 or 6 encoding
+   */
   alphabet = (char *)space(strlen(opt.GRAPH) * sizeof(char));
   if (sscanf(opt.GRAPH, "Q%d,%s", &alphabet_size, alphabet) != 2) {
     fprintf(stderr, "error in opt.GRAPH\n");
@@ -56,8 +58,10 @@ letter2num(char c)
 {
   char *pos;
 
-  /*  F  L  R  U  X  Y */
-  /*  0  1  2  3  4  5 */
+  /*
+   *  F  L  R  U  X  Y
+   *  0  1  2  3  4  5
+   */
   if (c == '\0')
     return 0;
 
@@ -66,8 +70,10 @@ letter2num(char c)
     fprintf(stderr, "error in string\n");
 
   return (int)(pos - alphabet);
-  /* attenetion: the first 3 chars of opt.GRAPH are Q<number>, */
-  /* so do net use the characters 'Q', ',', and any number in your alphabet */
+  /*
+   * attenetion: the first 3 chars of opt.GRAPH are Q<number>,
+   * so do net use the characters 'Q', ',', and any number in your alphabet
+   */
 }
 
 

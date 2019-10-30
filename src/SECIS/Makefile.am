@@ -1,4 +1,3 @@
-# Last changed Time-stamp: <2017-11-23 17:46:15 mtw>
 AM_CPPFLAGS = \
     $(CFLAGS) \
     -I$(top_srcdir)/src \

@@ -1,6 +1,7 @@
-/* Last changed Time-stamp: <2017-09-21 16:00:00 mtw> */
-/* treeplot.c */
-/* modified version from ViennaRNA-package */
+/*
+ * treeplot.c
+ * modified version from ViennaRNA-package
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,8 +11,9 @@
 #include "treeplot.h"
 
 static nodeT *leafs;
-static int cmp_saddle(const void *,
-                      const void *);
+static int
+cmp_saddle(const void *,
+           const void *);
 
 
 typedef struct link {
@@ -20,15 +22,15 @@ typedef struct link {
 } linkT;
 
 void
-PS_tree_plot(nodeT  *nodes,
-             unsigned long    n,
-             char   *filename)
+PS_tree_plot(nodeT          *nodes,
+             unsigned long  n,
+             char           *filename)
 {
   /* plot tree with leaf-nodes nodes, to file filename (stdout if NULL) */
-  FILE  *out;
-  unsigned long   i, k, ll, f = 0, *sindex;
-  linkT *chain, *l;
-  int   bbox[4] = {
+  FILE          *out;
+  unsigned long i, k, ll, f = 0, *sindex;
+  linkT         *chain, *l;
+  int           bbox[4] = {
     72, 144, 522, 700
   };
 
@@ -53,8 +55,10 @@ PS_tree_plot(nodeT  *nodes,
   chain = (linkT *)space(n * sizeof(linkT));
   /* start connecting the links of the chain */
   for (i = 0; i < n; i++) {
-    /* n-1 merges */
-    /* int ff; */
+    /*
+     * n-1 merges
+     * int ff;
+     */
     k = sindex[i];
     f = nodes[k].father;                /* ith saddle merges k and f */
     if (f == -1)
@@ -63,15 +67,13 @@ PS_tree_plot(nodeT  *nodes,
     if (k == f)
       continue;          /* lowest node doesn't merge */
 
-    if(f >=0 && f < n){
+    if (f >= 0 && f < n) {
       l = &chain[f];
-      while ((l->next) != NULL){
-          l = l->next;
-      }
+      while ((l->next) != NULL)
+        l = l->next;
       l->next = &chain[k]; /* attach child to chain of father */
-    }
-    else{
-      fprintf(stderr,"Error: father index out of bounds! father: %ld max: %ld\n", f, n);
+    } else {
+      fprintf(stderr, "Error: father index out of bounds! father: %ld max: %ld\n", f, n);
     }
   }
   if (n > 0) {

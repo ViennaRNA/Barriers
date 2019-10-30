@@ -1,7 +1,3 @@
-/*
-  Last changed Time-stamp: <2006-07-13 11:38:48 xtof>
-  $Id: secis_neighbors.cpp,v 1.1 2006/07/18 14:08:49 xtof Exp $
-*/
 #include <cstring>
 #include <cstdlib>
 

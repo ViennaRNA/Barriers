@@ -1,22 +1,28 @@
-/* Last changed Time-stamp: <2002-09-06 12:30:49 ivo> */
-/* hash_util.h */
+/*
+ * hash_util.h
+ */
 
 #ifndef BARRIERS_HASH_UTIL_H
 #define BARRIERS_HASH_UTIL_H
 
-void *lookup_hash(void *x);
+void *
+lookup_hash(void *x);
 
 
-int write_hash(void *x);
+int
+write_hash(void *x);
 
 
-void delete_hash(void *x);
+void
+delete_hash(void *x);
 
 
-void kill_hash();
+void
+kill_hash();
 
 
-void initialize_hash();
+void
+initialize_hash();
 
 
 typedef struct _hash_entry {

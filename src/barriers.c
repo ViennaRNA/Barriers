@@ -1,5 +1,6 @@
-/* Last changed Time-stamp: <2017-11-26 17:22:20 mtw> */
-/* barriers.c */
+/*
+ * barriers.c
+ */
 
 #include "config.h"
 
@@ -71,7 +72,7 @@ struct comp {
 
 static unsigned long  *truecomp;
 static struct comp    *comp;
-static unsigned long  max_comp      = 1024, n_comp;
+static unsigned long  max_comp = 1024, n_comp;
 static int            do_rates      = 0;
 static int            do_microrates = 0;
 static double         noLP_rate     = 1.;
@@ -84,6 +85,7 @@ static hash_entry     *hpool;
 static void
 Sorry(char *GRAPH);
 
+
 static int
 read_data(barrier_options opt,
           double          *energy,
@@ -91,27 +93,33 @@ read_data(barrier_options opt,
           int             len,
           int             *POV);
 
+
 static void
 merge_basins();
+
 
 static int
 path_cmp(const void *a,
          const void *b);
+
 
 static void
 backtrack_path_rec(unsigned long  l1,
                    unsigned long  l2,
                    const char     *tag);
 
+
 static void
 walk_limb(hash_entry    *hp,
           unsigned long LM,
-          int inc,
+          int           inc,
           const char    *tag);
+
 
 static void
 merge_components(unsigned long  c1,
                  unsigned long  c2);
+
 
 static int
 comp_comps(const void *A,
@@ -123,7 +131,8 @@ comp_comps(const void *A,
 void
 set_barrier_options(barrier_options opt)
 {
-  int isRNA2    = 0;
+  int isRNA2 = 0;
+
   print_saddles = opt.print_saddles;
   bsize         = opt.bsize;
   shut_up       = opt.want_quiet;
@@ -139,15 +148,15 @@ set_barrier_options(barrier_options opt)
         if (opt.kT <= -300)
           opt.kT = 37;
 
-        kT                  = 0.00198717 * (273.15 + opt.kT); /* kT at 37C in kcal/mol */
-        isRNA2 = !strncmp(opt.GRAPH, "RNA2", 4);     /* FK */
+        kT      = 0.00198717 * (273.15 + opt.kT);     /* kT at 37C in kcal/mol */
+        isRNA2  = !strncmp(opt.GRAPH, "RNA2", 4);     /* FK */
 
         if (isRNA2) {
-          move_it = RNA2_move_it;
-          free_move_it = RNA2_free;
+          move_it       = RNA2_move_it;
+          free_move_it  = RNA2_free;
         } else {
-          move_it             = RNA_move_it;
-          free_move_it        = RNA_free_rl;
+          move_it       = RNA_move_it;
+          free_move_it  = RNA_free_rl;
         }
 
         pack_my_structure   = pack_structure;
@@ -651,17 +660,19 @@ check_neighbors(void)
 
     /* check whether we've seen the structure before */
     if (hp) {
-      /* because we've seen this structure before, it already */
-      /* belongs to the basin of attraction of a local minimum */
+      /*
+       * because we've seen this structure before, it already
+       * belongs to the basin of attraction of a local minimum
+       */
       basin = hp->basin;
       if (hp->energy < energy)
         is_min = 0;                        /* should we use hp->n here? */
 
       if (hp->n < min_n) {
         /* find lowest energy neighbor */
-        min_n       = hp->n;
-        gradmin     = hp->GradientBasin;
-        down        = hp;
+        min_n   = hp->n;
+        gradmin = hp->GradientBasin;
+        down    = hp;
       }
 
       /* careful: if input has higher precision than FLT_EPSILON
@@ -683,10 +694,12 @@ check_neighbors(void)
         }
       }
 
-      /* the basin of attraction of this local minimum may have been */
-      /* merged with the basin of attraction of an energetically */
-      /* "deeper" local minimum in a previous step */
-      /* go and find this "deeper" local minimum! */
+      /*
+       * the basin of attraction of this local minimum may have been
+       * merged with the basin of attraction of an energetically
+       * "deeper" local minimum in a previous step
+       * go and find this "deeper" local minimum!
+       */
       while (lmin[basin].father)
         basin = lmin[basin].father;
 
@@ -703,8 +716,10 @@ check_neighbors(void)
     free(pp);
   }
 
-  /* pack read structure from subopt for putting into the hash */
-  /* fprintf(stderr,"F%s\n",form); */
+  /*
+   * pack read structure from subopt for putting into the hash
+   * fprintf(stderr,"F%s\n",form);
+   */
   pform = pack_my_structure(form);
 
   if (ccomp == 0) {
@@ -758,8 +773,10 @@ check_neighbors(void)
     i_lmin = (is_min) ? n_lmin : basins->data[0].basin;
     set_kill(basins);
     /* store configuration "Structure" in hash table */
-    if(Read_lines > HASHSIZE){
-      fprintf(stderr,"Error: Structure in line %ld could not be written to the hash table! Please restrict the input or recompile with --with-hash-bits and a higher value.\n", Read_lines);
+    if (Read_lines > HASHSIZE) {
+      fprintf(stderr,
+              "Error: Structure in line %ld could not be written to the hash table! Please restrict the input or recompile with --with-hash-bits and a higher value.\n",
+              Read_lines);
       exit(EXIT_FAILURE);
     }
 
@@ -789,9 +806,11 @@ check_neighbors(void)
       fprintf(stderr, "%s\n", unpack_my_structure(hp->structure));
       nrerror("duplicate structure");
     }
-    if(write_result == -1){
+
+    if (write_result == -1) {
       if (!shut_up)
         fprintf(stderr, "%lu hash table collisions\n", collisions);
+
       exit(EXIT_FAILURE);
     }
   }
@@ -815,8 +834,10 @@ merge_basins()
   n_comp = t - 1;
   qsort(comp + 1, n_comp, sizeof(struct comp), comp_comps);
   for (c = 1; c <= n_comp; c++) {
-    /* foreach connected component */
-    /* merge all lmins connected by this component */
+    /*
+     * foreach connected component
+     * merge all lmins connected by this component
+     */
     static unsigned long  false_lmin = 0;
     unsigned long         i, father, pool = 0;
     double                Z = 0;
@@ -933,7 +954,7 @@ print_results(loc_min         *Lmin,
   char          *sequence = opt->seq;
   unsigned long i, ii, j, k, n, connected = 1;
   char          *struc = NULL, *laststruc = NULL;
-  char          *format     = NULL, *formatA = NULL, *formatB = NULL;
+  char          *format = NULL, *formatA = NULL, *formatB = NULL;
   bool          otherformat = false;
 
   if (POV_size)
@@ -968,9 +989,8 @@ print_results(loc_min         *Lmin,
 
     n = strlen(struc);
     f = Lmin[i].father;
-    if (f > 0) {
+    if (f > 0)
       f = truemin[f];
-    }
 
     if (POV_size) {
       int jj;
@@ -1050,7 +1070,7 @@ print_rna_barriers_output(loc_min         *Lmin,
   unsigned long i, ii, k, n, connected = 1;
   char          *struc = NULL, *laststruc = NULL;
 
-  char          *format     = NULL, *formatA = NULL, *formatB = NULL;
+  char          *format = NULL, *formatA = NULL, *formatB = NULL;
   bool          otherformat = false;
 
   if (IS_RNA) {
@@ -1097,20 +1117,21 @@ print_rna_barriers_output(loc_min         *Lmin,
 
     n = strlen(struc);
     f = Lmin[i].father;
-    if (f > 0){
+    if (f > 0) {
       f = truemin[f];
       if (mfe_component_true_min_indices != NULL) {
         unsigned long mfe_comp_index = 0;
-        while (mfe_component_true_min_indices[mfe_comp_index] != 0){
-          if(f == mfe_component_true_min_indices[mfe_comp_index])
+        while (mfe_component_true_min_indices[mfe_comp_index] != 0) {
+          if (f == mfe_component_true_min_indices[mfe_comp_index])
             break;
+
           mfe_comp_index++;
         }
-        if(mfe_comp_index >= max_mfe_comp_size){
+        if (mfe_comp_index >= max_mfe_comp_size)
           //fprintf(stderr, "Error: father %ld is not in mfe component!\n", f);
           continue;
-        }
-        f = mfe_comp_index+1;
+
+        f = mfe_comp_index + 1;
       }
     }
 
@@ -1200,15 +1221,15 @@ compute_connected_component_states(loc_min        *lmin,
   unsigned long *mfe_component_minima = malloc(sizeof(unsigned long) * (truemin[0] + 1));
   unsigned long ii;
 
-  unsigned int star_mfe_index = UINT_MAX;
-  unsigned int normal_mfe_index = UINT_MAX;
-  float star_mfe = FLT_MAX;
-  float normal_mfe = FLT_MAX;
+  unsigned int  star_mfe_index    = UINT_MAX;
+  unsigned int  normal_mfe_index  = UINT_MAX;
+  float         star_mfe          = FLT_MAX;
+  float         normal_mfe        = FLT_MAX;
 
-  loc_min *current_lm;
-  char *current_structure;
+  loc_min       *current_lm;
+  char          *current_structure;
 
-  if(ligand){
+  if (ligand) {
     // look for second mfe root node! one of two mfe has a star (ligand bound structure).
     for (ii = 1; ii <= nlmin; ii++) {
       if (truemin[ii] == 0)
@@ -1218,20 +1239,20 @@ compute_connected_component_states(loc_min        *lmin,
       while (lmin[root_gradmin].father != 0)
         root_gradmin = lmin[root_gradmin].father;
 
-      current_lm = &lmin[root_gradmin];
+      current_lm        = &lmin[root_gradmin];
       current_structure = unpack_my_structure(current_lm->structure);
-      if(current_structure[strlen(current_structure)-1] == '*'){
-        if(current_lm->energy < star_mfe){
-          star_mfe = current_lm->energy;
-          star_mfe_index = root_gradmin;
+      if (current_structure[strlen(current_structure) - 1] == '*') {
+        if (current_lm->energy < star_mfe) {
+          star_mfe        = current_lm->energy;
+          star_mfe_index  = root_gradmin;
+        }
+      } else {
+        if (current_lm->energy < normal_mfe) {
+          normal_mfe        = current_lm->energy;
+          normal_mfe_index  = root_gradmin;
         }
       }
-      else{
-        if(current_lm->energy < normal_mfe){
-          normal_mfe = current_lm->energy;
-          normal_mfe_index = root_gradmin;
-        }
-      }
+
       free(current_structure);
     }
   }
@@ -1246,7 +1267,8 @@ compute_connected_component_states(loc_min        *lmin,
     while (lmin[root_gradmin].father != 0)
       root_gradmin = lmin[root_gradmin].father;
 
-    if ((!ligand && root_gradmin == 1) || (ligand && ((root_gradmin == star_mfe_index)||(root_gradmin == normal_mfe_index))))
+    if ((!ligand && root_gradmin == 1) ||
+        (ligand && ((root_gradmin == star_mfe_index) || (root_gradmin == normal_mfe_index))))
       //ii is connected to the mfe tree
       mfe_component_minima[mfe_comp_index++] = truemin[ii];
     else
@@ -1412,7 +1434,7 @@ backtrack_path_rec(unsigned long  l1,
                    const char     *tag)
 {
   hash_entry    h, *l1dir = NULL, *l2dir = NULL;
-  int dir = 1;
+  int           dir = 1;
   unsigned long child, father, maxsaddle;
 
   /* if left==1 left points toward l2 else toward l1 */
@@ -1491,7 +1513,7 @@ backtrack_path_rec(unsigned long  l1,
 static void
 walk_limb(hash_entry    *hp,
           unsigned long LM,
-          int inc,
+          int           inc,
           const char    *tag)
 {
   char          *tmp;
@@ -1542,46 +1564,49 @@ walk_limb(hash_entry    *hp,
 
 
 void
-print_path(FILE       *PATH,
-           path_entry *path,
-           unsigned long        *tm,
+print_path(FILE           *PATH,
+           path_entry     *path,
+           unsigned long  *tm,
            unsigned long  *mfe_component_true_min_indices)
 {
   unsigned long i, n, grad_min_index, mfe_component_index;
-  int found_gradmin;
+  int           found_gradmin;
 
   for (i = 0; path[i].hp; i++) {
-    char c[32] = { 0 }, *struc;
-    if (path[i].hp->down == NULL && tm[path[i].hp->basin] != 0){
+    char c[32] = {
+      0
+    }, *struc;
+    if (path[i].hp->down == NULL && tm[path[i].hp->basin] != 0) {
       grad_min_index = tm[path[i].hp->basin];
 
-      if(mfe_component_true_min_indices == NULL){
+      if (mfe_component_true_min_indices == NULL) {
         sprintf(c, "L%04ld", grad_min_index);
-      }
-      else{
-          /* find gradient minimum in mfe component index list*/
-          n = 0;
-          found_gradmin = 0;
-          while (mfe_component_true_min_indices[n] != 0){
-            if(grad_min_index == mfe_component_true_min_indices[n]){
-              mfe_component_index = n+1;
-              found_gradmin = 1;
-              sprintf(c, "L%04ld", mfe_component_index);
-              break;
-            }
-            n++;
-          }
-          if(found_gradmin == 0){
-            fprintf(stderr, "Error: the minimum on the path is not in the connected component of the mfe structure! The path is not complete!\n");
+      } else {
+        /* find gradient minimum in mfe component index list*/
+        n             = 0;
+        found_gradmin = 0;
+        while (mfe_component_true_min_indices[n] != 0) {
+          if (grad_min_index == mfe_component_true_min_indices[n]) {
+            mfe_component_index = n + 1;
+            found_gradmin       = 1;
+            sprintf(c, "L%04ld", mfe_component_index);
             break;
           }
+
+          n++;
+        }
+        if (found_gradmin == 0) {
+          fprintf(stderr,
+                  "Error: the minimum on the path is not in the connected component of the mfe structure! The path is not complete!\n");
+          break;
+        }
       }
-    }
-    else
-    if (path[i].key[strlen(path[i].key) - 1] == 'M')
+    } else
+    if (path[i].key[strlen(path[i].key) - 1] == 'M') {
       c[0] = 'S';
-    else
+    } else {
       c[0] = 'I';
+    }
 
     struc = unpack_my_structure(path[i].hp->structure);
     fprintf(PATH, "%s (%6.2f) %-5s\n", struc, path[i].hp->energy, c);
@@ -1634,10 +1659,11 @@ get_mapstruc(char           *p,
   char          *pp;
   unsigned long min, gradmin;
   map_struc     ms;
-  ms.structure = NULL;
-  pp          = pack_my_structure(p);
-  h.structure = pp;
-  hp          = lookup_hash(&h);
+
+  ms.structure  = NULL;
+  pp            = pack_my_structure(p);
+  h.structure   = pp;
+  hp            = lookup_hash(&h);
 
   if (hp == NULL) {
     fprintf(stderr, "get_mapstruc: structure not in hash\n");
@@ -1960,12 +1986,13 @@ ps_tree_mfe_component(loc_min       *Lmin,
       E_saddle = Lmin[0].E_saddle;         /* maximum energy */
 
     unsigned long mfe_comp_father_index = 0;
-    for (mfe_comp_father_index = 0; mfe_component_true_min_indices[mfe_comp_father_index] != 0; mfe_comp_father_index++)
+    for (mfe_comp_father_index = 0; mfe_component_true_min_indices[mfe_comp_father_index] != 0;
+         mfe_comp_father_index++)
       if (truemin[f] == mfe_component_true_min_indices[mfe_comp_father_index])
         break;
 
-    if(f != 0 && mfe_comp_father_index >= mfe_comp_max)
-      continue; // do not include it if father is not the root and not in the mfe component.
+    if (f != 0 && mfe_comp_father_index >= mfe_comp_max)
+      continue;                                                           // do not include it if father is not the root and not in the mfe component.
 
     nodes[mfe_comp_index].father = (f == 0) ? -1 : mfe_comp_father_index; //(f == 0) ? -1 : truemin[f] - 1;
 

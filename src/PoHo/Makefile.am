@@ -1,5 +1,3 @@
-# $Id: Makefile.am,v 1.1 2006/07/25 14:34:55 xtof Exp $
-# Last changed Time-stamp: <2006-07-24 17:11:44 xtof>
 bin_PROGRAMS = genPoHoLandscape
 genPoHoLandscape_SOURCES = poho_generate.c
 genPoHoLandscape_INCLUDES = -I../

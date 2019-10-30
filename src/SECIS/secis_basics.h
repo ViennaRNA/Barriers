@@ -1,7 +1,3 @@
-/*
-  Last changed Time-stamp: <2006-07-17 11:38:29 xtof>
-  $Id: secis_basics.h,v 1.1 2006/07/18 14:08:49 xtof Exp $
-*/
 /***************************************************************************
                        basics.h  -  global variables and functions
                              -------------------

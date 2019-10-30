@@ -1,8 +1,3 @@
-/*
-  Last changed Time-stamp: <2006-07-13 11:37:49 xtof>
-  $Id: secis_neighbors.h,v 1.1 2006/07/18 14:08:49 xtof Exp $
-*/
-
 #ifndef _SECIS_NEIGHBORS_H_
 #define _SECIS_NEIGHBORS_H_
 

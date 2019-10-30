@@ -1,5 +1,6 @@
-/* Last changed Time-stamp: <2017-10-30 14:22:26 mtw> */
-/* ringlist.c */
+/*
+ * ringlist.c
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,7 @@
 #include "pair_mat.h"
 #include "stapel.h"
 
-int                 MYTURN = 4;
+int MYTURN = 4;
 
 typedef struct _rlItem {
   int             nummer; /* number of base in sequence */
@@ -31,42 +32,54 @@ static rlItem **poList  = NULL; /* post order list of bp's */
 
 static int    xtof;             /* do shift moves */
 static int    noLP;             /* no lonely pairs move-set */
-static void ini_or_reset_rl(char  *seq,
-                            char  *struc);
+static void
+ini_or_reset_rl(char  *seq,
+                char  *struc);
+
 
 #ifdef HARDCORE_DEBUG
-static void rl_status(void);
+static void
+rl_status(void);
 
 
 #endif
 
 /* private functiones */
-static void struc2tree(char *struc);
+static void
+struc2tree(char *struc);
 
 
-static void open_bp(rlItem *i);
+static void
+open_bp(rlItem *i);
 
 
-static void close_bp(rlItem *i,
-                     rlItem *j);
+static void
+close_bp(rlItem *i,
+         rlItem *j);
 
 
-static void inb(rlItem *root);
+static void
+inb(rlItem *root);
 
 
-static void inb_nolp(rlItem *root);
+static void
+inb_nolp(rlItem *root);
 
 
-static void dnb(rlItem *rli);
+static void
+dnb(rlItem *rli);
 
 
-static void dnb_nolp(rlItem *rli);
+static void
+dnb_nolp(rlItem *rli);
 
 
-static void fnb(rlItem *rli);
+static void
+fnb(rlItem *rli);
 
 
-static void make_poList(rlItem *root);
+static void
+make_poList(rlItem *root);
 
 
 void
@@ -526,10 +539,9 @@ dnb_nolp(rlItem *rli)
     rljn  = rlin->down;
   }
 
-  if (rli->prev == rli->next && rli->next->typ != 'x') {
+  if (rli->prev == rli->next && rli->next->typ != 'x')
     /* immediate exterior */
-    rlip  = rli->next->up;
-  }
+    rlip = rli->next->up;
 
   if (rlip == NULL && rlin && rljn->next != rljn->prev) {
     /* doubledelete */
