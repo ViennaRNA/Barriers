@@ -228,7 +228,7 @@ main(int  argc,
         for (max_mfe_comp_index = 0; mfe_component_true_min_indices[max_mfe_comp_index] != 0; max_mfe_comp_index++);
         if(l1 > max_mfe_comp_index || l2 > max_mfe_comp_index){
           fprintf(stderr,"Error: one of the path indices is not in the connected component! l1=%ld, l2=%ld, maximum=%ld\n", l1, l2, max_mfe_comp_index);
-          continue; /* with next path */
+          exit(EXIT_FAILURE);
         }
         l1_index_cc = mfe_component_true_min_indices[l1-1];
         l2_index_cc = mfe_component_true_min_indices[l2-1];
