@@ -67,7 +67,7 @@ static int            maxlabellength = 0;
 /* private functions */
 static void walk_limb(hash_entry    *hp,
                       unsigned long LM,
-                      unsigned long inc,
+                      int inc,
                       const char    *tag);
 
 
@@ -971,8 +971,6 @@ print_results(loc_min         *Lmin,
   char          *sequence = opt->seq;
   unsigned long i, ii, j, k, n, connected = 1, ncu = 0, ncb = 0;
   char          *struc = NULL, *laststruc = NULL;
-
-  ;
   char          *format     = NULL, *formatA = NULL, *formatB = NULL, **seen = NULL;
   bool          otherformat = false;
 
@@ -1451,7 +1449,8 @@ backtrack_path_rec(unsigned long  l1,
                    const char     *tag)
 {
   hash_entry    h, *l1dir, *l2dir;
-  unsigned long dir = 1, swap = 0, child, father, maxsaddle;
+  int dir = 1;
+  unsigned long child, father, maxsaddle;
 
   /* if left==1 left points toward l2 else toward l1 */
   if (l1 > l2) {
@@ -1529,7 +1528,7 @@ backtrack_path_rec(unsigned long  l1,
 static void
 walk_limb(hash_entry    *hp,
           unsigned long LM,
-          unsigned long inc,
+          int inc,
           const char    *tag)
 {
   char          *tmp;
@@ -1537,7 +1536,7 @@ walk_limb(hash_entry    *hp,
   hash_entry    *htmp;
 
   tmp = (char *)space(strlen(tag) + 4);
-  ;
+
   strcpy(tmp, tag);
   strcat(tmp, (inc > 0) ? "R" : "LZ");
   /* walk down until u hit a local minimum */
@@ -1582,9 +1581,9 @@ walk_limb(hash_entry    *hp,
 void
 print_path(FILE       *PATH,
            path_entry *path,
-           int        *tm)
+           unsigned long        *tm)
 {
-  int i;
+  unsigned long i;
 
   for (i = 0; path[i].hp; i++) {
     char c[6] = {
