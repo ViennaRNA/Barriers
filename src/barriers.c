@@ -1592,8 +1592,9 @@ print_path(FILE       *PATH,
     char c[6] = {
       0, 0, 0, 0
     }, *struc;
-    if (path[i].hp->down == NULL){
+    if (path[i].hp->down == NULL && tm[path[i].hp->basin] != 0){
       grad_min_index = tm[path[i].hp->basin];
+
       if(mfe_component_true_min_indices == NULL){
         sprintf(c, "L%04d", grad_min_index);
       }
