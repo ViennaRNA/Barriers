@@ -2,67 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "tree_types.h"
+#include "trees.h"
 #include "utils.h"
 
 #ifndef DEBUG
 #define  DEBUG 0
 #endif
-void PrintTree(Tree t);
-
-
-int Numtree(int N);
-
-
-Tree *PTAlloc(int n);
-
-
-Tree *Make3Tree(void);
-
-
-Tree *MakeAllNplus1Trees(Tree *TT);
-
-
-Tree *Make_all_NNI(Tree TT);
-
-
-Tree *NNI_Move(Tree TT,
-               int  edge,
-               int  which);
-
-
-Tree *MakeRandomNNI(Tree TT);
-
-
-void FreeTree(Tree  *T,
-              int   n);
-
-
-Tree **MakeTreesUpTo(int N);
-
-
-Tree *MakeRandomTree(int N);
-
-
-char *Tree2string(Tree t);
-
-
-char *subtrees(Tree T,
-               int  edge,
-               int  vertex,
-               int  *smallest_leaf);
-
-
-int number_of_leaves(char *st);
-
-
-Tree *string2Tree(char *s);
-
-
-int fill_T(Tree *T,
-           char *s,
-           int  call);
-
 
 Tree *
 PTAlloc(int n)
@@ -527,12 +474,10 @@ MakeRandomNNI(Tree TT)
 char *
 Tree2string(Tree t)
 {
-  int   k, n, len;
+  int   k, len;
   int   e1, v1;
   char  *s;
   char  *s1;
-
-  n = t.size;
 
   e1 = t.L[1].e1;
   if (t.E[e1].v1 == 1)
@@ -542,7 +487,7 @@ Tree2string(Tree t)
 
   s1  = subtrees(t, e1, v1, &k);
   len = strlen(s1) + 5;
-  ;
+
   s     = (char *)space(sizeof(char) * (len + 1));
   s[0]  = '\0';
   strcat(s, "((1)");

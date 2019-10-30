@@ -6,31 +6,12 @@
 #include <string.h>
 #include "utils.h"
 
-static char UNUSED  rcsid[] = "$Id: stapel.c,v 1.1 2001/04/05 08:00:57 ivo Exp $";
 #define BASIS_SIZE 128
 
 static char         **v       = NULL;
 static int          len       = 0;
 static int          stapelTop = 0;
 static int          maxSize   = BASIS_SIZE;
-
-/* oeffentliche funktionen */
-void ini_stapel(int size);   /* changed pfs 03 2001 */
-
-
-void push(char *form);
-
-
-char *pop(void);
-
-
-int get_top(void);
-
-
-void reset_stapel(void);
-
-
-void free_stapel(void);
 
 
 /**/

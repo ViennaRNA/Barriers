@@ -1,69 +1,70 @@
-/* Last changed Time-stamp: <2017-10-03 16:32:26 mtw> */
 /* ringlist.h */
 
-#ifndef _ringlist_h
-#define _ringlist_h
+#ifndef BARRIERS_RINGLIST_H
+#define BARRIERS_RINGLIST_H
 
-extern void RNA_init(char *sequence,
-                     int  shift,
-                     int  nolp);
+extern int MYTURN;
 
-
-extern void RNA_move_it(char *struc);
-
-
-extern void RNA_move_it_rates(char *form);
+void RNA_init(char *sequence,
+              int  shift,
+              int  nolp);
 
 
-extern void RNA_free_rl(void);
+void RNA_move_it(char *struc);
 
 
-extern void SPIN_move_it(char *sting);
+void RNA_move_it_rates(char *form);
 
 
-extern void SPIN_complement_move_it(char *string);
+void RNA_free_rl(void);
 
 
-extern void String_move_it(char *string);
+void SPIN_move_it(char *sting);
 
 
-extern void String_move_it_crankshaft(char *string);
+void SPIN_complement_move_it(char *string);
 
 
-extern void String_set_alpha(char *alpha);
+void String_move_it(char *string);
 
 
-extern void initialize_crankshaft(void);
+void String_move_it_crankshaft(char *string);
 
 
-extern void Q_mem_cleanup(void);
+void String_set_alpha(char *alpha);
 
 
-extern void NNI_move_it(char *struc);
+void initialize_crankshaft(void);
 
 
-extern void Transpos_move_it(char *);
+void Q_mem_cleanup(void);
 
 
-extern void CTranspos_move_it(char *);
+void NNI_move_it(char *struc);
 
 
-extern void Reversal_move_it(char *);
+void Transpos_move_it(char *);
 
 
-extern void EXCH_move_it(char *);
+void CTranspos_move_it(char *);
 
 
-extern char *pack_spin(const char *spin);
+void Reversal_move_it(char *);
 
 
-extern char *unpack_spin(const char *packed);
+void EXCH_move_it(char *);
 
 
-extern void LIST_move_it(char *);
+char *pack_spin(const char *spin);
 
 
-extern void  put_ADJLIST(char *);
+char *unpack_spin(const char *packed);
+
+
+void LIST_move_it(char *);
+
+
+void  put_ADJLIST(char *);
 
 
 #endif

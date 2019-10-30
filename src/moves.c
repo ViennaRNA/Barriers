@@ -6,18 +6,12 @@
 
 #define NUM 5555
 
-static char UNUSED  rcsid[] = "$Id: moves.c,v 1.9 2004/05/03 14:58:50 mtw Exp $";
-
 static char         *ALPHABET;
 static int          ALPHASIZE;
-
 static char         *ADJLIST;
-void  put_ADJLIST(char *A);
-
-
 /* static char *get_ADJLIST(void); */
-
 static char **move;
+
 
 void
 initialize_crankshaft(void)
@@ -135,7 +129,7 @@ void
 String_move_it_crankshaft(char *string)
 {
   int   i, j, length, rep_len, start = 1, found_em = 0;
-  char  cc, *s, *tr_str, numstr[5];
+  char  cc, *s, *tr_str;
 
   s = strdup(string);
 
@@ -528,7 +522,7 @@ NNI_move_it(char *string)
 
 static int spin_len;
 
-char *unpack_spin(const unsigned char *packed);
+char *unpack_spin(const char *packed);
 
 
 char *
@@ -537,8 +531,8 @@ pack_spin(const char *spin)
   int           mask[7] = {
     64, 32, 16, 8, 4, 2, 1
   };
-  int           i, j, k, l;
-  unsigned char *packed;
+  int   i, j, k, l;
+  char  *packed;
 
   spin_len  = strlen(spin);
   l         = (spin_len + 6) / 7;
@@ -567,7 +561,7 @@ pack_spin(const char *spin)
 
 
 char *
-unpack_spin(const unsigned char *packed)
+unpack_spin(const char *packed)
 {
   int   i, j, k, l;
   int   mask[7] = {

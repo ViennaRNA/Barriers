@@ -7,35 +7,15 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include "utils.h"
 #include "hash_util.h"
 
 #define   PRIVATE   static
 #define   PUBLIC
 
-static char UNUSED rcsid[] = "$Id: hash_util.c,v 1.9 2006/07/17 09:22:31 xtof Exp $";
-
 /* modify hash_f(), hash_comp() and the typedef of hash_entry in hash_utils.h
  * to suit your application */
-
-PUBLIC void *lookup_hash(void *x);
-
-
-PUBLIC int write_hash(void *x);
-
-
-PUBLIC void delete_hash(void *x);
-
-
-PUBLIC void kill_hash();
-
-
-PUBLIC void initialize_hash();
-
-
-PUBLIC int hash_comp(void *x,
-                     void *y);
-
 
 inline PRIVATE unsigned hash_f(void *x);
 
@@ -287,8 +267,8 @@ hash_f(void *x)
   register unsigned       a, b, c, len;
 
   /* Set up the internal state */
-  k   = ((hash_entry *)x)->structure;
-  len = length = (unsigned)strlen(k);
+  len = length = (unsigned)strlen(((hash_entry *)x)->structure);
+  k   = (unsigned char *)(((hash_entry *)x)->structure);
   a   = b = 0x9e3779b9; /* the golden ratio; an arbitrary value */
   c   = initval;        /* the previous hash value */
 

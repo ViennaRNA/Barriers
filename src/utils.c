@@ -13,62 +13,18 @@
 #include <string.h>
 #include <stdbool.h>
 #include "config.h"
-#include "utils.h"
 #ifdef WITH_DMALLOC
 #include "dmalloc.h"
 #endif
 
-/*
- * static char rcsid[] = "$Id: utils.c,v 1.6 2006/09/25 08:33:03 ivo Exp $";
- */
+#include "utils.h"
 
-#define PRIVATE  static
-#define PUBLIC
-
-PUBLIC void *space(size_t size);
-
-
-PUBLIC void   nrerror(const char message[]);
-
-
-PUBLIC double urn(void);
-
-
-PUBLIC int    int_urn(int from,
-                      int to);
-
-
-PUBLIC void   filecopy(FILE *from,
-                       FILE *to);
-
-
-PUBLIC char *time_stamp(void);
-
-
-PUBLIC char *random_string(int        l,
-                           const char symbols[]);
-
-
-PUBLIC int    hamming(const char  *s1,
-                      const char  *s2);
-
-
-PUBLIC char *get_line(FILE *fp);
-
-
-PUBLIC char *costring(char *string);
-
-
-PUBLIC char *tokenize(char *line);
-
-
-PUBLIC unsigned short xsubi[3];
-
-PUBLIC int            cut_point = -1;
+unsigned short xsubi[3];
+int            cut_point = -1;
 
 /*-------------------------------------------------------------------------*/
 
-PUBLIC void *
+void *
 space(size_t size)
 {
   void *pointer;
@@ -124,7 +80,7 @@ xrealloc(void   *p,
 #endif
 /*------------------------------------------------------------------------*/
 
-PUBLIC void
+void
 nrerror(const char message[])                   /* output message upon error */
 
 
@@ -135,7 +91,7 @@ nrerror(const char message[])                   /* output message upon error */
 
 
 /*------------------------------------------------------------------------*/
-PUBLIC void
+void
 init_rand(void)
 {
   time_t t;
@@ -149,7 +105,7 @@ init_rand(void)
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC double
+double
 urn(void)
 /* uniform random number generator; urn() is in [0,1] */
 /* uses a linear congruential library routine */
@@ -164,7 +120,7 @@ urn(void)
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC int
+int
 int_urn(int from,
         int to)
 {
@@ -174,7 +130,7 @@ int_urn(int from,
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC void
+void
 filecopy(FILE *from,
          FILE *to)
 {
@@ -187,7 +143,7 @@ filecopy(FILE *from,
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC char *
+char *
 time_stamp(void)
 {
   time_t cal_time;
@@ -199,7 +155,7 @@ time_stamp(void)
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC char *
+char *
 random_string(int         l,
               const char  symbols[])
 {
@@ -220,7 +176,7 @@ random_string(int         l,
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC int
+int
 hamming(const char  *s1,
         const char  *s2)
 {
@@ -236,7 +192,7 @@ hamming(const char  *s1,
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC char *
+char *
 get_line(FILE *fp)              /* reads lines of arbitrary length from fp */
 {
   char s[512], *line, *cp;
@@ -262,7 +218,7 @@ get_line(FILE *fp)              /* reads lines of arbitrary length from fp */
 }
 
 
-PUBLIC char *
+char *
 tokenize(char *line)
 {
   char  *pos, *copy = NULL;
@@ -300,7 +256,7 @@ tokenize(char *line)
 }
 
 
-PUBLIC char *
+char *
 costring(char *string)
 {
   char  *ctmp;
@@ -356,7 +312,7 @@ pack51(const char *struc,
 }
 
 
-PUBLIC char *
+char *
 pack_structure(const char *struc)
 {
   bool  isstar = false;
@@ -365,7 +321,7 @@ pack_structure(const char *struc)
   char  *s    = NULL;
 
   len = strlen(struc);
-  key = (unsigned char *)space(((len + 4) / 5 + 2) * sizeof(unsigned char));
+  key = (char *)space(((len + 4) / 5 + 2) * sizeof(char));
   s   = (char *)strdup(struc);
   if (s[len - 1] == '*') {
     /* we have a binding competent structure */
@@ -418,13 +374,12 @@ unpack51(const char *packed,
 
 
 /*-----------------------------------------------------------------*/
-PUBLIC char *
+char *
 unpack_structure(const char *packed)
 {
   bool  isstar = false;
   int   struc_endofstr, len;
   char  *struc    = NULL;
-  char  *strucdup = NULL;
   char  *p        = NULL;
 
   p   = (char *)strdup(packed);
@@ -451,7 +406,7 @@ unpack_structure(const char *packed)
 }
 
 
-/* PUBLIC char *unpack_structure(const char *packed) { */
+/* char *unpack_structure(const char *packed) { */
 /*   /\* 5:1 compression using base 3 encoding *\/ */
 /*   int i,j,l; */
 /*   char *struc; */
@@ -467,7 +422,7 @@ unpack_structure(const char *packed)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC short *
+short *
 make_pair_table(const char *structure)
 {
   /* returns array representation of structure.
@@ -514,7 +469,7 @@ make_pair_table(const char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC int
+int
 bp_distance(const char  *str1,
             const char  *str2)
 {

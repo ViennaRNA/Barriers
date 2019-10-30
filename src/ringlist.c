@@ -9,8 +9,6 @@
 #include "pair_mat.h"
 #include "stapel.h"
 
-static char UNUSED  rcsid[] = "$Id: ringlist.c,v 1.1 2001/04/05 08:00:57 ivo Exp $";
-
 int                 MYTURN = 4;
 
 typedef struct _rlItem {
@@ -36,24 +34,8 @@ static int    noLP;             /* no lonely pairs move-set */
 static void ini_or_reset_rl(char  *seq,
                             char  *struc);
 
-
-/* public functiones */
-void RNA_init(char  *seq,
-              int   xtof,
-              int   noLP);
-
-
-void RNA_move_it(char *struc);
-
-
-void RNA_move_it_rates(char *form);
-
-
-void RNA_free_rl(void);
-
-
 #ifdef HARDCORE_DEBUG
-void rl_status(void);
+static void rl_status(void);
 
 
 #endif
@@ -316,7 +298,7 @@ RNA_move_it(char *form)
 void
 RNA_move_it_rates(char *form)
 {
-  int   i, formlen;
+  int   formlen;
   bool  hasstar = false;
 
 #ifdef DEBUG_NB
@@ -536,7 +518,6 @@ dnb_nolp(rlItem *rli)
   rlItem  *rlin = NULL; /* pointers to following pair in helix, if any */
   rlItem  *rljn = NULL;
   rlItem  *rlip = NULL; /* pointers to preceding pair in helix, if any */
-  rlItem  *rljp = NULL;
 
   rlj = rli->down;
   if (rlj->next == rlj->prev) {
@@ -548,7 +529,6 @@ dnb_nolp(rlItem *rli)
   if (rli->prev == rli->next && rli->next->typ != 'x') {
     /* immediate exterior */
     rlip  = rli->next->up;
-    rljp  = rli->next;
   }
 
   if (rlip == NULL && rlin && rljn->next != rljn->prev) {
@@ -672,7 +652,7 @@ fnb(rlItem *rli)
 
 #ifdef HARDCORE_DEBUG
 /**/
-void
+static void
 rl_status(void)
 {
   int i;

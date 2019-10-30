@@ -7,15 +7,7 @@
 #include <string.h>
 #include <math.h>
 #include "utils.h"
-
-static char UNUSED rcsid[] = "$Id: treeplot.c,v 1.9 2003/09/26 13:43:43 ivo Exp $";
-
-typedef struct node {
-  float height;         /* height (energy, time, whatever) of this leaf   */
-  float saddle_height;  /* height of internal node that connects this leaf */
-  int   father;         /* node with which it connects                    */
-  char  *label;         /* label string, if NULL use number+1             */
-} nodeT;
+#include "treeplot.h"
 
 static nodeT *leafs;
 static int cmp_saddle(const void *,
@@ -244,7 +236,7 @@ PS_tree_plot(nodeT  *nodes,
     if (nodes[i].label)
       fprintf(out, "(%s) ", nodes[i].label);
     else
-      fprintf(out, "%3d ", i + 1);
+      fprintf(out, "%3ld ", i + 1);
   }
   fprintf(out, "\n  ] def\n");
 
@@ -271,7 +263,7 @@ PS_tree_plot(nodeT  *nodes,
     if (k == nodes[k].father)
       continue;
 
-    fprintf(out, "[%3d %3d %7.3f] ", k, nodes[k].father, nodes[k].saddle_height);
+    fprintf(out, "[%3ld %3ld %7.3f] ", k, nodes[k].father, nodes[k].saddle_height);
   }
   free(chain);
   free(sindex);

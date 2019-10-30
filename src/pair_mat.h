@@ -15,10 +15,6 @@ static int  BP_pair[NBASES][NBASES] =
 
 static short  alias[MAXALPHA + 1];
 static int    pair[MAXALPHA + 1][MAXALPHA + 1];
-/* rtype[pair[i][j]]:=pair[j][i] */
-static int    rtype[8] = {
-  0, 2, 1, 4, 3, 6, 5, 7
-};
 
 #define ENCODE(C) ((strchr(Law_and_Order, \
                            (C)) == 0) ? 0 : (strchr(Law_and_Order, (C)) - Law_and_Order))

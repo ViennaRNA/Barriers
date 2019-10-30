@@ -1,56 +1,73 @@
 /* trees.h */
+
+#ifndef BARRIERS_TREES_H
+#define BARRIERS_TREES_H
+
 #include "tree_types.h"
 
-extern int Numtree(int N);
+Tree *
+PTAlloc(int n);
 
+Tree *
+Make3Tree(void);
 
-extern Tree *PTAlloc(int n);
+int
+Numtree(int N);
 
+Tree *
+MakeAllNplus1Trees(Tree *TT);
 
-extern Tree *Make3Tree(void);
+Tree *
+MakeRandomTree(int n);
 
+Tree **
+MakeTreesUpTo(int N);
 
-extern Tree *MakeAllNplus1Trees(Tree *TT);
+void
+PrintTree(Tree T);
 
+void
+FreeTree(Tree *T,
+         int  n);
 
-extern Tree *MakeRandomTree(int n);
+void
+FreeAllTreesUpTo(int  N,
+                 Tree **T);
 
+Tree *
+NNI_Move(Tree TT,
+         int  edge,
+         int  which);
 
-extern Tree **MakeTreesUpTo(int N);
+Tree *
+Make_all_NNI(Tree TT);
 
+Tree *
+MakeRandomNNI(Tree TT);
 
-extern Tree *NNI_Move(Tree  TT,
-                      int   edge,
-                      int   which);
+char *
+Tree2string(Tree t);
 
+char *
+subtrees(Tree T,
+         int  edge,
+         int  vertex,
+         int  *smallest_leaf);
 
-extern Tree *Make_all_NNI(Tree TT);
+int
+number_of_leaves(char *st);
 
+Tree *
+string2Tree(char *s);
 
-extern Tree *MakeRandomNNI(Tree TT);
+int
+fill_T(Tree *T,
+       char *s,
+       int  call);
 
+char *
+InteriorTreeString(char *s);
 
-extern void PrintTree(Tree t);
-
-
-extern void FreeTree(Tree *T,
-                     int  n);
-
-
-extern void FreeAllTreesUpTo(int  N,
-                             Tree **T);
-
-
-extern char *Tree2string(Tree t);
-
-
-extern Tree *string2Tree(char *s);
-
-
-extern int  number_of_leaves(char *st);
-
-
-extern char *InteriorTreeString(char *s);
-
+#endif
 
 /* End of file */

@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "barriers.h"
 #include "hash_util.h"
+#include "ringlist.h"
 #include "cmdline.h"
 #if HAVE_SECIS_EXTENSION
 #include "secis_neighbors.h"
@@ -30,15 +31,8 @@ static void cleanup(char *,
                     unsigned long *);
 
 
-extern int  cut_point;
-extern int  MYTURN;
-extern char *tokenize(char *line);
-
-
-extern char *costring(char *line);
-
-
 static char *program_name;
+
 /*============================*/
 int
 main(int  argc,
@@ -49,7 +43,6 @@ main(int  argc,
   loc_min       *LM;
   unsigned long *tm;
   unsigned long i, errorcode = 0;
-  int           c;
   char          signal[100] = "", what[100] = "", stuff[100] = "";
 
   /* Parse command line */
@@ -193,7 +186,7 @@ main(int  argc,
          mfe_component_true_min_indices[max_mfe_comp_index] != 0;
          max_mfe_comp_index++);
   } else {
-    c = print_results(LM, tm, &opt);
+    (void)print_results(LM, tm, &opt);
   }
 
   fflush(stdout);
@@ -271,13 +264,13 @@ main(int  argc,
       errorcode = 101;
     }
 
-    while (line = get_line(MAPFIN)) {
+    while ((line = get_line(MAPFIN))) {
       map_struc myms;
       token = strtok(line, " \t");
       myms  = get_mapstruc(token, LM, tm);
       if(myms.structure != NULL){
         if(args_info.connected_flag){
-          unsigned long new_gradientmin_index, mfe_comp_index;
+          unsigned long mfe_comp_index;
 
           for (mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0; mfe_comp_index++)
             if (myms.truegradmin == mfe_component_true_min_indices[mfe_comp_index])

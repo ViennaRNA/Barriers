@@ -62,7 +62,6 @@ int main(int argc, char *argv[])
   int i,j,k,n,nP,nF,l,N;
   char *s;
   char **P;
-  double f;
   int ***J;
   int seedval;
   int *EN;
@@ -163,7 +162,7 @@ int main(int argc, char *argv[])
 
 void num2STRING(int dec, int l, char s[])
 {
-   int i,d,rest;
+   int i,d;
    char RNAlphaBet[] = "+-";
 
    d = dec ;

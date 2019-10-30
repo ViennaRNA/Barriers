@@ -1,7 +1,7 @@
 /* simple_set.h */
 /* Last changed Time-stamp: <2001-07-04 20:31:06 ivo> */
-#ifndef SIMPLE_SET_H
-#define SIMPLE_SET_H
+#ifndef BARRIERS_SIMPLE_SET_H
+#define BARRIERS_SIMPLE_SET_H
 
 typedef struct {
   unsigned long basin;
@@ -15,22 +15,22 @@ typedef struct set {
   basinT        *data;
 } Set;
 
-extern Set *new_set(int elems);
+Set *new_set(int elems);
 
 
-extern int set_add(Set    *set,
-                   basinT *data);
+int set_add(Set    *set,
+            basinT *data);
 
 
-extern void set_kill(Set *set);
+void set_kill(Set *set);
 
 
-extern int set_merge(Set        *s1,
-                     const Set  *s2);
+int set_merge(Set        *s1,
+              const Set  *s2);
 
 
-extern int set_find(Set     *set,
-                    basinT  *data);
+int set_find(Set     *set,
+             basinT  *data);
 
 
 #endif

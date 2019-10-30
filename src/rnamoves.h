@@ -1,5 +1,6 @@
-#ifndef _rnamoves_h
-#define _rnamoves_h
+#ifndef BARRIERS_RNAMOVES_H
+#define BARRIERS_RNAMOVES_H
+
 /**
  * Alternative move set definitions for RNAs
  * for use in the RNA landscape analysis tool "barriers"
@@ -57,4 +58,4 @@ char const * RNA2_get_form();
  */
 int RNA2_get_len();
 
-#endif //_rnamoves_h
+#endif

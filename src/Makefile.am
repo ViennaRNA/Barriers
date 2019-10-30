@@ -26,7 +26,6 @@ barriers_SOURCES = \
 noinst_HEADERS = \
     barrier_types.h \
     barriers.h \
-    hash.h \
     hash_util.h \
     pair_mat.h \
     ringlist.h \

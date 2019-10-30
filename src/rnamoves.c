@@ -41,7 +41,7 @@ typedef struct RNA2_data {
      *
      * The pairtable is zero-based, i.e. pt[0] is the pairing partner of first base
      */
-    int *pt;        /**< pairtable, i.e. pt[i]==j iff base i pairs with base j
+    int *pt;        /**< pairtable, i.e. pt[i]==j iff base i pairs with base j */
 
     /** local stack for structure parser */
     int *stack;    
@@ -61,12 +61,12 @@ RNA2_data_t *r2d;
 int valid_bp_char( char const a, char const b)
 {    
     if(
-            a == 'A' && b == 'U' ||
-            a == 'U' && b == 'A' ||
-            a == 'G' && b == 'C' ||
-            a == 'C' && b == 'G' ||
-            a == 'G' && b == 'U' ||
-            a == 'U' && b == 'G'
+            (a == 'A' && b == 'U') ||
+            (a == 'U' && b == 'A') ||
+            (a == 'G' && b == 'C') ||
+            (a == 'C' && b == 'G') ||
+            (a == 'G' && b == 'U') ||
+            (a == 'U' && b == 'G')
             )
         return 1;
     else
@@ -138,8 +138,8 @@ void RNA2_init(char const * const sequence, int const shift, int const noLP)
 
     r2d->form = (char *)malloc((r2d->len+1) * sizeof(char));
 
-    r2d->pt = (unsigned int *)malloc((r2d->len+1)*sizeof(unsigned int));
-    r2d->stack = (unsigned int*)malloc(r2d->len*sizeof(unsigned int));
+    r2d->pt = (int *)malloc((r2d->len+1)*sizeof(int));
+    r2d->stack = (int*)malloc(r2d->len*sizeof(int));
 
     for( i=0; i<r2d->len; i++) /* initialize with open structure */
     {

@@ -2,8 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include "barrier_types.h"
-#include "compress.h"
 #include "utils.h"
+
+#include "compress.h"
 
 static int  ratio;
 static char *alphabet;

@@ -13,7 +13,7 @@ AC_SUBST(VERSION)
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_SILENT_RULES([yes])
-AM_INIT_AUTOMAKE([1.11 -Wall -Werror])
+AM_INIT_AUTOMAKE
 
 dnl enable unit tests if 'Check' framework is installed
 AC_CHECK_HEADERS(
@@ -64,7 +64,7 @@ AC_ARG_WITH(hash-bits,
   fi
 ],
 )
-AC_DEFINE_UNQUOTED(HASHBITS, $hashbits, [use hash with 2^HASHBITS entries])
+AC_DEFINE_UNQUOTED(HASHBITS, [(unsigned int)$hashbits], [use hash with 2^HASHBITS entries])
 
 AC_ARG_WITH(secis,
 [  --with-secis          build SECIS element design extension],
