@@ -184,9 +184,14 @@ main(int  argc,
     opt.seq = costring(opt.seq);
 
   unsigned long *mfe_component_true_min_indices = NULL;
+  unsigned long max_mfe_comp_index              = 0;
+
   if (opt.want_connected) {
     mfe_component_true_min_indices = compute_connected_component_states(LM, tm);
     print_rna_barriers_output(LM, tm, &opt, mfe_component_true_min_indices);
+    for (max_mfe_comp_index = 0;
+         mfe_component_true_min_indices[max_mfe_comp_index] != 0;
+         max_mfe_comp_index++);
   } else {
     c = print_results(LM, tm, &opt);
   }
@@ -224,8 +229,6 @@ main(int  argc,
 
       if(opt.want_connected){
         /* map minima indices to connected component output indices */
-        unsigned long max_mfe_comp_index;
-        for (max_mfe_comp_index = 0; mfe_component_true_min_indices[max_mfe_comp_index] != 0; max_mfe_comp_index++);
         if(l1 > max_mfe_comp_index || l2 > max_mfe_comp_index){
           fprintf(stderr,"Error: one of the path indices is not in the connected component! l1=%ld, l2=%ld, maximum=%ld\n", l1, l2, max_mfe_comp_index);
           exit(EXIT_FAILURE);
@@ -274,9 +277,7 @@ main(int  argc,
       myms  = get_mapstruc(token, LM, tm);
       if(myms.structure != NULL){
         if(args_info.connected_flag){
-          unsigned long new_gradientmin_index, mfe_comp_index, max_mfe_comp_index;
-
-          for (max_mfe_comp_index = 0; mfe_component_true_min_indices[max_mfe_comp_index] != 0; max_mfe_comp_index++);
+          unsigned long new_gradientmin_index, mfe_comp_index;
 
           for (mfe_comp_index = 0; mfe_component_true_min_indices[mfe_comp_index] != 0; mfe_comp_index++)
             if (myms.truegradmin == mfe_component_true_min_indices[mfe_comp_index])
