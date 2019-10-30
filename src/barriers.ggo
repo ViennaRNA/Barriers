@@ -80,12 +80,12 @@ section "Barrier Tree Computation"
 option "connected" c
 "Restrict the output to the connected component.\n"
 details="Depending on the input data, the corresponding barrier tree(s) might\
- not be connected, i.e. the internal represenation actually is a barrier forest.\
+ not be connected, i.e. the internal representation actually is a barrier forest.\
  Enabling this option will restrict the output to the one connected component\
- the ground state belongs to. In case there are multiple ground states, the\
- component of the first according to the input order will be selected. Note,\
- that restricting the rate computation to the connected component also ensures\
- that the rate matrix is ergodic.\n\n"
+ the ground state belongs to. In case there are multiple ground states that belong\
+ to different trees, the first (according to the input order) will be selected.\
+ Note, that restricting the rate computation to the connected component also\
+ ensures that the rate matrix is ergodic.\n\n"
 flag
 off
 
