@@ -50,7 +50,6 @@ static char           *(*pack_my_structure)(const char *);
 static char           *(*unpack_my_structure)(const char *);
 
 static double         kT = -1;
-extern unsigned long  collisions;
 
 /* global switches */  /* defaults changed */
 static int            print_saddles = 1;

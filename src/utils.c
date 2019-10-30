@@ -112,10 +112,6 @@ urn(void)
  * 48 bit arithmetic
  */
 {
-  extern double
-  erand48(unsigned short[3]);
-
-
   return erand48(xsubi);
 }
 

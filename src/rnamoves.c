@@ -8,9 +8,9 @@
 
 #include "rnamoves.h"
 #include "stapel.h"
+#include "ringlist.h" /* for MYTURN */
 
 
-extern int  MYTURN;     /**< minimum loop length + 1 */
 const int   UNPRD = -1; /**< value assigned to unpaired bases in pairtable */
 const int   VERB  = 0;  /**< be verbose? */
 

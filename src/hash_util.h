@@ -5,6 +5,8 @@
 #ifndef BARRIERS_HASH_UTIL_H
 #define BARRIERS_HASH_UTIL_H
 
+extern unsigned long  collisions;
+
 void *
 lookup_hash(void *x);
 
