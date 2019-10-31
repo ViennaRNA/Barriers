@@ -17,12 +17,12 @@ section "General Options"
 sectiondesc="Command line options which alter the general behavior of this program\n\n"
 
 option "verbose"  v
-"Be verbose, i.e. print more information.\n\n"
+"Be verbose, i.e. print more information."
 flag
 off
 
 option "quiet"    q
-"Be quiet (also inhibit PS tree output).\n\n"
+"Be quiet (also inhibit PS tree output)."
 flag
 off
 
@@ -35,7 +35,7 @@ sectiondesc="The graph and move set options specify the types of states/conforma
  for a landscape of canonical RNA structures.\n\n"
 
 option "graph"    G
-"Define type of the graph, i.e. configuration space\n"
+"Define type of the graph, i.e. configuration space"
 string
 default="RNA"
 typestr="Graph"
@@ -53,7 +53,7 @@ details="The configuration space (graph) determines the neighborhood of the syst
  '?': General graph; adjacency list in file\n\n"
 
 option "moves"    M
-"Select the move-set for generating neighbors of a configuration (if Graph allows several different ones).\n"
+"Select the move-set for generating neighbors of a configuration (if Graph allows several different ones)."
 string
 details="The available move sets heavily depend on the choice of the graph.\nFor\
  RNA structures, the available move sets are:\n\n\
@@ -69,7 +69,7 @@ details="The available move sets heavily depend on the choice of the graph.\nFor
  Trees always use NNI (Nearest Neighbour Interchange).\n\n"
 
 option "poset"    -
-"Input is a poset from n objective functions.\n\n"
+"Input is a poset from n objective functions."
 int
 default="0"
 hidden
@@ -77,80 +77,80 @@ hidden
 section "Barrier Tree Computation"
 
 option "connected" c
-"Restrict the output to the connected component.\n"
+"Restrict the output to the connected component."
 details="Depending on the input data, the corresponding barrier tree(s) might\
  not be connected, i.e. the internal representation actually is a barrier forest.\
  Enabling this option will restrict the output to the one connected component\
  the ground state belongs to. In case there are multiple ground states that belong\
  to different trees, the first (according to the input order) will be selected.\
  Note, that restricting the rate computation to the connected component also\
- ensures that the rate matrix is ergodic.\n\n"
+ ensures that the rate matrix is ergodic.\n"
 flag
 off
 
 option "bsize"    -
-"Print the size of of each basin in output.\n\n"
+"Print the size of of each basin in output."
 flag
 off
 
 option "ssize"    -
-"Print saddle component sizes.\n\n"
+"Print saddle component sizes."
 flag
 off
 
 option "max"      -
-"Compute only the lowest <num> local minima.\n\n"
+"Compute only the lowest <num> local minima."
 int
 default="100"
 
 option "minh"     -
-"Print only minima with energy barrier greater than delta.\n\n"
+"Print only minima with energy barrier greater than delta."
 double
 typestr="<delta>"
 default="0.000001"
 
 option "saddle"   -
-"Print the saddle point conformations in output.\n\n"
+"Print the saddle point conformations in output."
 flag
 off
 
 section "Transition Rate Computation"
 
 option "rates"    -
-"Compute rates between macro states (basins).\n"
+"Compute rates between macro states (basins)."
 details="Two output files are written, \"rates.out\" containing the\
  rates in ASCII format and \"rates.bin\" in binary form. Both output\
- files can be readily used in conjunction with the treekin program.\n\n"
+ files can be readily used in conjunction with the treekin program.\n"
 flag
 off
 
 option "rates-text-file" -
-"Specify file name for the rates output.\n\n"
+"Specify file name for the rates output."
 typestr="<filename>"
 string
 default="rates.out"
 
 option "rates-binary-file" -
-"Specify file name for the binary rates output.\n\n"
+"Specify file name for the binary rates output."
 typestr="<filename>"
 string
 default="rates.bin"
 
 option "noLP-rate"  -
-"Scale rates of double moves for RNA-noLP (e.g. 0.01).\n\n"
+"Scale rates of double moves for RNA-noLP (e.g. 0.01)."
 double
 default="1.0"
 
 option "microrates" -
-"Compute microscopic rates between connected states.\n\n"
+"Compute microscopic rates between connected states."
 flag
 off
 hidden
 
 option "temp"     T
-"Set temperature in centigrade.\n"
+"Set temperature in centigrade."
 details="This temperature is used to compute Boltzmann fators in\
- conjunction with --rates option.\n\n"
+ conjunction with --rates option.\n"
 double
 default="37.0"
 hidden
@@ -158,15 +158,15 @@ hidden
 section "Miscellaneous Options"
 
 option "path"     P
-"Backtrack an optimal path between local minimum l2 and l1.\n"
+"Backtrack an optimal path between local minimum l2 and l1."
 details="The option can be specified multiple times and each path will\
- be written to a corresponding file \"path.l1.l2.txt\".\n\n"
+ be written to a corresponding file \"path.l1.l2.txt\".\n"
 typestr="<l1>=<l2>"
 string
 multiple
 
 option "mapstruc"  -
-"Map conformations to minima in the tree.\n\n"
+"Map conformations to minima in the tree."
 details="Once the barrier tree (and optionally rates) are constructed , read\
  stuctures from \"filename\" and map them to their corresponding minima (macro\
  states). Output is written to file \"mapstruc.out\" in table format with\
@@ -178,12 +178,12 @@ details="Once the barrier tree (and optionally rates) are constructed , read\
  5: truebasin\n\n\
  6: gradient_basin\n\n\
  7: true_grad_basin\n\n\
-The last number is probably what you want, true basins are those that fulfill the minh criterium.\n\n"
+The last number is probably what you want, true basins are those that fulfill the minh criterium.\n"
 typestr="<filename>"
 string
 
 option "mapstruc-output"  -
-"Output file for printing structure mapping as requested by --mapstruc parameter.\n\n"
+"Output file for printing structure mapping as requested by --mapstruc parameter."
 typestr="<filename>"
 string 
 dependon="mapstruc"
