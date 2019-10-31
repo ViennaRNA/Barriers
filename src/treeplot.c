@@ -311,14 +311,14 @@ cmp_saddle(const void *A,
 {
   float diff;
 
-  diff = leafs[*((int *)A)].saddle_height -
-         leafs[*((int *)B)].saddle_height;
+  diff = leafs[*((unsigned long *)A)].saddle_height -
+         leafs[*((unsigned long *)B)].saddle_height;
   /*    fprintf(stderr, "%d %d %f\n",*((int *)A), *((int *)B), diff);  */
   if (diff < -1e-6)
     return -1;
   else if (diff > 1e-6)
     return 1;
 
-  diff = leafs[*((int *)A)].height - leafs[*((int *)B)].height;
+  diff = leafs[*((unsigned long *)A)].height - leafs[*((unsigned long *)B)].height;
   return (diff < 0) ? -1 : 1;
 }
