@@ -24,13 +24,13 @@ void
 mark_global(loc_min *Lmin);
 
 
-int
+void
 print_results(loc_min         *Lmin,
               unsigned long   *truemin,
               barrier_options *opt);
 
 
-int
+void
 print_rna_barriers_output(loc_min         *Lmin,
                           unsigned long   *truemin,
                           barrier_options *opt,

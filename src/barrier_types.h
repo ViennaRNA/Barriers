@@ -53,7 +53,7 @@ typedef struct {
 typedef struct {
   hash_entry  *hp;
   char        key[128];
-  short       num;
+  int       num;
 } path_entry;
 
 typedef struct {

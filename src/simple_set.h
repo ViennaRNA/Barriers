@@ -10,8 +10,8 @@ typedef struct {
 } basinT;
 
 typedef struct set {
-  unsigned long num_elem;
-  unsigned long max_elem;
+  int num_elem;
+  int max_elem;
   size_t        elem_size;
   basinT        *data;
 } Set;

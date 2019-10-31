@@ -11,21 +11,32 @@ static int
 comp_basinT(const void  *a,
             const void  *b)
 {
-  int A, B;
+  unsigned long A, B, index_a, index_b;
 
   A = ((basinT *)a)->basin;
   B = ((basinT *)b)->basin;
-  if (A != B)
-    return A - B;
+  if (A != B){
+    if (A > B)
+      return 1;
+    else
+      return -1;
+  }
 
   if (((basinT *)a)->hp == NULL)
     return -1;
 
-  if (((basinT *)a)->hp == NULL)
+  if (((basinT *)b)->hp == NULL)
     return 1;
 
   /* else use energy or index in file */
-  return ((basinT *)a)->hp->n - ((basinT *)b)->hp->n;
+  index_a = ((basinT *)a)->hp->n;
+  index_b = ((basinT *)b)->hp->n;
+  if(index_a > index_b)
+    return 1;
+  if(index_a < index_b)
+    return -1;
+  else
+    return 0;
 }
 
 

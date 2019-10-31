@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 #include "utils.h"
 #include "treeplot.h"
 
@@ -17,7 +18,7 @@ cmp_saddle(const void *,
 
 
 typedef struct link {
-  int         x;
+  unsigned long         x;
   struct link *next;
 } linkT;
 
@@ -61,8 +62,9 @@ PS_tree_plot(nodeT          *nodes,
      */
     k = sindex[i];
     f = nodes[k].father;                /* ith saddle merges k and f */
-    if (f == -1)
+    if (f == ULONG_MAX)
       f = 0;
+
 
     if (k == f)
       continue;          /* lowest node doesn't merge */
@@ -230,7 +232,7 @@ PS_tree_plot(nodeT          *nodes,
   if (ll < 8)
     ll = 8;
 
-  ll = (int)(80 / ll);
+  ll = (unsigned long)(80 / ll);
   for (i = 0; i < n; i++) {
     if (i % ll == 0)
       fprintf(out, "\n   ");
@@ -249,7 +251,7 @@ PS_tree_plot(nodeT          *nodes,
     if (i % 5 == 0)
       fprintf(out, "\n   ");
 
-    fprintf(out, "[%-3d %7.3f] ", chain[i].x, nodes[i].height);
+    fprintf(out, "[%-3ld %7.3f] ", chain[i].x, nodes[i].height);
   }
   fprintf(out, "  \n] def\n");
 
@@ -262,6 +264,7 @@ PS_tree_plot(nodeT          *nodes,
       fprintf(out, "\n   ");
 
     k = sindex[i];
+
     if (k == nodes[k].father)
       continue;
 

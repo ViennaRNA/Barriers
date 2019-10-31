@@ -515,7 +515,7 @@ read_data(barrier_options opt,
   if (token == NULL)
     return 0;
 
-  l = strlen(token);
+  l = (int)strlen(token);
   if (l < 1)
     return 0;
 
@@ -945,13 +945,13 @@ mark_global(loc_min *Lmin)
 
 
 /*====================*/
-int
+void
 print_results(loc_min         *Lmin,
               unsigned long   *truemin,
               barrier_options *opt)
 {
   char          *sequence = opt->seq;
-  unsigned long i, ii, j, k, n, connected = 1;
+  unsigned long i, ii, j, k, n;
   char          *struc = NULL, *laststruc = NULL;
   char          *format = NULL, *formatA = NULL, *formatB = NULL;
   bool          otherformat = false;
@@ -1055,18 +1055,17 @@ print_results(loc_min         *Lmin,
     free(struc);
   } /* end for */
   free(laststruc);
-  return connected;
 }
 
 
-int
+void
 print_rna_barriers_output(loc_min         *Lmin,
                           unsigned long   *truemin,
                           barrier_options *opt,
                           unsigned long   *mfe_component_true_min_indices)
 {
   char          *sequence = opt->seq;
-  unsigned long i, ii, k, n, connected = 1;
+  unsigned long i, ii, k, n;
   char          *struc = NULL, *laststruc = NULL;
 
   char          *format = NULL, *formatA = NULL, *formatB = NULL;
@@ -1178,7 +1177,6 @@ print_rna_barriers_output(loc_min         *Lmin,
     free(struc);
   } /* end for */
   free(laststruc);
-  return connected;
 }
 
 
@@ -1220,8 +1218,8 @@ compute_connected_component_states(loc_min        *lmin,
   unsigned long *mfe_component_minima = malloc(sizeof(unsigned long) * (truemin[0] + 1));
   unsigned long ii;
 
-  unsigned int  star_mfe_index    = UINT_MAX;
-  unsigned int  normal_mfe_index  = UINT_MAX;
+  unsigned long  star_mfe_index    = ULONG_MAX;
+  unsigned long  normal_mfe_index  = ULONG_MAX;
   float         star_mfe          = FLT_MAX;
   float         normal_mfe        = FLT_MAX;
 
@@ -1306,7 +1304,7 @@ ps_tree(loc_min       *Lmin,
     if (f == 0)
       E_saddle = Lmin[0].E_saddle;         /* maximum energy */
 
-    nodes[s1 - 1].father = (f == 0) ? -1 : truemin[f] - 1;
+    nodes[s1 - 1].father = (f == 0) ? ULONG_MAX : truemin[f] -1;
 
     nodes[s1 - 1].height        = Lmin[ii].energy;
     nodes[s1 - 1].saddle_height = E_saddle;
@@ -1440,7 +1438,7 @@ backtrack_path_rec(unsigned long  l1,
   if (l1 > l2) {
     dir = -1;
     {
-      int t;
+      unsigned long t;
       t   = l1;
       l1  = l2;
       l2  = t;
@@ -1516,7 +1514,7 @@ walk_limb(hash_entry    *hp,
           const char    *tag)
 {
   char          *tmp;
-  unsigned long num = 0;
+  int num = 0;
   hash_entry    *htmp;
 
   tmp = (char *)space(strlen(tag) + 4);
@@ -1636,14 +1634,19 @@ comp_comps(const void *A,
            const void *B)
 {
   struct comp   *a, *b;
-  unsigned long r, i = 0;
+  unsigned long i = 0, ba, bb;
 
   a = (struct comp *)A;
   b = (struct comp *)B;
   for (i = 0; i < a->basins->num_elem && i < b->basins->num_elem; i++) {
-    r = a->basins->data[i].basin - b->basins->data[i].basin;
-    if (r != 0)
-      return r;
+    ba = a->basins->data[i].basin;
+    bb = b->basins->data[i].basin;
+    if (ba != bb){
+      if (ba > bb)
+        return 1;
+      else
+        return -1;
+    }
   }
   return (i == a->basins->num_elem) ? -1 : 1;
 }
@@ -1993,7 +1996,7 @@ ps_tree_mfe_component(loc_min       *Lmin,
     if (f != 0 && mfe_comp_father_index >= mfe_comp_max)
       continue;                                                           // do not include it if father is not the root and not in the mfe component.
 
-    nodes[mfe_comp_index].father = (f == 0) ? -1 : mfe_comp_father_index; //(f == 0) ? -1 : truemin[f] - 1;
+    nodes[mfe_comp_index].father = (f == 0) ? ULONG_MAX : mfe_comp_father_index; //(f == 0) ? -1 : truemin[f] - 1;
 
     nodes[mfe_comp_index].height        = Lmin[ii].energy;
     nodes[mfe_comp_index].saddle_height = E_saddle;

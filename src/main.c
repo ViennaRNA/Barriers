@@ -189,7 +189,7 @@ main(int  argc,
          mfe_component_true_min_indices[max_mfe_comp_index] != 0;
          max_mfe_comp_index++);
   } else {
-    (void)print_results(LM, tm, &opt);
+      print_results(LM, tm, &opt);
   }
 
   fflush(stdout);
@@ -359,15 +359,15 @@ decode_switches(int   argc,
   if (args_info.full_help_given)
     cmdline_parser_print_full_help();
 
-  opt.max_print       = args_info.max_arg;
+  opt.max_print       = (unsigned long)args_info.max_arg;
   opt.minh            = args_info.minh_arg;
   opt.poset           = args_info.poset_arg;
-  opt.want_quiet      = args_info.quiet_given;
-  opt.want_verbose    = args_info.verbose_given;
-  opt.want_connected  = args_info.connected_given;
-  opt.bsize           = args_info.bsize_given;
-  opt.ssize           = args_info.ssize_given;
-  opt.print_saddles   = args_info.saddle_given;
+  opt.want_quiet      = args_info.quiet_flag;
+  opt.want_verbose    = args_info.verbose_flag;
+  opt.want_connected  = args_info.connected_flag;
+  opt.bsize           = args_info.bsize_flag;
+  opt.ssize           = args_info.ssize_flag;
+  opt.print_saddles   = args_info.saddle_flag;
   opt.rates           = Barriers_no_rates;
   if (args_info.rates_given)
     opt.rates |= Barriers_both_rates; // print both files
@@ -381,7 +381,7 @@ decode_switches(int   argc,
 
   opt.binary_rates_file = args_info.rates_binary_file_arg;
 
-  opt.microrates  = args_info.microrates_given;
+  opt.microrates  = args_info.microrates_flag;
   GRAPH           = args_info.graph_arg;
   opt.noLP_rate   = (args_info.noLP_rate_given) ? args_info.noLP_rate_arg : 1.;
   if (args_info.moves_given)
