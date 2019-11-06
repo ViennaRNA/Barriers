@@ -124,8 +124,8 @@ main(int  argc,
       free(line);
       line              = get_line(opt.INFILE);
       len               = strlen(line);
-      sec_structure     = (char *)calloc(len + 1, sizeof(char));
-      protein_sequence  = (char *)calloc(len + 1, sizeof(char));
+      sec_structure     = (char *)space((len + 1)* sizeof(char));
+      protein_sequence  = (char *)space((len + 1)* sizeof(char));
       sscanf(line, "%s %s", sec_structure, protein_sequence);
 
       if (opt.want_verbose)
