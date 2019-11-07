@@ -14,7 +14,7 @@ drawing of the resulting tree is written to \"tree.ps\" in the current directory
 
 # Options
 section "General Options"
-sectiondesc="Command line options which alter the general behavior of this program\n\n"
+sectiondesc="Command line options which alter the general behavior of this program.\n\n"
 
 option "verbose"  v
 "Be verbose, i.e. print more information."
@@ -35,7 +35,7 @@ sectiondesc="The graph and move set options specify the types of states/conforma
  for a landscape of canonical RNA structures.\n\n"
 
 option "graph"    G
-"Define type of the graph, i.e. configuration space"
+"Define type of the graph, i.e. configuration space."
 string
 default="RNA"
 typestr="Graph"
@@ -129,17 +129,20 @@ option "rates-text-file" -
 typestr="<filename>"
 string
 default="rates.out"
+hidden
 
 option "rates-binary-file" -
 "Specify file name for the binary rates output."
 typestr="<filename>"
 string
 default="rates.bin"
+hidden
 
 option "noLP-rate"  -
 "Scale rates of double moves for RNA-noLP (e.g. 0.01)."
 double
 default="1.0"
+hidden
 
 option "microrates" -
 "Compute microscopic rates between connected states."
@@ -148,7 +151,7 @@ off
 hidden
 
 option "temp"     T
-"Set temperature in centigrade."
+"Set temperature in degree centigrade."
 details="This temperature is used to compute Boltzmann fators in\
  conjunction with --rates option.\n"
 double
@@ -183,9 +186,10 @@ typestr="<filename>"
 string
 
 option "mapstruc-output"  -
-"Output file for printing structure mapping as requested by --mapstruc parameter."
-typestr="<filename>"
+"Specify the filename for structure mapping output."
+typestr="<file>"
 string 
 dependon="mapstruc"
 default="mapstruc.out"
+hidden
 
