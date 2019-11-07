@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "rnamoves.h"
+#include "utils.h"
 #include "stapel.h"
 #include "ringlist.h" /* for MYTURN */
 
@@ -139,20 +140,20 @@ RNA2_init(char const *const sequence,
     RNA2_free();
 
   isInitialized = 1;
-  r2d           = (RNA2_data_t *)malloc(sizeof(RNA2_data_t));
+  r2d           = (RNA2_data_t *)space(sizeof(RNA2_data_t));
 
   r2d->len  = strlen(sequence);
-  r2d->seq  = (char *)malloc((r2d->len + 1) * sizeof(char));
+  r2d->seq  = (char *)space((r2d->len + 1) * sizeof(char));
   strcpy(r2d->seq, sequence);
   normalize_seq();     /* make uppercase, convert T to U */
 
   r2d->shift  = shift;
   r2d->noLP   = noLP;
 
-  r2d->form = (char *)malloc((r2d->len + 1) * sizeof(char));
+  r2d->form = (char *)space((r2d->len + 1) * sizeof(char));
 
-  r2d->pt     = (int *)malloc((r2d->len + 1) * sizeof(int));
-  r2d->stack  = (int *)malloc(r2d->len * sizeof(int));
+  r2d->pt     = (int *)space((r2d->len + 1) * sizeof(int));
+  r2d->stack  = (int *)space(r2d->len * sizeof(int));
 
   for (i = 0; i < r2d->len; i++) {
     /* initialize with open structure */

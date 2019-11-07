@@ -1215,7 +1215,7 @@ compute_connected_component_states(loc_min        *lmin,
                                    unsigned long  *truemin)
 {
   unsigned long nlmin                 = lmin[0].fathers_pool;
-  unsigned long *mfe_component_minima = malloc(sizeof(unsigned long) * (truemin[0] + 1));
+  unsigned long *mfe_component_minima = space(sizeof(unsigned long) * (truemin[0] + 1));
   unsigned long ii;
 
   unsigned long  star_mfe_index    = ULONG_MAX;

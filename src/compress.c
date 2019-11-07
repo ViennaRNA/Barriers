@@ -86,7 +86,7 @@ pack_em(const char *string)
   l                 = strlen(string);
   orig_stringlength = l;
   packed            =
-    (unsigned char *)calloc(1, ((l + ratio - 1) / ratio + 1) * sizeof(unsigned char));
+    (unsigned char *)space(1* ((l + ratio - 1) / ratio + 1) * sizeof(unsigned char));
 
   j = i = pi = 0;
   while (i < l) {
@@ -113,7 +113,7 @@ unpack_em(const char *packed)
 
   l     = strlen(packed);
   pp    = (unsigned char *)packed;
-  struc = (char *)calloc(1, (l * ratio + 1) * sizeof(char));
+  struc = (char *)space(1* (l * ratio + 1) * sizeof(char));
 
   j = 0;
   for (i = j = 0; i < l; i++) {

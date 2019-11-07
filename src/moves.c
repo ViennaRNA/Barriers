@@ -18,9 +18,9 @@ initialize_crankshaft(void)
 {
   int i;
 
-  move = (char **)calloc(NUM, sizeof(char *));
+  move = (char **)space(NUM* sizeof(char *));
   for (i = 0; i < NUM; i++)
-    move[i] = (char *)calloc(5, sizeof(char));
+    move[i] = (char *)space(5* sizeof(char));
 
   switch (ALPHASIZE) {
     /* 123 */
@@ -137,7 +137,7 @@ String_move_it_crankshaft(char *string)
 
   length  = strlen(string);
   rep_len = 4; /* permute max. 4 letters for crankshaft moves */
-  tr_str  = (char *)calloc(rep_len + 1, sizeof(char));
+  tr_str  = (char *)space((rep_len + 1)* sizeof(char));
 
   while (start <= (length - rep_len) + 1) {
     int zahl;

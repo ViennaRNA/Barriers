@@ -112,9 +112,9 @@ ini_or_reset_rl(char  *seq,
     farbe                   = strdup(seq);
     /*      update_fold_params(); */
     make_pair_matrix();
-    poList              = (rlItem **)calloc(len, sizeof(rlItem *));
-    rl                  = (rlItem *)calloc(len + 1, sizeof(rlItem));
-    wurzl               = (rlItem *)calloc(1, sizeof(rlItem));
+    poList              = (rlItem **)space(len* sizeof(rlItem *));
+    rl                  = (rlItem *)space((len + 1)* sizeof(rlItem));
+    wurzl               = (rlItem *)space(1* sizeof(rlItem));
     wurzl->typ          = 'r';
     wurzl->nummer       = -1;
     wurzl->down         = &rl[len];
