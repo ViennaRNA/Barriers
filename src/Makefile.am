@@ -10,7 +10,6 @@ bin_PROGRAMS = barriers
 
 barriers_SOURCES = \
     main.c \
-    hash_util.c \
     barriers.c \
     compress.c \
     stapel.c \
@@ -21,12 +20,12 @@ barriers_SOURCES = \
     utils.c \
     simple_set.c \
     cmdline.c \
-    rnamoves.c
+    rnamoves.c \
+    hash_table_linear_probing_lists/hash_tables.c
 
 noinst_HEADERS = \
     barrier_types.h \
     barriers.h \
-    hash_util.h \
     pair_mat.h \
     ringlist.h \
     stapel.h \
@@ -37,7 +36,8 @@ noinst_HEADERS = \
     simple_set.h \
     compress.h \
     cmdline.h \
-    rnamoves.h
+    rnamoves.h \
+    hash_table_linear_probing_lists/hash_tables.h
 
 
 #  uncomment the following if barriers requires the math library

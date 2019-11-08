@@ -2,7 +2,7 @@
 #define BARRIER_TYPES_H
 
 /* global structures */
-#include "hash_util.h"
+#include "hash_table_linear_probing_lists/hash_tables.h"
 typedef struct {
   unsigned long father;       /* which lmin do I merge with */
   char          *saddle;      /* structure of saddle point */
@@ -31,7 +31,6 @@ typedef struct {
   int                 print_saddles;
   int                 bsize;
   int                 ssize;
-  int                 shut_up;
   unsigned long       max_print;
   double              minh;
   double              kT;

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "utils.h"
-#include "hash_util.h"
+#include "hash_table_linear_probing_lists/hash_tables.h"
 #include "simple_set.h"
 
 

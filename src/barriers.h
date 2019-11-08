@@ -3,13 +3,14 @@
 
 #include <stdbool.h>
 #include "barrier_types.h"
+#include "hash_table_linear_probing_lists/hash_tables.h"
 
 void
 set_barrier_options(barrier_options opt);
 
 
 loc_min *
-barriers(barrier_options opt);
+barriers(barrier_options opt, vrna_hash_table_t* hash_table);
 
 
 unsigned long *
@@ -17,7 +18,7 @@ make_truemin(loc_min *Lmin);
 
 
 void
-check_neighbors(void);
+check_neighbors(vrna_hash_table_t* hash_table);
 
 
 void
@@ -63,7 +64,8 @@ path_entry *
 backtrack_path(unsigned long  l1,
                unsigned long  l2,
                loc_min        *LM,
-               unsigned long  *truemin);
+               unsigned long  *truemin,
+               vrna_hash_table_t *hash_table);
 
 
 void
@@ -76,7 +78,8 @@ print_path(FILE           *PATH,
 map_struc
 get_mapstruc(char           *p,
              loc_min        *LM,
-             unsigned long  *tm);
+             unsigned long  *tm,
+             vrna_hash_table_t* hash_table);
 
 
 void
@@ -87,7 +90,8 @@ print_rates(unsigned long       n,
 
 void
 compute_rates(unsigned long *truemin,
-              char          *sequence);
+              char          *sequence,
+              vrna_hash_table_t* hash_table);
 
 
 void

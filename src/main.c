@@ -11,9 +11,9 @@
 #include "barrier_types.h"
 #include "utils.h"
 #include "barriers.h"
-#include "hash_util.h"
 #include "ringlist.h"
 #include "cmdline.h"
+#include "hash_table_linear_probing_lists/hash_tables.h"
 #if HAVE_SECIS_EXTENSION
 #include "secis_neighbors.h"
 #endif
@@ -31,7 +31,8 @@ decode_switches(int   argc,
 static void
 cleanup(char *,
         loc_min *,
-        unsigned long *);
+        unsigned long *,
+        vrna_hash_table_t *hash_table);
 
 
 static char *program_name;
@@ -167,7 +168,12 @@ main(int  argc,
 
   opt.GRAPH = GRAPH;
 
-  LM = barriers(opt);
+  vrna_callback_ht_compare_entries *compare_function = hash_comp;
+  vrna_callback_ht_hash_function   *hash_function = hash_function_uint64;
+  vrna_callback_ht_free_entry      *free_hash_entry = barriers_free_hash_entry;
+  vrna_hash_table_t hash_table = vrna_ht_init(HASHBITS, compare_function, hash_function, free_hash_entry);
+
+  LM = barriers(opt, &hash_table);
   if (opt.INFILE != stdin)
     fclose(opt.INFILE);
 
@@ -202,7 +208,7 @@ main(int  argc,
   }
 
   if (opt.rates != Barriers_no_rates || opt.microrates) {
-    compute_rates(tm, opt.seq);
+    compute_rates(tm, opt.seq, &hash_table);
 
     if (opt.want_connected) {
       print_rates_of_mfe_component(mfe_component_true_min_indices, &opt, opt.rates);
@@ -236,9 +242,9 @@ main(int  argc,
 
         l1_index_cc = mfe_component_true_min_indices[l1 - 1];
         l2_index_cc = mfe_component_true_min_indices[l2 - 1];
-        path        = backtrack_path(l1_index_cc, l2_index_cc, LM, tm);
+        path        = backtrack_path(l1_index_cc, l2_index_cc, LM, tm, &hash_table);
       } else {
-        path = backtrack_path(l1, l2, LM, tm);
+        path = backtrack_path(l1, l2, LM, tm, &hash_table);
       }
 
       (void)sprintf(tmp, "path.%03ld.%03ld.txt", l1, l2);
@@ -276,7 +282,7 @@ main(int  argc,
     while ((line = get_line(MAPFIN))) {
       map_struc myms;
       token = strtok(line, " \t");
-      myms  = get_mapstruc(token, LM, tm);
+      myms  = get_mapstruc(token, LM, tm, &hash_table);
       if (myms.structure != NULL) {
         if (args_info.connected_flag) {
           unsigned long mfe_comp_index;
@@ -323,7 +329,7 @@ main(int  argc,
   }
 
   free(mfe_component_true_min_indices);
-  cleanup(opt.seq, LM, tm);
+  cleanup(opt.seq, LM, tm, &hash_table);
   exit(errorcode);
 }
 
@@ -331,12 +337,14 @@ main(int  argc,
 static void
 cleanup(char          *seq,
         loc_min       *L,
-        unsigned long *t)
+        unsigned long *t,
+        vrna_hash_table_t *hash_table)
 {
   /* memory cleanup */
   free(seq);
   free(L);
   free(t);
+  vrna_ht_clear(*hash_table);
 #if WITH_DMALLOC
   kill_hash(); /* freeing the hash takes unacceptably long */
 #endif
@@ -393,7 +401,7 @@ decode_switches(int   argc,
   for (i = 0; i < args_info.path_given; ++i) {
     unsigned long L1, L2;
     if (sscanf(args_info.path_arg[i], "%ld=%ld", &L1, &L2) != 2)
-      nrerror("specifiy paths as e.g.  -P 1=3");
+      nrerror("specify paths as e.g.  -P 1=3");
   }
   if (args_info.inputs_num > 1)
     nrerror("only one input file allowed");
