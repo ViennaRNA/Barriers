@@ -291,10 +291,10 @@ pack51(const char *struc,
         case '\0':
           break;
         case '.':
-          p++;
+          p += 2;
           break;
         case ')':
-          p += 2;
+          p++;
           break;
         default:
           nrerror("pack_structure: illegal character in structure");
@@ -347,7 +347,7 @@ unpack51(const char *packed,
 {
   unsigned const char *pp;
   char                code[3] = {
-    '(', '.', ')'
+    '(', ')', '.'
   };
   int                 i, j;
 
@@ -365,7 +365,7 @@ unpack51(const char *packed,
     j += 5;
   }
   struc[j--] = '\0';
-  while (struc[j] == '(') /* strip trailing ( */
+  while ((j >= 0) && (struc[j] == '(')) /* strip trailing ( */
     struc[j--] = '\0';
   return j + 1;
 }
