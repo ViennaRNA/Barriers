@@ -12,6 +12,7 @@
 
 #define   PUBLIC
 
+
 struct vrna_hash_table_s {
   unsigned int                      hash_bits;
   uint64_t                          Hash_size;
@@ -22,7 +23,6 @@ struct vrna_hash_table_s {
   vrna_callback_ht_hash_function    *Hash_function;
   vrna_callback_ht_free_entry       *Free_hash_entry;
 };
-
 
 typedef struct vrna_hash_entry_list_s {
   uint64_t length;
@@ -123,10 +123,10 @@ vrna_ht_get(struct vrna_hash_table_s  *ht,
     vrna_hash_entry_list_t *entries =  ht->Hash_table[hashval];
     if(entries){
       uint64_t i;
-      for(i=0; i < entries->length; i++){
-        if(ht->Compare_function(x, entries->hash_entries[i]) == 0){
-          //found the same entry
-          return entries->hash_entries[i]; /* success */
+    for(i=0; i < entries->length; i++){
+      if(ht->Compare_function(x, entries->hash_entries[i]) == 0){
+        //found the same entry
+        return entries->hash_entries[i]; /* success */
         }
       }
     }
@@ -152,6 +152,7 @@ vrna_ht_insert(struct vrna_hash_table_s *ht,
     else {
       vrna_hash_entry_list_t *entries = (vrna_hash_entry_list_t *)ht->Hash_table[hashval];
       if(entries){
+
         //at first test if the entry is already in the list.
         uint64_t i;
         for(i=0; i < entries->length; i++){
@@ -162,20 +163,20 @@ vrna_ht_insert(struct vrna_hash_table_s *ht,
         }
 
         ht->Collisions++;
+
         //append the entry to the list with same hash values.
-        if(i >= entries->length){
-          if(i >= entries->allocated_length){
-            //we have to extend the list.
+        if(i >= entries->allocated_length){
+          //we have to extend the list.
             entries->allocated_length += 100;
-            entries->hash_entries = xrealloc(entries->hash_entries, entries->allocated_length*sizeof(void*));
-          }
-          entries->hash_entries[entries->length] = x;
-          entries->length++;
+          entries->hash_entries = xrealloc(entries->hash_entries, entries->allocated_length*sizeof(void*));
         }
+        entries->hash_entries[entries->length] = x;
+        entries->length++;
+
       }
       else{
         //allocate new list and insert the value
-    	entries = space(sizeof(vrna_hash_entry_list_t));
+        entries = space(sizeof(vrna_hash_entry_list_t));
         entries->allocated_length = 2;
         entries->hash_entries = xrealloc(entries->hash_entries, entries->allocated_length*sizeof(void*));
         entries->hash_entries[0] = x;
@@ -204,7 +205,7 @@ vrna_ht_clear(struct vrna_hash_table_s *ht)
           entries->hash_entries[i] = NULL;
         }
         free(entries->hash_entries);
-        free(entries);
+          free(entries);
       }
     }
 
@@ -241,26 +242,27 @@ vrna_ht_remove(struct vrna_hash_table_s *ht,
     }
     vrna_hash_entry_list_t *entries =  ht->Hash_table[hashval];
     if(entries){
+
       uint64_t i;
-      for(i=0; i < entries->length; i++){
-        if(ht->Compare_function(x, entries->hash_entries[i]) == 0){
-          //found the same entry --> shift the list to the left in order to delete the value.
+    for(i=0; i < entries->length; i++){
+      if(ht->Compare_function(x, entries->hash_entries[i]) == 0){
+        //found the same entry --> shift the list to the left in order to delete the value.
           uint64_t size_rest = entries->length-i-1;
-          if(size_rest <= 0){
-            entries->hash_entries[i] = 0;
-          }
-          else{
-            void *offset = entries->hash_entries+i;
-            void *next_entry = entries->hash_entries+i+1;
-            memcpy(offset,next_entry, size_rest*sizeof(void*));
-          }
-          entries->hash_entries[entries->length-1] = NULL;
-          entries->length--;
-          return; /* success */
+        if(size_rest <= 0){
+          entries->hash_entries[i] = 0;
         }
+        else{
+          void *offset = entries->hash_entries+i;
+          void *next_entry = entries->hash_entries+i+1;
+          memcpy(offset,next_entry, size_rest*sizeof(void*));
+        }
+        entries->hash_entries[entries->length-1] = NULL;
+        entries->length--;
+        return; /* success */
       }
     }
   }
+}
 }
 
 
@@ -412,8 +414,7 @@ hash_function_uint64 (void          *x,
   if(x == NULL || ((hash_entry *)x)->structure == NULL){
     return 1;
   }
-  size_t length = strlen(((hash_entry *)x)->structure);
-  if(length == 0){
+  if(((hash_entry *)x)->structure[0] == '\0'){
     return 1;
   }
   uint64_t hv = vrna_ht_db_hash_func(x,hashtable_size);
