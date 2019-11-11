@@ -21,7 +21,7 @@ barriers_SOURCES = \
     simple_set.c \
     cmdline.c \
     rnamoves.c \
-    hash_table_linear_probing_lists/hash_tables.c
+    hash_tables.c
 
 noinst_HEADERS = \
     barrier_types.h \
@@ -37,7 +37,7 @@ noinst_HEADERS = \
     compress.h \
     cmdline.h \
     rnamoves.h \
-    hash_table_linear_probing_lists/hash_tables.h
+    hash_tables.h
 
 
 #  uncomment the following if barriers requires the math library

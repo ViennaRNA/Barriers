@@ -13,7 +13,7 @@
 #include "barriers.h"
 #include "ringlist.h"
 #include "cmdline.h"
-#include "hash_table_linear_probing_lists/hash_tables.h"
+#include "hash_tables.h"
 #if HAVE_SECIS_EXTENSION
 #include "secis_neighbors.h"
 #endif
@@ -32,7 +32,7 @@ static void
 cleanup(char *,
         loc_min *,
         unsigned long *,
-        vrna_hash_table_t *hash_table);
+        hash_table_t *hash_table);
 
 
 static char *program_name;
@@ -168,10 +168,10 @@ main(int  argc,
 
   opt.GRAPH = GRAPH;
 
-  vrna_callback_ht_compare_entries *compare_function = hash_comp;
-  vrna_callback_ht_hash_function   *hash_function = hash_function_uint64;
-  vrna_callback_ht_free_entry      *free_hash_entry = barriers_free_hash_entry;
-  vrna_hash_table_t hash_table = vrna_ht_init(HASHBITS, compare_function, hash_function, free_hash_entry);
+  callback_ht_compare_entries *compare_function = hash_comp;
+  callback_ht_hash_function   *hash_function = hash_function_uint64;
+  callback_ht_free_entry      *free_hash_entry = barriers_free_hash_entry;
+  hash_table_t hash_table = ht_init(HASHBITS, compare_function, hash_function, free_hash_entry);
 
   LM = barriers(opt, &hash_table);
   if (opt.INFILE != stdin)
@@ -338,13 +338,13 @@ static void
 cleanup(char          *seq,
         loc_min       *L,
         unsigned long *t,
-        vrna_hash_table_t *hash_table)
+        hash_table_t *hash_table)
 {
   /* memory cleanup */
   free(seq);
   free(L);
   free(t);
-  vrna_ht_clear(*hash_table);
+  ht_clear(*hash_table);
 #if WITH_DMALLOC
   kill_hash(); /* freeing the hash takes unacceptably long */
 #endif

@@ -15,7 +15,7 @@
 #include "ringlist.h"
 #include "stapel.h"
 #include "utils.h"
-#include "hash_table_linear_probing_lists/hash_tables.h"
+#include "hash_tables.h"
 #include "barrier_types.h"
 #include "compress.h"
 #include "treeplot.h"
@@ -106,7 +106,7 @@ static void
 backtrack_path_rec(unsigned long  l1,
                    unsigned long  l2,
                    const char     *tag,
-                   vrna_hash_table_t* hash_table);
+                   hash_table_t* hash_table);
 
 
 static void
@@ -114,7 +114,7 @@ walk_limb(hash_entry    *hp,
           unsigned long LM,
           int           inc,
           const char    *tag,
-          vrna_hash_table_t *hash_table);
+          hash_table_t *hash_table);
 
 
 static void
@@ -363,7 +363,7 @@ Sorry(char *GRAPH)
 static FILE           *Mergefile  = NULL;
 static unsigned long  Read_lines  = 0;
 loc_min *
-barriers(barrier_options opt, vrna_hash_table_t* hash_table)
+barriers(barrier_options opt, hash_table_t* hash_table)
 {
   int     length;
   double  new_en = 0;
@@ -453,7 +453,7 @@ barriers(barrier_options opt, vrna_hash_table_t* hash_table)
   fflush(stdout);
   if (!shut_up){
     //fprintf(stderr, "%lu hash table collisions\n", collisions);
-    fprintf(stderr, "%lu hash table collisions\n", vrna_ht_collisions(*hash_table));
+    fprintf(stderr, "%lu hash table collisions\n", ht_collisions(*hash_table));
   }
   free(truecomp);
   free(comp);
@@ -619,7 +619,7 @@ read_data(barrier_options opt,
 
 /*======================*/
 void
-check_neighbors(vrna_hash_table_t* hash_table)
+check_neighbors(hash_table_t* hash_table)
 {
   char          *p, *pp, *pform;
   unsigned long basin, obasin = ULONG_MAX;
@@ -648,7 +648,7 @@ check_neighbors(vrna_hash_table_t* hash_table)
 
 
     //hp = lookup_hash(&h);
-    hp = vrna_ht_get(*hash_table, &h);
+    hp = ht_get(*hash_table, &h);
 
     if (hp && POV_size) {
       /* need to check if h is dominated by hp */
@@ -802,11 +802,11 @@ check_neighbors(vrna_hash_table_t* hash_table)
     lmin[gradmin].Zg += Zi;
 
     //int write_result = write_hash(hp);
-    int write_result = vrna_ht_insert(*hash_table, hp);
+    int write_result = ht_insert(*hash_table, hp);
     if (write_result == 1) {
       hash_entry *foo = NULL;
       //foo = (hash_entry *)lookup_hash(hp);
-      foo = vrna_ht_get(*hash_table, hp);
+      foo = ht_get(*hash_table, hp);
       fprintf(stderr, "%s\n", unpack_my_structure(foo->structure));
       fprintf(stderr, "%s\n", unpack_my_structure(hp->structure));
       nrerror("duplicate structure");
@@ -814,7 +814,7 @@ check_neighbors(vrna_hash_table_t* hash_table)
 
     if (write_result == -1) {
       if (!shut_up)
-        fprintf(stderr, "%lu hash table collisions\n", vrna_ht_collisions(*hash_table));
+        fprintf(stderr, "%lu hash table collisions\n", ht_collisions(*hash_table));
 
       exit(EXIT_FAILURE);
     }
@@ -1406,7 +1406,7 @@ backtrack_path(unsigned long  l1,
                unsigned long  l2,
                loc_min        *LM,
                unsigned long  *truemin,
-               vrna_hash_table_t *hash_table)
+               hash_table_t *hash_table)
 {
   unsigned long n_lmin, i, ll1 = 0, ll2 = 0;
   char          *tag;
@@ -1436,7 +1436,7 @@ static void
 backtrack_path_rec(unsigned long  l1,
                    unsigned long  l2,
                    const char     *tag,
-                   vrna_hash_table_t* hash_table)
+                   hash_table_t* hash_table)
 {
   hash_entry    h, *l1dir = NULL, *l2dir = NULL;
   int           dir = 1;
@@ -1481,7 +1481,7 @@ backtrack_path_rec(unsigned long  l1,
   /* found the saddle point, maxsaddle, connecting l1 and l2 */
   h.structure = lmin[maxsaddle].saddle;
   //path[np].hp = lookup_hash(&h);
-  path[np].hp = vrna_ht_get(*hash_table, &h);
+  path[np].hp = ht_get(*hash_table, &h);
   strcpy(path[np].key, tag);
   strcat(path[np].key, "M");
   np++;
@@ -1521,7 +1521,7 @@ walk_limb(hash_entry    *hp,
           unsigned long LM,
           int           inc,
           const char    *tag,
-          vrna_hash_table_t *hash_table)
+          hash_table_t *hash_table)
 {
   char          *tmp;
   int num = 0;
@@ -1666,7 +1666,7 @@ map_struc
 get_mapstruc(char           *p,
              loc_min        *LM,
              unsigned long  *tm,
-             vrna_hash_table_t* hash_table)
+             hash_table_t* hash_table)
 {
   hash_entry    *hp, h;
   char          *pp;
@@ -1677,7 +1677,7 @@ get_mapstruc(char           *p,
   pp            = pack_my_structure(p);
   h.structure   = pp;
   //hp            = lookup_hash(&h);
-  hp= vrna_ht_get(*hash_table, &h);
+  hp= ht_get(*hash_table, &h);
 
   if (hp == NULL) {
     fprintf(stderr, "get_mapstruc: structure not in hash\n");
@@ -1769,7 +1769,7 @@ print_rates(unsigned long       n,
 void
 compute_rates(unsigned long *truemin,
               char          *sequence,
-              vrna_hash_table_t* hash_table)
+              hash_table_t* hash_table)
 {
   unsigned long i, j, ii, r, gb, gradmin, n, rc, *realnr = NULL;
   char          *p, *pp, *structure, newsub[10] = "new.sub", mr[15] = "microrates.out";
@@ -1829,7 +1829,7 @@ compute_rates(unsigned long *truemin,
       h.structure = pp;
       /* check whether we've seen the structure before */
       //if ((hp = lookup_hash(&h))) {
-      if ((hp= vrna_ht_get(*hash_table, &h))) {
+      if ((hp= ht_get(*hash_table, &h))) {
         if (hp->n <= r) {
           gb = hp->GradientBasin;
           while (truemin[gb] == 0)
