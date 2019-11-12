@@ -45,8 +45,8 @@ new_set(int elems)
 {
   Set *set;
 
-  set           = space(sizeof(Set));
-  set->data     = space(sizeof(basinT) * (elems + 1));
+  set           = (Set *)space(sizeof(Set));
+  set->data     = (basinT *)space(sizeof(basinT) * (elems + 1));
   set->max_elem = elems;
   return set;
 }
@@ -92,7 +92,7 @@ set_add(Set     *set,
   set->num_elem++;
   if (set->max_elem <= set->num_elem) {
     set->max_elem *= 2;
-    set->data     = xrealloc(set->data, sizeof(basinT) * (set->max_elem + 1));
+    set->data     = (basinT *)xrealloc(set->data, sizeof(basinT) * (set->max_elem + 1));
   }
 
   memmove(set->data + pos + 1, set->data + pos, (set->num_elem - pos) * sizeof(basinT));

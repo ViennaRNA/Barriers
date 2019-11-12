@@ -216,7 +216,7 @@ MakeTreesUpTo(int N)
   T[1]  = NULL;
   T[2]  = NULL;
   for (i = 3; i <= N; i++)
-    T[i] = space(Numtree(i) * sizeof(Tree *));
+    T[i] = (Tree *)space(Numtree(i) * sizeof(Tree *));
 
   T[3] = Make3Tree();
   for (i = 4; i <= N; i++)

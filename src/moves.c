@@ -475,7 +475,7 @@ Reversal_move_it(char *perm)
 
   P   = String2Perm(perm);
   n   = P[0];
-  P1  = space(sizeof(int) * (n + 1));
+  P1  = (int *)space(sizeof(int) * (n + 1));
 
   for (i = 1; i < n; i++)
     for (j = i + 1; j <= n; j++) {
@@ -575,7 +575,7 @@ unpack_spin(const char *packed)
   char  *spin;
 
   l     = strlen(packed);
-  spin  = space((7 * l + 1) * sizeof(char));
+  spin  = (char *)space((7 * l + 1) * sizeof(char));
   for (i = j = 0; j < l; j++) {
     int p;
     p = packed[j] - 1;

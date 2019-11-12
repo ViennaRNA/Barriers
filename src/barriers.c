@@ -648,7 +648,7 @@ check_neighbors(hash_table_t* hash_table)
 
 
     //hp = lookup_hash(&h);
-    hp = ht_get(*hash_table, &h);
+    hp = (hash_entry *)ht_get(*hash_table, &h);
 
     if (hp && POV_size) {
       /* need to check if h is dominated by hp */
@@ -806,7 +806,7 @@ check_neighbors(hash_table_t* hash_table)
     if (write_result == 1) {
       hash_entry *foo = NULL;
       //foo = (hash_entry *)lookup_hash(hp);
-      foo = ht_get(*hash_table, hp);
+      foo = (hash_entry *)ht_get(*hash_table, hp);
       fprintf(stderr, "%s\n", unpack_my_structure(foo->structure));
       fprintf(stderr, "%s\n", unpack_my_structure(hp->structure));
       nrerror("duplicate structure");
@@ -1221,7 +1221,7 @@ compute_connected_component_states(loc_min        *lmin,
                                    unsigned long  *truemin)
 {
   unsigned long nlmin                 = lmin[0].fathers_pool;
-  unsigned long *mfe_component_minima = space(sizeof(unsigned long) * (truemin[0] + 1));
+  unsigned long *mfe_component_minima = (unsigned long *)space(sizeof(unsigned long) * (truemin[0] + 1));
   unsigned long ii;
 
   unsigned long  star_mfe_index    = ULONG_MAX;
@@ -1481,7 +1481,7 @@ backtrack_path_rec(unsigned long  l1,
   /* found the saddle point, maxsaddle, connecting l1 and l2 */
   h.structure = lmin[maxsaddle].saddle;
   //path[np].hp = lookup_hash(&h);
-  path[np].hp = ht_get(*hash_table, &h);
+  path[np].hp = (hash_entry *)ht_get(*hash_table, &h);
   strcpy(path[np].key, tag);
   strcat(path[np].key, "M");
   np++;
@@ -1677,7 +1677,7 @@ get_mapstruc(char           *p,
   pp            = pack_my_structure(p);
   h.structure   = pp;
   //hp            = lookup_hash(&h);
-  hp= ht_get(*hash_table, &h);
+  hp= (hash_entry *)ht_get(*hash_table, &h);
 
   if (hp == NULL) {
     fprintf(stderr, "get_mapstruc: structure not in hash\n");
@@ -1829,7 +1829,7 @@ compute_rates(unsigned long *truemin,
       h.structure = pp;
       /* check whether we've seen the structure before */
       //if ((hp = lookup_hash(&h))) {
-      if ((hp= ht_get(*hash_table, &h))) {
+      if ((hp= (hash_entry *)ht_get(*hash_table, &h))) {
         if (hp->n <= r) {
           gb = hp->GradientBasin;
           while (truemin[gb] == 0)

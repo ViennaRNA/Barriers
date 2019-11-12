@@ -47,7 +47,7 @@ ht_init(unsigned int                     hash_bits,
     /* must be power of 2^hash_bits -1 (example: HASHSIZE 67108864 -1 = 2^26 -1 )
      * if we want to use '&' instead of modulo '%' for limiting the hash value. */
     ht->Hash_size   = (((uint64_t)1 << hash_bits) - 1);
-    ht->Hash_table  = space((ht->Hash_size + 1)* sizeof(void *));
+    ht->Hash_table  = (void **)space((ht->Hash_size + 1)* sizeof(void *));
     if(!ht->Hash_table){
     	fprintf(stderr,"Error: could not allocate space for the hash table!\n");
     	free(ht);
@@ -120,7 +120,7 @@ ht_get(struct hash_table_s  *ht,
       return NULL;
     }
 
-    hash_entry_list_t *entries =  ht->Hash_table[hashval];
+    hash_entry_list_t *entries =  (hash_entry_list_t *)ht->Hash_table[hashval];
     if(entries){
       uint64_t i;
     for(i=0; i < entries->length; i++){
@@ -168,7 +168,7 @@ ht_insert(struct hash_table_s *ht,
         if(i >= entries->allocated_length){
           //we have to extend the list.
             entries->allocated_length += 100;
-          entries->hash_entries = xrealloc(entries->hash_entries, entries->allocated_length*sizeof(void*));
+          entries->hash_entries = (void **)xrealloc(entries->hash_entries, entries->allocated_length*sizeof(void*));
         }
         entries->hash_entries[entries->length] = x;
         entries->length++;
@@ -176,9 +176,9 @@ ht_insert(struct hash_table_s *ht,
       }
       else{
         //allocate new list and insert the value
-        entries = space(sizeof(hash_entry_list_t));
+        entries = (hash_entry_list_t *)space(sizeof(hash_entry_list_t));
         entries->allocated_length = 2;
-        entries->hash_entries = xrealloc(entries->hash_entries, entries->allocated_length*sizeof(void*));
+        entries->hash_entries = (void **)xrealloc(entries->hash_entries, entries->allocated_length*sizeof(void*));
         entries->hash_entries[0] = x;
         entries->length = 1;
         ht->Hash_table[hashval] = entries;
@@ -197,7 +197,7 @@ ht_clear(struct hash_table_s *ht)
 
   if (ht) {
     for (i = 0; i < ht->Hash_size + 1; i++) {
-      hash_entry_list_t *entries = ht->Hash_table[i];
+      hash_entry_list_t *entries = (hash_entry_list_t *)ht->Hash_table[i];
       if (entries) {
         uint64_t i;
         for(i=0; i < entries->length; i++){
@@ -240,7 +240,7 @@ ht_remove(struct hash_table_s *ht,
       fprintf(stderr,"Error: hash function returns a value that is larger than the size of the hash map!\n");
       return;
     }
-    hash_entry_list_t *entries =  ht->Hash_table[hashval];
+    hash_entry_list_t *entries =  (hash_entry_list_t *)ht->Hash_table[hashval];
     if(entries){
 
       uint64_t i;
@@ -334,8 +334,8 @@ ht_db_hash_func(void           *x,
   register unsigned int   a, b, c, len;
 
   /* Set up the internal state */
-  k   = ((ht_entry_db_t *)x)->structure;
-  len = length = (unsigned int)strlen(k);
+  k   = (unsigned char*)((ht_entry_db_t *)x)->structure;
+  len = length = (unsigned int)strlen((const char*)k);
   a   = b = 0x9e3779b9; /* the golden ratio; an arbitrary value */
   c   = initval;        /* the previous hash value */
 

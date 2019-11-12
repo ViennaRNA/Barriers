@@ -205,7 +205,7 @@ get_line(FILE *fp)              /* reads lines of arbitrary length from fp */
       *cp = '\0';
 
     if (line == NULL)
-      line = space(strlen(s) + 1);
+      line = (char *)space(strlen(s) + 1);
     else
       line = (char *)xrealloc(line, strlen(s) + strlen(line) + 1);
 

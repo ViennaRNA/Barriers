@@ -378,14 +378,14 @@ decode_switches(int   argc,
   opt.print_saddles   = args_info.saddle_flag;
   opt.rates           = Barriers_no_rates;
   if (args_info.rates_given)
-    opt.rates |= Barriers_both_rates; // print both files
+    opt.rates = (barriers_rates_type)(opt.rates | Barriers_both_rates); // print both files
 
   if (args_info.rates_text_file_given)
-    opt.rates |= Barriers_text_rates; // print only text file
+    opt.rates = (barriers_rates_type)(opt.rates | Barriers_text_rates); // print only text file
 
   opt.text_rates_file = args_info.rates_text_file_arg;
   if (args_info.rates_binary_file_given)
-    opt.rates |= Barriers_binary_rates; // print only binary
+    opt.rates = (barriers_rates_type)(opt.rates | Barriers_binary_rates); // print only binary
 
   opt.binary_rates_file = args_info.rates_binary_file_arg;
 
