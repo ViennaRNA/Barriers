@@ -2,6 +2,15 @@
 
 Revision history for barriers
 
+### 1.8.1   2019-11-21    Gregor Entzian, Ronny Lorenz    <rna@tbi.univie.ac.at>
+  * Fix connected component option
+  * Update connected component description
+  * Fix various mixed usages of signed/unsigned types
+  * Replace hash table implementation with one that uses separate chaining with linked lists instead of simple linear probing
+  * Refrain from installing `get_hashbits.pl` since this is only required at compile-time
+  * Refactor installation process of Perl 5 scripts and Perl 5 module
+
+
 ### 1.8.0   2019-10-18    Gregor Entzian, Ronny Lorenz    <rna@tbi.univie.ac.at>
   * Fix command line argument parsing
   * Fix potentially running into infinite loops

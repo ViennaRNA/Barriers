@@ -12,7 +12,7 @@ Compute local minima and energy barriers of a landscape
 
 ## INSTALLATION
 
-Typically, `barriers` in installed like this:
+Typically, `barriers` is installed like this:
 
 ```
 ./configure
@@ -31,7 +31,7 @@ of the landscape you can analyse is set at compile time using the
 
 will create a hash of 2^27 entries.
 
-If you you need a hash size >2^27 you may have to set the `-mcmodel=medium`
+If you need a hash size >2^27 you may have to set the `-mcmodel=medium`
 or `-mcmodel=large` option in `gcc`, e.g.:
 
 ```
