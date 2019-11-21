@@ -67,10 +67,26 @@ AC_ARG_WITH(hash-bits,
 AC_DEFINE_UNQUOTED(HASHBITS, [(unsigned int)$hashbits], [use hash with 2^HASHBITS entries])
 
 AC_ARG_WITH(secis,
-[  --with-secis          build SECIS element design extension],
+[  --with-secis            build SECIS element design extension],
 [ with_secis="yes" ],
 [ with_secis="no"]
 )
+
+AC_ARG_WITH(perl,
+[AS_HELP_STRING([--without-perl], [do not install Perl 5 scripts or module])])
+AS_IF([test "x$with_perl" != "xno"], [
+  with_perl=yes
+],[
+  with_perl_mod="no"
+])
+
+AC_ARG_WITH(perl-mod,
+[AS_HELP_STRING([--without-perl-mod], [do not install Perl 5 module])])
+AS_IF([test "x$with_perl_mod" != "xno"], [
+  with_perl_mod=yes
+])
+
+
 
 dnl Checks for programs.
 AC_PROG_INSTALL
@@ -139,10 +155,47 @@ AC_DEFINE_UNQUOTED(HAVE_SECIS_EXTENSION,
 
 AM_CONDITIONAL(BUILD_SECIS_EXT, test "$with_secis" != "no")
 
+
+if test "$with_perl" != "no"; then
+    AX_PERL_EXT
+    if test "x$PERL" = "x"; then
+      AC_MSG_ERROR([Perl is required to prepare installation of the perl module(s).])
+      with_perl="no"
+      with_perl_mod="no"
+    fi
+fi
+
+if test "$with_perl_mod" != "no"; then
+    # Compose the correct installation path for perl modules
+    #
+    # here we actually have to account for INSTALLDIRS env variable, which can be
+    #
+    # site    = where the local systems administrator installs packages to
+    # vendor  = where system packages are installed to, or
+    # core    = where perl core packages are installed
+    #
+    # The default selection is 'site', but upon packaging for a specific distribution
+    # we might want the user to set this to 'vendor'
+    #
+    AS_IF([ test "x$INSTALLDIRS" == "xvendor" ],[
+      PERL_ARCH_RELATIVE_INSTALL_DIR=`echo ${PERL_EXT_VENDORARCH} | sed "s,${PERL_EXT_VENDORPREFIX},,"`
+      PERL_LIB_RELATIVE_INSTALL_DIR=`echo ${PERL_EXT_VENDORLIB} | sed "s,${PERL_EXT_VENDORPREFIX},,"`
+      ],[
+      PERL_ARCH_RELATIVE_INSTALL_DIR=`echo ${PERL_EXT_SITEARCH} | sed "s,${PERL_EXT_SITEPREFIX},,"`
+      PERL_LIB_RELATIVE_INSTALL_DIR=`echo ${PERL_EXT_SITELIB} | sed "s,${PERL_EXT_SITEPREFIX},,"`
+    ])
+    AC_SUBST(PERL_ARCH_RELATIVE_INSTALL_DIR)
+    AC_SUBST(PERL_LIB_RELATIVE_INSTALL_DIR)
+fi
+
+AM_CONDITIONAL(INSTALL_PERL, test "$with_perl" != "no")
+AM_CONDITIONAL(INSTALL_PERL_MOD, test "$with_perl_mod" != "no")
+
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile tests/Makefile])
 AC_CONFIG_FILES([src/PoHo/Makefile])
 AC_CONFIG_FILES([src/SECIS/Makefile])
+AC_CONFIG_FILES([perl/Makefile])
 AC_CONFIG_FILES([packaging/barriers.spec packaging/PKGBUILD packaging/barriers.lsm])
 AC_CONFIG_FILES([man/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
@@ -155,12 +208,22 @@ eval _bindir=$(eval printf "%s" $bindir)
 eval _datadir=$(eval printf "%s" $datadir)
 eval _mandir=$(eval printf "%s" $mandir)
 
+AS_IF([test $with_perl_mod = "yes"],[
+  eval _perl_lib_dir=$(eval printf "%s" "$prefix" ${PERL_LIB_RELATIVE_INSTALL_DIR})
+  ], [
+  _perl_lib_dir="Not to be installed"
+])
+
 m4_map_args([ AC_COLOR_RESULT_PACKAGE],
-            [secis])
+            [secis],
+            [perl],
+            [perl_mod])
 m4_map_args([ AC_COLOR_RESULT_SIMPLE],
             [_bindir],
             [_mandir],
-            [_datadir])
+            [_datadir],
+            [_perl_install],
+            [_perl_lib_dir])
 
 # Notify the user
 
@@ -178,11 +241,14 @@ Configured successful with the following options:
 Extra Features
 ---------------
   * SECIS Extension           : ${result_secis}
+  * Perl Script(s)            : ${result_perl}
+  * Perl Module               : ${result_perl_mod}
 
 Install Directories
 -------------------
   * Executables               : $result__bindir
   * Extra Data                : $result__datadir
   * Man pages                 : $result__mandir
+  * Perl5 Module              : $result__perl_lib_dir
 
 $ac_barriers_final_msg])

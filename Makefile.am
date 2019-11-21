@@ -4,16 +4,9 @@ AM_DISTCHECK_CONFIGURE_FLAGS = \
     --with-secis \
     --disable-silent-rules
 
-SUBDIRS = src man tests
-
-bin_SCRIPTS = \
-    perl/crossrates.pl \
-    perl/get_hashbits.pl
-
+SUBDIRS = src man perl tests
 
 EXTRA_DIST = \
     README.md \
     ChangeLog.md \
-    VERSION.txt \
-    perl/crossrates.pl \
-    perl/get_hashbits.pl
+    VERSION.txt
