@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # -*-Perl-*-
 # Last changed Time-stamp: <2003-09-02 11:50:19 ivo>
 
@@ -6,6 +6,7 @@ use FindBin qw($Bin);
 use RNA;
 use Getopt::Long;
 use strict;
+use warnings;
 
  Getopt::Long::config('no_ignore_case');
 

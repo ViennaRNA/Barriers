@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # -*-Perl-*-
 # Last changed Time-stamp: <2003-09-02 11:54:38 ivo>
 

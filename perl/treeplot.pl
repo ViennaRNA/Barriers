@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # -*-Perl-*-
 # Last changed Time-stamp: <2005-10-14 14:33:53 ivo>
 # $Id: treeplot.pl,v 1.2 2005/10/14 12:38:27 ivo Exp $
@@ -6,6 +6,7 @@
 use Getopt::Long;
 use File::Basename;
 use strict;
+use warnings;
 use vars qw/$DATA @BBOX $TITLE $L2I $I2L $A $B/;
 
 use constant {

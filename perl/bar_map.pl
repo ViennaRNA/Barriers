@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # -*-Perl-*-
 # Last changed Time-stamp: <2006-11-28 15:55:23 xtof>
 # $Id: bar_map.pl,v 1.7 2008/09/19 17:17:05 ivo Exp $

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 # -*-Perl-*-
 # Last changed Time-stamp: <2004-07-02 13:05:06 xtof>
 # $Id: saddle2dot.pl,v 1.1 2004/07/02 11:09:21 xtof Exp $

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 # -*-Perl-*-
 # Last changed Time-stamp: <2001-07-11 21:58:05 xtof>
 
