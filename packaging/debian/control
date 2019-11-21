@@ -3,13 +3,20 @@ Maintainer: Ronny Lorenz <ronny@tbi.univie.ac.at>
 Section: science
 Priority: optional
 Standards-Version: 3.9.5
-Build-Depends: debhelper (>= 9), autotools-dev
+Build-Depends: debhelper (>= 9), autotools-dev, perl
 Homepage: http://www.tbi.univie.ac.at/RNA/Barriers
 
 Package: barriers
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, perl
 Description: Compute local minima and energy barriers of a landscape
  The program barriers reads an energy sorted list of conformations of a landscape, and computes local minima and energy barriers of the landscape. 
  For RNA secondary structures, suitable input is produced by RNAsubopt For each local minimum found it prints to stdout, the conformation of the minimum, its energy, the number of the "parent"-minimum it merges with, and the height of the energy barrier. Additional information on each minimum, such as saddle point conformation and basin sizes can be included via options. 
  A PostScript drawing of the resulting tree is written to "tree.ps" in the current directory.
+
+Package: perl-rna-barrier
+Section: perl
+Architecture: any
+Depends: ${perl:Depends}, ${misc:Depends}, ${shlibs:Depends}, perl, perl-rna
+Description: Perl module and scripts for Barriers
+ The RNA/barrier module and perl scripts to access some functionality of the Barriers program

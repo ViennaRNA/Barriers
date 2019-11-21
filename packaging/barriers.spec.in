@@ -24,15 +24,27 @@ BuildRequires:  rpm-devel
 BuildRequires:  gcc glibc-devel
 
 Requires:       glibc
+Requires:       perl
 
 %description
 Compute local minima and energy barriers of a landscape
+
+%package -n perl-rna-barrier
+Summary:  Perl module and scripts for Barriers
+Group:    Development/Libraries/Perl
+Requires: %{name} = %{version}-%{release}
+Requires: perl perl-rna
+
+%description -n perl-rna-barrier
+Perl modules and scripts for Barriers as part of the RNA/ package.
 
 %prep
 %setup -n Barriers-%{version} -q
 
 %build
-%configure
+%configure \
+    INSTALLDIRS=vendor \
+    PERL=/usr/bin/perl
 make
 
 %install
@@ -45,5 +57,16 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_bindir}/*
+%{_bindir}/barriers
+%{_bindir}/crossrates.pl
+%{_bindir}/genPoHoLandscape
+%{_bindir}/saddle2dot.pl
+%{_bindir}/saddle2gml.pl
+%{_bindir}/treeplot.pl
 %{_mandir}/man1/barriers.1.gz
+
+%files -n perl-rna-barrier
+%defattr(644,root,root,755)
+%{perl_vendorlib}/RNA/barrier.pm
+%{_bindir}/fix_bar.pl
+%{_bindir}/saddle.pl
