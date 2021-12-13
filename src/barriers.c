@@ -57,7 +57,7 @@ static int            bsize          = 1;
 static int            shut_up        = 0;
 static int            verbose        = 0;
 static unsigned long  max_print      = 0;
-static int  					want_connected = 0;
+static int            want_connected = 0;
 static int            IS_RNA         = 0;
 static int            print_labels   = 0;
 static int            IS_arbitrary   = 0;
@@ -416,10 +416,8 @@ barriers(barrier_options opt, hash_table_t* hash_table)
     /* fprintf(stderr, "M%s\n", form); */
     check_neighbors(hash_table);    /* flood the energy landscape */
     reset_stapel();
-    if ((n_saddle + 1 == max_print) && (!opt.rates)) {
-      fprintf(stderr, "barriers(): breaking, found enough saddles\n");
+    if ((n_saddle + 1 == max_print) && (!opt.rates))
       break;  /* we've found all we want to know */
-    }
   }
   switch (opt.GRAPH[0]) {
     case 'Q':
@@ -473,15 +471,15 @@ barriers(barrier_options opt, hash_table_t* hash_table)
  * discarded, leaving a disconnected landscape.
  */
 static unsigned long n_connected_mins_index(loc_min *lmin, unsigned long n) {
-  unsigned long 					  i = 1;
-  unsigned long 			 father = 0;
-  unsigned long   n_connected = 1;			  /* number of connected mins found */
-  int 				  *is_connected = NULL;
+  unsigned long             i = 1;
+  unsigned long        father = 0;
+  unsigned long   n_connected = 1;        /* number of connected mins found */
+  int           *is_connected = NULL;     /* stores which mins are connected */
 
   /* Initialize list to keep track of connected mins. */
   is_connected = (int*) space((n_lmin + 1) * sizeof(int));
   for (i = 0; i <= n_lmin; i++) { is_connected[i] =  0; } /* assume disconn */
-  is_connected[1] = 1;															/* min 1 is connected */
+  is_connected[1] = 1;                    /* min 1 is connected */
 
   /* Check connectedness of minima, count connected. */
   for (i = 2; (i <= n_lmin) && (n_connected < n); i++) {
@@ -510,7 +508,6 @@ make_truemin(loc_min *Lmin)
 
   /* Ensure that max_print mins are printed when using the --connected option. */
   max_lmins = want_connected ? n_connected_mins_index(Lmin, max_print) : max_print;
-  /* max_lmins = max_print; */
 
   for (ii = i = 1; (i <= max_lmins) && (ii <= n_lmin); ii++) {
     unsigned long f;
@@ -526,11 +523,6 @@ make_truemin(loc_min *Lmin)
       lmin[f].Zg  += lmin[ii].Zg;
     }
   }
-
-  if (i > max_lmins) {
-    fprintf(stderr, "make_truemin(): Exceeding max_print\n");
-  }
-
   truemin[0] = i - 1;
   return truemin;
 }
@@ -939,8 +931,6 @@ merge_basins()
           else
             false_lmin++;
         }
-        if (ii > max_print + false_lmin)			/* FK */
-          ; /* fprintf(stderr, "merge_basins(): Skipped counting mins\n"); */
 
         lmin[ii].father   = father;
         lmin[ii].saddle   = comp[c].saddle;
