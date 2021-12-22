@@ -463,59 +463,34 @@ barriers(barrier_options opt, hash_table_t* hash_table)
 }
 
 
-/* Determine the index i of the given list of local minima such that
- * n of the first i local minima are connected to the mfe basin.
- * Note: When considering transition rates, this is an approximation: even if
- * a minimum m has a father, the required transitions may happen from a
- * child basin c that has been merged into m. If c > i, the child will be
- * discarded, leaving a disconnected landscape.
- */
-static unsigned long n_connected_mins_index(loc_min *lmin, unsigned long n) {
-  unsigned long             i = 1;
-  unsigned long        father = 0;
-  unsigned long   n_connected = 1;        /* number of connected mins found */
-  int           *is_connected = NULL;     /* stores which mins are connected */
-
-  /* Initialize list to keep track of connected mins. */
-  is_connected = (int*) space((n_lmin + 1) * sizeof(int));
-  for (i = 0; i <= n_lmin; i++) { is_connected[i] =  0; } /* assume disconn */
-  is_connected[1] = 1;                    /* min 1 is connected */
-
-  /* Check connectedness of minima, count connected. */
-  for (i = 2; (i <= n_lmin) && (n_connected < n); i++) {
-    father = lmin[i].father;
-    if ((father > 0) && is_connected[father]) {			/* i is connected */
-      is_connected[i] = 1;
-      n_connected++;
-    }
-  }
-  i--;
-  /* i is now either n_lmin or the index that incremented n_connected to n */
-
-  free(is_connected);
-  return i;
-}
-
-
 unsigned long *
 make_truemin(loc_min *Lmin)
 {
-  unsigned long *truemin, nlmin, i, ii, max_lmins;
+  unsigned long *truemin, nlmin, i, ii, f;
+  int           *is_connected = NULL;     /* stores which mins are connected */
 
   nlmin   = Lmin[0].fathers_pool;
   truemin = (unsigned long *)space((nlmin + 1) * sizeof(unsigned long));
   /* truemin[0] = nlmin; */
 
-  /* Ensure that max_print mins are printed when using the --connected option. */
-  max_lmins = want_connected ? n_connected_mins_index(Lmin, max_print) : max_print;
+  /* Ensure that max_print mins are printed when using the --connected option.
+   * Initialize list to keep track of connected mins. */
+  is_connected = (int*) space((n_lmin + 1) * sizeof(int));
+  for (i = 0; i <= n_lmin; i++) { is_connected[i] =  0; } /* assume disconn */
+  is_connected[1] = 1;                    /* min 1 is connected */
 
-  for (ii = i = 1; (i <= max_lmins) && (ii <= n_lmin); ii++) {
-    unsigned long f;
+  for (ii = i = 1; (i <= max_print) && (ii <= n_lmin); ii++) {
     f = lmin[ii].father;
     if (!f)
       lmin[ii].E_saddle = energy + 0.000001;
+    if (is_connected[f])  			/* i != 1 is connected iff its father is */
+      is_connected[ii] = 1;
 
-    if ((lmin[ii].E_saddle - lmin[ii].energy - (float)minh + FLT_EPSILON >= 0.) || (nlmin == 1)) {
+    /* A min is true iff 1) its barrier height is at least minh, and 2) if the
+     * want_connected option is given, it has to be connected to the mfe. */
+    if (((lmin[ii].E_saddle - lmin[ii].energy - (float)minh + FLT_EPSILON >= 0.)
+          && (!want_connected || is_connected[ii]))
+        || (nlmin == 1)) {
       truemin[ii] = i++;
     } else {
       /* ii is not a truemin */
