@@ -52,14 +52,15 @@ static char           *(*unpack_my_structure)(const char *);
 static double         kT = -1;
 
 /* global switches */  /* defaults changed */
-static int            print_saddles = 1;
-static int            bsize         = 1;
-static int            shut_up       = 0;
-static int            verbose       = 0;
-static unsigned long  max_print     = 0;
-static int            IS_RNA        = 0;
-static int            print_labels  = 0;
-static int            IS_arbitrary  = 0;
+static int            print_saddles  = 1;
+static int            bsize          = 1;
+static int            shut_up        = 0;
+static int            verbose        = 0;
+static unsigned long  max_print      = 0;
+static int            want_connected = 0;
+static int            IS_RNA         = 0;
+static int            print_labels   = 0;
+static int            IS_arbitrary   = 0;
 
 static int            maxlabellength = 0;
 
@@ -134,13 +135,14 @@ set_barrier_options(barrier_options opt)
 {
   int isRNA2 = 0;
 
-  print_saddles = opt.print_saddles;
-  bsize         = opt.bsize;
-  shut_up       = opt.want_quiet;
-  max_print     = opt.max_print;
-  minh          = opt.minh;
-  verbose       = opt.want_verbose;
-  print_labels  = opt.label;
+  print_saddles  = opt.print_saddles;
+  bsize          = opt.bsize;
+  shut_up        = opt.want_quiet;
+  max_print      = opt.max_print;
+  want_connected = opt.want_connected;
+  minh           = opt.minh;
+  verbose        = opt.want_verbose;
+  print_labels   = opt.label;
   switch (opt.GRAPH[0]) {
     case 'R':   /* RNA secondary Structures */
       if (strncmp(opt.GRAPH, "RNA", 3) == 0) {
@@ -464,19 +466,31 @@ barriers(barrier_options opt, hash_table_t* hash_table)
 unsigned long *
 make_truemin(loc_min *Lmin)
 {
-  unsigned long *truemin, nlmin, i, ii;
+  unsigned long *truemin, nlmin, i, ii, f;
+  int           *is_connected = NULL;     /* stores which mins are connected */
 
   nlmin   = Lmin[0].fathers_pool;
   truemin = (unsigned long *)space((nlmin + 1) * sizeof(unsigned long));
   /* truemin[0] = nlmin; */
 
+  /* Ensure that max_print mins are printed when using the --connected option.
+   * Initialize list to keep track of connected mins. */
+  is_connected = (int*) space((n_lmin + 1) * sizeof(int));
+  for (i = 0; i <= n_lmin; i++) { is_connected[i] =  0; } /* assume disconn */
+  is_connected[1] = 1;                    /* min 1 is connected */
+
   for (ii = i = 1; (i <= max_print) && (ii <= n_lmin); ii++) {
-    unsigned long f;
     f = lmin[ii].father;
     if (!f)
       lmin[ii].E_saddle = energy + 0.000001;
+    if (is_connected[f])  			/* i != 1 is connected iff its father is */
+      is_connected[ii] = 1;
 
-    if ((lmin[ii].E_saddle - lmin[ii].energy - (float)minh + FLT_EPSILON >= 0.) || (nlmin == 1)) {
+    /* A min is true iff 1) its barrier height is at least minh, and 2) if the
+     * want_connected option is given, it has to be connected to the mfe. */
+    if (((lmin[ii].E_saddle - lmin[ii].energy - (float)minh + FLT_EPSILON >= 0.)
+          && (!want_connected || is_connected[ii]))
+        || (nlmin == 1)) {
       truemin[ii] = i++;
     } else {
       /* ii is not a truemin */
